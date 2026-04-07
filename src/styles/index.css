@@ -1,0 +1,105 @@
+/* Design System */
+:root {
+  /* Colors */
+  --bg-base: #121212;
+  --bg-surface: #1e1e1e;
+  --bg-surface-hover: #2c2c2c;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --accent: #bb86fc;
+  --accent-hover: #9965f4;
+  --border: #333333;
+  --danger: #cf6679;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-size-base: 14px;
+  --border-radius: 6px;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* Shared UI Components */
+button {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background-color: var(--bg-surface-hover);
+}
+
+button.primary {
+  background-color: var(--accent);
+  color: var(--bg-base);
+  border-color: var(--accent);
+}
+
+button.primary:hover {
+  background-color: var(--accent-hover);
+}
+
+button.danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+input, select, textarea {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius);
+  font-family: inherit;
+  font-size: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+h1, h2, h3, h4 {
+  margin-top: 0;
+}

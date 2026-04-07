@@ -1,0 +1,119 @@
+import { renderFactionEditor } from './editors/faction-editor.js';
+import { renderCardEditor } from './editors/card-editor.js';
+import { renderItemEditor } from './editors/item-editor.js';
+import { renderEnemyEditor } from './editors/enemy-editor.js';
+import { renderEventEditor } from './editors/event-editor.js';
+import { renderDeckEditor } from './editors/deck-editor.js';
+import { renderMapEditor } from './editors/map-editor.js';
+
+export function initBuilder(container) {
+  container.innerHTML = `
+    <div class="builder-layout">
+      <!-- Sidebar -->
+      <nav class="sidebar">
+        <div class="sidebar-header">
+          <h2>Game Builder</h2>
+          <div style="font-size: 0.8em; color: var(--text-secondary); margin-top: 4px;">Web Authoring Tool</div>
+        </div>
+        <div class="sidebar-nav">
+          <div class="nav-item active" data-tab="factions">Factions</div>
+          <div class="nav-item" data-tab="cards">Cards</div>
+          <div class="nav-item" data-tab="items">Items</div>
+          <div class="nav-item" data-tab="enemies">Enemies</div>
+          <div class="nav-item" data-tab="events">Events</div>
+          <div class="nav-item" data-tab="decks">Deck Templates</div>
+          <div class="nav-item" data-tab="maps">Maps</div>
+        </div>
+        <div style="padding: var(--spacing-md); border-top: 1px solid var(--border);">
+          <button id="btn-export-data" style="width:100%; margin-bottom: 8px;">Export JSON</button>
+          <button id="btn-import-data" style="width:100%;">Import JSON</button>
+        </div>
+      </nav>
+      
+      <!-- Main Content Area -->
+      <main class="main-content" id="editor-container">
+        <!-- Editor views will be injected here -->
+      </main>
+    </div>
+  `;
+
+  const navItems = container.querySelectorAll('.nav-item');
+  const editorContainer = container.querySelector('#editor-container');
+
+  function switchTab(tabId) {
+    // Update active nav state
+    navItems.forEach(nav => {
+      nav.classList.toggle('active', nav.dataset.tab === tabId);
+    });
+
+    // Render appropriate editor
+    editorContainer.innerHTML = ''; // clear
+    if (tabId === 'factions') {
+      renderFactionEditor(editorContainer);
+    } else if (tabId === 'cards') {
+      renderCardEditor(editorContainer);
+    } else if (tabId === 'items') {
+      renderItemEditor(editorContainer);
+    } else if (tabId === 'enemies') {
+      renderEnemyEditor(editorContainer);
+    } else if (tabId === 'events') {
+      renderEventEditor(editorContainer);
+    } else if (tabId === 'decks') {
+      renderDeckEditor(editorContainer);
+    } else if (tabId === 'maps') {
+      renderMapEditor(editorContainer);
+    } else {
+      editorContainer.innerHTML = `
+        <div class="editor-header">
+          <h2>${tabId.charAt(0).toUpperCase() + tabId.slice(1)} Editor</h2>
+        </div>
+        <div class="editor-body">
+          <div class="empty-state">Editor for ${tabId} is not implemented yet.</div>
+        </div>
+      `;
+    }
+  }
+
+  // Setup nav click listeners
+  navItems.forEach(nav => {
+    nav.addEventListener('click', () => {
+      switchTab(nav.dataset.tab);
+    });
+  });
+
+  // Export / Import
+  container.querySelector('#btn-export-data').addEventListener('click', () => {
+     const jsonStr = store.exportAll();
+     const blob = new Blob([jsonStr], { type: 'application/json' });
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url;
+     a.download = 'game_data_export.json';
+     a.click();
+     URL.revokeObjectURL(url);
+  });
+
+  container.querySelector('#btn-import-data').addEventListener('click', () => {
+     const input = document.createElement('input');
+     input.type = 'file';
+     input.accept = 'application/json';
+     input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+           if(store.importAll(ev.target.result)) {
+              alert('Data imported successfully!');
+              switchTab('factions'); // redraw
+           } else {
+              alert('Failed to import data. Invalid JSON format.');
+           }
+        };
+        reader.readAsText(file);
+     };
+     input.click();
+  });
+
+  // Load initial tab
+  switchTab('factions');
+}
