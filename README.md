@@ -1,6 +1,6 @@
 # Deck Builder - Game Authoring Tool
 
-A web-based editor for authoring all content for a Slay the Spire-style adventure RPG. 
+A web-based editor for authoring all content for a deckbuilding adventure RPG. 
 This builder exports a structured JSON payload that can be directly imported and parsed natively by a GDScript game client in Godot.
 
 ## Features
