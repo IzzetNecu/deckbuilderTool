@@ -10,8 +10,10 @@ The editor operates completely client-side utilizing vanilla HTML, CSS, JavaScri
 ### Editors Included
 - **Factions**: Create factions with ordered ranks (e.g. Outsider, Initiate, Member, Elder) for story branching.
 - **Cards**: Author Attack, Defend, Skill, or Power cards. Assign cost, mechanic effects (`DEAL_DAMAGE:6`), rarity, and preview them live.
-- **Items**: Create Weapons, Armors, and Consumables, and configure their stats and drop rarity.
-- **Enemies**: Build monsters, assign them Health Points, configure their potential loot drops with % weights, and build their unique behavior deck using the Cards you engineered.
+- **Consumables**: Single-use items allowing special effects during and out of combat.
+- **Equipment**: Items that can be worn by the player on specific slots (`offHand`, `onehandedWeapon`, `twohandedWeapon`, `head`, `armor`, `legs`, `ring`, `amulet`). Supports stat conditions for equipping and attaching cards directly into the player's deck.
+- **Key Items**: Narrative and quest items (e.g. Dungeon Keys) driving dialogue events.
+- **Enemies**: Build monsters, assign them Health Points, configure their potential loot drops (from Consumables, Equipment, and Key Items), and build their unique behavior deck using the Cards you engineered.
 - **Events (Narrative)**: Build rich choose-your-own-adventure dialogue trees. Options can have complex Prerequisites (e.g. `hasStrength >= 5` or `hasMoney >= 120`) and distinct Outcomes.
 - **Map Node-Graph Editor**: A fully custom HTML5 canvas graph editor allowing you to draw paths between maps, rest sites, shops, and combat encounters. Supports nested sub-maps (e.g. Dungeons).
 
@@ -23,7 +25,9 @@ The primary output of the tool is the exported JSON payload, which acts as the c
 {
   "factions": [...],
   "cards": [...],
-  "items": [...],
+  "consumables": [...],
+  "equipment": [...],
+  "keyItems": [...],
   "enemies": [...],
   "events": [...],
   "deckTemplates": [...],
