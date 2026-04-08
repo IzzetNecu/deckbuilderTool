@@ -1,10 +1,13 @@
 import { renderFactionEditor } from './editors/faction-editor.js';
 import { renderCardEditor } from './editors/card-editor.js';
-import { renderItemEditor } from './editors/item-editor.js';
+import { renderConsumableEditor } from './editors/consumable-editor.js';
+import { renderEquipmentEditor } from './editors/equipment-editor.js';
+import { renderKeyItemEditor } from './editors/keyitem-editor.js';
 import { renderEnemyEditor } from './editors/enemy-editor.js';
 import { renderEventEditor } from './editors/event-editor.js';
 import { renderDeckEditor } from './editors/deck-editor.js';
 import { renderMapEditor } from './editors/map-editor.js';
+import { store } from '../data/store.js';
 
 export function initBuilder(container) {
   container.innerHTML = `
@@ -18,7 +21,9 @@ export function initBuilder(container) {
         <div class="sidebar-nav">
           <div class="nav-item active" data-tab="factions">Factions</div>
           <div class="nav-item" data-tab="cards">Cards</div>
-          <div class="nav-item" data-tab="items">Items</div>
+          <div class="nav-item" data-tab="consumables">Consumables</div>
+          <div class="nav-item" data-tab="equipment">Equipment</div>
+          <div class="nav-item" data-tab="keyItems">Key Items</div>
           <div class="nav-item" data-tab="enemies">Enemies</div>
           <div class="nav-item" data-tab="events">Events</div>
           <div class="nav-item" data-tab="decks">Deck Templates</div>
@@ -52,8 +57,12 @@ export function initBuilder(container) {
       renderFactionEditor(editorContainer);
     } else if (tabId === 'cards') {
       renderCardEditor(editorContainer);
-    } else if (tabId === 'items') {
-      renderItemEditor(editorContainer);
+    } else if (tabId === 'consumables') {
+      renderConsumableEditor(editorContainer);
+    } else if (tabId === 'equipment') {
+      renderEquipmentEditor(editorContainer);
+    } else if (tabId === 'keyItems') {
+      renderKeyItemEditor(editorContainer);
     } else if (tabId === 'enemies') {
       renderEnemyEditor(editorContainer);
     } else if (tabId === 'events') {
@@ -82,15 +91,44 @@ export function initBuilder(container) {
   });
 
   // Export / Import
-  container.querySelector('#btn-export-data').addEventListener('click', () => {
+  container.querySelector('#btn-export-data').addEventListener('click', async () => {
      const jsonStr = store.exportAll();
      const blob = new Blob([jsonStr], { type: 'application/json' });
+     
+     // Modern File System Access API
+     if ('showSaveFilePicker' in window) {
+       try {
+         const handle = await window.showSaveFilePicker({
+           suggestedName: 'game_data_export.json',
+           types: [{
+             description: 'JSON File',
+             accept: { 'application/json': ['.json'] },
+           }],
+         });
+         const writable = await handle.createWritable();
+         await writable.write(blob);
+         await writable.close();
+         return; // Successfully saved
+       } catch (err) {
+         if (err.name === 'AbortError') return; // User cancelled prompt
+         console.warn('File System Access API failed, falling back:', err);
+       }
+     }
+     
+     // Fallback classical anchor tag
      const url = URL.createObjectURL(blob);
      const a = document.createElement('a');
+     a.style.display = 'none';
      a.href = url;
      a.download = 'game_data_export.json';
+     
+     document.body.appendChild(a);
      a.click();
-     URL.revokeObjectURL(url);
+     
+     setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+     }, 150);
   });
 
   container.querySelector('#btn-import-data').addEventListener('click', () => {

@@ -30,15 +30,46 @@ export function createCard(data = {}) {
   };
 }
 
-export function createItem(data = {}) {
+export function createConsumable(data = {}) {
   return {
     id: data.id || uuid(),
     name: data.name || '',
     description: data.description || '',
-    type: data.type || 'consumable', // weapon, armor, consumable, key
-    effects: data.effects || [],
     rarity: data.rarity || 'common',
-    value: data.value ?? 10
+    value: data.value ?? 10,
+    effects: data.effects || []
+  };
+}
+
+export function createEquipmentCondition(data = {}) {
+  return {
+    id: data.id || uuid(),
+    type: data.type || 'hasStat',
+    target: data.target || '',
+    operator: data.operator || '>=',
+    value: data.value || ''
+  };
+}
+
+export function createEquipment(data = {}) {
+  return {
+    id: data.id || uuid(),
+    name: data.name || '',
+    description: data.description || '',
+    type: data.type || 'onehandedWeapon', // offHand, onehandedWeapon, twohandedWeapon, head, armor, legs, ring, amulet
+    rarity: data.rarity || 'common',
+    value: data.value ?? 10,
+    effects: data.effects || [],
+    cardIds: data.cardIds || [],
+    conditions: data.conditions || []
+  };
+}
+
+export function createKeyItem(data = {}) {
+  return {
+    id: data.id || uuid(),
+    name: data.name || '',
+    description: data.description || ''
   };
 }
 
@@ -66,17 +97,17 @@ export function createEventOption(data = {}) {
 export function createEventCondition(data = {}) {
   return {
     id: data.id || uuid(),
-    type: data.type || 'hasStat', // hasMoney, hasStat, hasItem, lacksItem, hasFactionRank
-    target: data.target || '', // e.g. "strength", itemId
+    type: data.type || 'hasStat', // hasMoney, hasStat, hasConsumable, lacksConsumable, hasEquipment, lacksEquipment, hasKeyItem, lacksKeyItem, hasFactionRank
+    target: data.target || '', 
     operator: data.operator || '>=', // >=, <=, ==
-    value: data.value || '' // number or string depending on type
+    value: data.value || '' 
   };
 }
 
 export function createEventOutcome(data = {}) {
   return {
     id: data.id || uuid(),
-    type: data.type || 'text', // addItem, removeItem, addCard, removeCard, addMoney, removeMoney, damage, heal, modifyStat, text
+    type: data.type || 'text', // addConsumable, removeConsumable, addEquipment, removeEquipment, addKeyItem, removeKeyItem, addCard, removeCard, addMoney, removeMoney, damage, heal, modifyStat, text
     target: data.target || '', 
     value: data.value || '' 
   };

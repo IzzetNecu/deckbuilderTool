@@ -4,7 +4,15 @@ import { showConfirmModal } from '../components/modal.js';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
-  let allItems = store.getAll('items');
+  let consumables = store.getAll('consumables');
+  let equipment = store.getAll('equipment');
+  let keyItems = store.getAll('keyItems');
+  
+  let allItems = [
+    ...consumables.map(c => ({...c, _typeLabel: 'Consumable'})),
+    ...equipment.map(e => ({...e, _typeLabel: 'Equipment'})),
+    ...keyItems.map(k => ({...k, _typeLabel: 'Key Item'}))
+  ];
   let factions = store.getAll('factions');
   let selectedId = null;
 
@@ -111,11 +119,11 @@ export function renderEventEditor(container) {
              ${STATS.map(s => `<option value="${s}" ${cond.target === s ? 'selected' : ''}>${s}</option>`).join('')}
            </select>
         `;
-     } else if (cond.type === 'hasItem' || cond.type === 'lacksItem') {
+     } else if (['hasConsumable', 'lacksConsumable', 'hasEquipment', 'lacksEquipment', 'hasKeyItem', 'lacksKeyItem'].includes(cond.type)) {
         targetHTML = `
            <select class="cond-target" data-opt="${optInd}" data-cond="${condInd}" style="width:150px;">
              <option value="">-- Select Item --</option>
-             ${allItems.map(i => `<option value="${i.id}" ${cond.target === i.id ? 'selected' : ''}>${i.name}</option>`).join('')}
+             ${allItems.length === 0 ? '<option value="">No items available</option>' : allItems.map(i => `<option value="${i.id}" ${cond.target === i.id ? 'selected' : ''}>${i.name} (${i._typeLabel})</option>`).join('')}
            </select>
         `;
      } else if (cond.type === 'hasFactionRank') {
@@ -135,8 +143,12 @@ export function renderEventEditor(container) {
           <select class="cond-type" data-opt="${optInd}" data-cond="${condInd}" style="width: 150px;">
             <option value="hasMoney" ${cond.type === 'hasMoney' ? 'selected' : ''}>Has Money</option>
             <option value="hasStat" ${cond.type === 'hasStat' ? 'selected' : ''}>Has Stat</option>
-            <option value="hasItem" ${cond.type === 'hasItem' ? 'selected' : ''}>Has Item</option>
-            <option value="lacksItem" ${cond.type === 'lacksItem' ? 'selected' : ''}>Lacks Item</option>
+            <option value="hasConsumable" ${cond.type === 'hasConsumable' ? 'selected' : ''}>Has Consumable</option>
+            <option value="lacksConsumable" ${cond.type === 'lacksConsumable' ? 'selected' : ''}>Lacks Consumable</option>
+            <option value="hasEquipment" ${cond.type === 'hasEquipment' ? 'selected' : ''}>Has Equipment</option>
+            <option value="lacksEquipment" ${cond.type === 'lacksEquipment' ? 'selected' : ''}>Lacks Equipment</option>
+            <option value="hasKeyItem" ${cond.type === 'hasKeyItem' ? 'selected' : ''}>Has Key Item</option>
+            <option value="lacksKeyItem" ${cond.type === 'lacksKeyItem' ? 'selected' : ''}>Lacks Key Item</option>
             <option value="hasFactionRank" ${cond.type === 'hasFactionRank' ? 'selected' : ''}>Has Faction Rank</option>
           </select>
           ${targetHTML}
@@ -153,10 +165,10 @@ export function renderEventEditor(container) {
 
   function renderOutcomeForm(out, optInd, outInd) {
      let targetHTML = '';
-     if (out.type === 'addItem' || out.type === 'removeItem') {
+     if (['addConsumable', 'removeConsumable', 'addEquipment', 'removeEquipment', 'addKeyItem', 'removeKeyItem'].includes(out.type)) {
         targetHTML = `
            <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:150px;">
-             ${allItems.map(i => `<option value="${i.id}" ${out.target === i.id ? 'selected' : ''}>${i.name}</option>`).join('')}
+             ${allItems.length === 0 ? '<option value="">No items available</option>' : allItems.map(i => `<option value="${i.id}" ${out.target === i.id ? 'selected' : ''}>${i.name} (${i._typeLabel})</option>`).join('')}
            </select>
         `;
      } else if (out.type === 'modifyStat') {
@@ -174,8 +186,12 @@ export function renderEventEditor(container) {
        <div style="display:flex; gap: 8px; margin-bottom: 8px; align-items:center;">
           <select class="out-type" data-opt="${optInd}" data-out="${outInd}" style="width: 150px;">
             <option value="text" ${out.type === 'text' ? 'selected' : ''}>Show Text (Log)</option>
-            <option value="addItem" ${out.type === 'addItem' ? 'selected' : ''}>Add Item</option>
-            <option value="removeItem" ${out.type === 'removeItem' ? 'selected' : ''}>Remove Item</option>
+            <option value="addConsumable" ${out.type === 'addConsumable' ? 'selected' : ''}>Add Consumable</option>
+            <option value="removeConsumable" ${out.type === 'removeConsumable' ? 'selected' : ''}>Remove Consumable</option>
+            <option value="addEquipment" ${out.type === 'addEquipment' ? 'selected' : ''}>Add Equipment</option>
+            <option value="removeEquipment" ${out.type === 'removeEquipment' ? 'selected' : ''}>Remove Equipment</option>
+            <option value="addKeyItem" ${out.type === 'addKeyItem' ? 'selected' : ''}>Add Key Item</option>
+            <option value="removeKeyItem" ${out.type === 'removeKeyItem' ? 'selected' : ''}>Remove Key Item</option>
             <option value="addCard" ${out.type === 'addCard' ? 'selected' : ''}>Add Card</option>
             <option value="removeCard" ${out.type === 'removeCard' ? 'selected' : ''}>Remove Card</option>
             <option value="addMoney" ${out.type === 'addMoney' ? 'selected' : ''}>Add Money</option>

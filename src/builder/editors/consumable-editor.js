@@ -1,39 +1,39 @@
 import { store } from '../../data/store.js';
-import { createItem } from '../../data/models.js';
+import { createConsumable } from '../../data/models.js';
 import { showConfirmModal } from '../components/modal.js';
 
-export function renderItemEditor(container) {
-  let items = store.getAll('items');
+export function renderConsumableEditor(container) {
+  let consumables = store.getAll('consumables');
   let selectedId = null;
 
   function render() {
-    const selectedItem = items.find(i => i.id === selectedId) || null;
+    const selectedItem = consumables.find(i => i.id === selectedId) || null;
 
     container.innerHTML = `
       <div class="editor-header">
-        <h2>Item Editor</h2>
-        <button id="btn-create-item" class="primary">+ New Item</button>
+        <h2>Consumables Editor</h2>
+        <button id="btn-create-item" class="primary">+ New Consumable</button>
       </div>
       <div class="editor-body split-pane">
         
         <!-- List Pane -->
         <div class="pane-list">
           <div class="item-list">
-            ${items.map(i => `
+            ${consumables.map(i => `
               <div class="list-item ${i.id === selectedId ? 'selected' : ''}" data-id="${i.id}">
-                <strong style="color: ${i.name ? 'inherit' : 'var(--text-secondary)'}">${i.name || 'Unnamed Item'}</strong>
+                <strong style="color: ${i.name ? 'inherit' : 'var(--text-secondary)'}">${i.name || 'Unnamed Consumable'}</strong>
                 <div style="font-size: 0.8em; color: var(--text-secondary); margin-top: 4px;">
-                  ${i.type} • Value: ${i.value}g
+                  Value: ${i.value}g • ${i.rarity}
                 </div>
               </div>
             `).join('')}
-            ${items.length === 0 ? `<div style="padding:16px; color:var(--text-secondary); text-align:center;">No items created yet.</div>` : ''}
+            ${consumables.length === 0 ? `<div style="padding:16px; color:var(--text-secondary); text-align:center;">No consumables created yet.</div>` : ''}
           </div>
         </div>
 
         <!-- Form Pane -->
         <div class="pane-form">
-          ${selectedItem ? renderForm(selectedItem) : `<div class="empty-state">Select or create an item to edit.</div>`}
+          ${selectedItem ? renderForm(selectedItem) : `<div class="empty-state">Select or create a consumable to edit.</div>`}
         </div>
 
       </div>
@@ -57,15 +57,6 @@ export function renderItemEditor(container) {
         </div>
         
         <div class="form-row">
-          <div class="form-group">
-            <label>Type</label>
-            <select id="item-type">
-              <option value="consumable" ${item.type === 'consumable' ? 'selected' : ''}>Consumable</option>
-              <option value="weapon" ${item.type === 'weapon' ? 'selected' : ''}>Weapon</option>
-              <option value="armor" ${item.type === 'armor' ? 'selected' : ''}>Armor</option>
-              <option value="key" ${item.type === 'key' ? 'selected' : ''}>Key Item</option>
-            </select>
-          </div>
           <div class="form-group">
             <label>Rarity</label>
             <select id="item-rarity">
@@ -98,7 +89,7 @@ export function renderItemEditor(container) {
         </div>
 
         <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between;">
-          <button id="btn-delete-item" class="danger">Delete Item</button>
+          <button id="btn-delete-item" class="danger">Delete Consumable</button>
         </div>
       </div>
     `;
@@ -106,9 +97,9 @@ export function renderItemEditor(container) {
 
   function attachEvents() {
     container.querySelector('#btn-create-item')?.addEventListener('click', () => {
-      const i = createItem();
-      store.save('items', i);
-      items = store.getAll('items');
+      const i = createConsumable();
+      store.save('consumables', i);
+      consumables = store.getAll('consumables');
       selectedId = i.id;
       render();
     });
@@ -123,51 +114,48 @@ export function renderItemEditor(container) {
     const nameInput = container.querySelector('#item-name');
     if (nameInput) {
       const onChange = () => {
-        const i = items.find(x => x.id === selectedId);
+        const i = consumables.find(x => x.id === selectedId);
         i.name = container.querySelector('#item-name').value;
         i.value = parseInt(container.querySelector('#item-value').value, 10);
-        i.type = container.querySelector('#item-type').value;
         i.rarity = container.querySelector('#item-rarity').value;
         i.description = container.querySelector('#item-desc').value;
         
         const effInputs = container.querySelectorAll('.effect-input');
         i.effects = Array.from(effInputs).map(inp => inp.value);
 
-        store.save('items', i);
+        store.save('consumables', i);
       };
 
       ['#item-name', '#item-value', '#item-desc'].forEach(id => {
          container.querySelector(id).addEventListener('blur', () => { onChange(); render(); });
       });
-      ['#item-type', '#item-rarity'].forEach(id => {
-         container.querySelector(id).addEventListener('change', () => { onChange(); render(); });
-      });
+      container.querySelector('#item-rarity').addEventListener('change', () => { onChange(); render(); });
 
       container.querySelectorAll('.effect-input').forEach(inp => {
-        inp.addEventListener('change', onChange);
+        inp.addEventListener('blur', () => { onChange(); render(); });
       });
 
       container.querySelector('#btn-add-effect').addEventListener('click', () => {
-         const i = items.find(x => x.id === selectedId);
+         const i = consumables.find(x => x.id === selectedId);
          i.effects.push('');
-         store.save('items', i);
+         store.save('consumables', i);
          render();
       });
 
       container.querySelectorAll('.btn-remove-effect').forEach(btn => {
          btn.addEventListener('click', (e) => {
             const index = parseInt(e.currentTarget.dataset.index);
-            const i = items.find(x => x.id === selectedId);
+            const i = consumables.find(x => x.id === selectedId);
             i.effects.splice(index, 1);
-            store.save('items', i);
+            store.save('consumables', i);
             render();
          });
       });
 
       container.querySelector('#btn-delete-item').addEventListener('click', () => {
-        showConfirmModal('Are you sure you want to delete this item?', () => {
-           store.remove('items', selectedId);
-           items = store.getAll('items');
+        showConfirmModal('Are you sure you want to delete this consumable?', () => {
+           store.remove('consumables', selectedId);
+           consumables = store.getAll('consumables');
            selectedId = null;
            render();
         });

@@ -6,7 +6,9 @@ const STORE_PREFIX = 'gamebuilder_';
 const COLLECTIONS = [
   'factions',
   'cards',
-  'items',
+  'consumables',
+  'equipment',
+  'keyItems',
   'enemies',
   'events',
   'deckTemplates',

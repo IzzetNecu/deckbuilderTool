@@ -6,7 +6,16 @@ export function renderEnemyEditor(container) {
   let enemies = store.getAll('enemies');
   let factions = store.getAll('factions');
   let allCards = store.getAll('cards');
-  let allItems = store.getAll('items');
+  
+  let consumables = store.getAll('consumables');
+  let equipment = store.getAll('equipment');
+  let keyItems = store.getAll('keyItems');
+  
+  let allItems = [
+    ...consumables.map(c => ({...c, _typeLabel: 'Consumable'})),
+    ...equipment.map(e => ({...e, _typeLabel: 'Equipment'})),
+    ...keyItems.map(k => ({...k, _typeLabel: 'Key Item'}))
+  ];
   let selectedId = null;
 
   function render() {
@@ -123,7 +132,7 @@ export function renderEnemyEditor(container) {
                         ${lootItem.type === 'item' ? `
                           <select class="loot-id-select" data-index="${index}" style="flex:1;">
                             <option value="">-- Select Item --</option>
-                            ${allItems.map(i => `<option value="${i.id}" ${i.id === lootItem.id ? 'selected' : ''}>${i.name}</option>`).join('')}
+                            ${allItems.length === 0 ? '<option value="">No items available</option>' : allItems.map(i => `<option value="${i.id}" ${i.id === lootItem.id ? 'selected' : ''}>${i.name} (${i._typeLabel})</option>`).join('')}
                           </select>
                         ` : `
                           <input type="number" class="loot-amount-input" data-index="${index}" value="${lootItem.amount || 10}" style="flex:1;" placeholder="Amount" />
