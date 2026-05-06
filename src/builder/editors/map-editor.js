@@ -1,11 +1,18 @@
 import { store } from '../../data/store.js';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition } from '../../data/models.js';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js';
 import { showConfirmModal } from '../components/modal.js';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
   let events = store.getAll('events');
   let enemies = store.getAll('enemies');
+  let factions = store.getAll('factions');
+  let gameMaps = store.getAll('maps');
+  let allItems = [
+    ...store.getAll('consumables').map(c => ({...c, _typeLabel: 'Consumable'})),
+    ...store.getAll('equipment').map(e => ({...e, _typeLabel: 'Equipment'})),
+    ...store.getAll('keyItems').map(k => ({...k, _typeLabel: 'Key Item'}))
+  ];
   
   let selectedMapId = null;
   let selectedNodeId = null;
@@ -119,53 +126,68 @@ export function renderMapEditor(container) {
 
   function renderNodeInspector(node) {
      if (!node) return '';
-
-     // Content linking based on type
-     let linkHtml = '';
-     if (node.type === 'event') {
-        linkHtml = `
-          <div class="form-group">
-            <label>Linked Event</label>
-            <select id="node-link">
-              <option value="">-- Select Event --</option>
-              ${events.map(e => `<option value="${e.id}" ${node.linkedId === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
-            </select>
-          </div>
-        `;
-     } else if (node.type === 'combat' || node.type === 'boss') {
-        linkHtml = `
-          <div class="form-group">
-            <label>Linked Enemy</label>
-            <select id="node-link">
-              <option value="">-- Select Enemy --</option>
-              ${enemies.map(e => `<option value="${e.id}" ${node.linkedId === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
-            </select>
-          </div>
-        `;
-     }
+     if (!node.options) node.options = [];
 
      return `
-        <div style="width: 280px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column;">
-           <h3>Node Inspector</h3>
+        <div style="width: 350px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column; overflow-y:auto;">
+           <h3>Location Inspector</h3>
            
            <div class="form-group">
-             <label>Label</label>
-             <input type="text" id="node-label" value="${node.label}" placeholder="(Optional) visual label" />
+             <label>Name</label>
+             <input type="text" id="node-label" value="${node.label}" placeholder="e.g. Old Oak Crossroads" />
            </div>
 
            <div class="form-group">
-             <label>Type</label>
-             <select id="node-type">
-               <option value="start" ${node.type === 'start' ? 'selected' : ''}>Start Node</option>
-               <option value="event" ${node.type === 'event' ? 'selected' : ''}>Event / Story</option>
-               <option value="combat" ${node.type === 'combat' ? 'selected' : ''}>Combat (Normal)</option>
-               <option value="boss" ${node.type === 'boss' ? 'selected' : ''}>Boss Combat</option>
-               <option value="shop" ${node.type === 'shop' ? 'selected' : ''}>Shop / Merchant</option>
-               <option value="rest" ${node.type === 'rest' ? 'selected' : ''}>Rest Site</option>
-             </select>
+             <label>Description</label>
+             <textarea id="node-desc" rows="2" placeholder="What the player sees...">${node.description || ''}</textarea>
            </div>
 
-           ${linkHtml}
+           <div style="margin-top:16px;">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+               <label style="color:var(--accent); margin:0;">Options (Choices)</label>
+               <button id="btn-add-node-opt" style="font-size:0.8em;">+ Add Option</button>
+             </div>
+             ${node.options.length === 0 ? '<div style="color:var(--text-secondary); font-size:0.85em;">No options yet.</div>' : ''}
+             ${node.options.map((opt, oi) => `
+               <div style="background:#1a1a1a; border:1px solid var(--border); border-radius:4px; padding:8px; margin-bottom:8px;">
+                 <div style="display:flex; gap:4px; margin-bottom:6px;">
+                   <input type="text" class="node-opt-text" data-oi="${oi}" value="${opt.text}" placeholder="Option text" style="flex:1; font-size:0.85em;" />
+                   <button class="danger btn-rm-node-opt" data-oi="${oi}" style="padding:2px 6px;">X</button>
+                 </div>
+
+                 <div style="margin-bottom:4px;">
+                   <span style="font-size:0.75em; color:var(--accent);">Conditions</span>
+                   ${opt.conditions.map((c, ci) => `
+                     <div style="display:flex; gap:3px; margin-top:3px; font-size:0.8em;">
+                       <select class="noc-type" data-oi="${oi}" data-ci="${ci}" style="flex:1;">
+                         ${renderConditionTypeOptions(c.type)}
+                       </select>
+                       ${renderConditionTarget(c, oi, ci, 'noc')}
+                       <select class="noc-op" data-oi="${oi}" data-ci="${ci}" style="width:40px;">${renderOpOptions(c.operator)}</select>
+                       <input type="text" class="noc-val" data-oi="${oi}" data-ci="${ci}" value="${c.value}" style="width:35px;" />
+                       <button class="danger btn-rm-noc" data-oi="${oi}" data-ci="${ci}" style="padding:1px 4px;">x</button>
+                     </div>
+                   `).join('')}
+                   <button class="btn-add-noc" data-oi="${oi}" style="font-size:0.75em; margin-top:3px;">+ Condition</button>
+                 </div>
+
+                 <div>
+                   <span style="font-size:0.75em; color:#87ceeb;">Outcomes</span>
+                   ${opt.outcomes.map((o, oui) => `
+                     <div style="display:flex; gap:3px; margin-top:3px; font-size:0.8em;">
+                       <select class="noo-type" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
+                         ${renderOutcomeTypeOptions(o.type)}
+                       </select>
+                       ${renderOutcomeTarget(o, oi, oui)}
+                       <input type="text" class="noo-val" data-oi="${oi}" data-oui="${oui}" value="${o.value}" style="width:35px;" placeholder="val" />
+                       <button class="danger btn-rm-noo" data-oi="${oi}" data-oui="${oui}" style="padding:1px 4px;">x</button>
+                     </div>
+                   `).join('')}
+                   <button class="btn-add-noo" data-oi="${oi}" style="font-size:0.75em; margin-top:3px;">+ Outcome</button>
+                 </div>
+               </div>
+             `).join('')}
+           </div>
 
            <div style="margin-top: auto; padding-top: 16px;">
              <button id="btn-delete-node" class="danger">Delete Node</button>
@@ -174,18 +196,81 @@ export function renderMapEditor(container) {
      `;
   }
 
+  function renderConditionTypeOptions(selected) {
+     const types = [
+       ['hasMoney','Has Money'],['hasStat','Has Stat'],
+       ['hasConsumable','Has Consumable'],['hasEquipment','Has Equipment'],
+       ['hasKeyItem','Has Key Item'],['lacksKeyItem','Lacks Key Item'],
+       ['hasFactionRank','Has Faction Rank']
+     ];
+     return types.map(([v,l]) => `<option value="${v}" ${selected===v?'selected':''}>${l}</option>`).join('');
+  }
+
+  function renderOpOptions(selected) {
+     return ['>=','<=','=='].map(v => `<option value="${v}" ${selected===v?'selected':''}>${v.replace('<','&lt;').replace('>','&gt;')}</option>`).join('');
+  }
+
+  function renderConditionTarget(cond, oi, ci, prefix) {
+     if (cond.type === 'hasStat') {
+        return `<select class="${prefix}-target" data-oi="${oi}" data-ci="${ci}" style="flex:1;">
+          ${STATS.map(s => `<option value="${s}" ${cond.target===s?'selected':''}>${s}</option>`).join('')}
+        </select>`;
+     } else if (['hasConsumable','lacksConsumable','hasEquipment','lacksEquipment','hasKeyItem','lacksKeyItem'].includes(cond.type)) {
+        return `<select class="${prefix}-target" data-oi="${oi}" data-ci="${ci}" style="flex:1;">
+          <option value="">--</option>
+          ${allItems.map(i => `<option value="${i.id}" ${cond.target===i.id?'selected':''}>${i.name}</option>`).join('')}
+        </select>`;
+     } else if (cond.type === 'hasFactionRank') {
+        return `<select class="${prefix}-target" data-oi="${oi}" data-ci="${ci}" style="flex:1;">
+          <option value="">--</option>
+          ${factions.map(f => `<option value="${f.id}" ${cond.target===f.id?'selected':''}>${f.name}</option>`).join('')}
+        </select>`;
+     }
+     return `<input type="hidden" class="${prefix}-target" data-oi="${oi}" data-ci="${ci}" value="" />`;
+  }
+
+  function renderOutcomeTypeOptions(selected) {
+     const types = [
+       ['text','Show Text'],['addConsumable','Add Consumable'],['removeConsumable','Remove Consumable'],
+       ['addEquipment','Add Equipment'],['removeEquipment','Remove Equipment'],
+       ['addKeyItem','Add Key Item'],['removeKeyItem','Remove Key Item'],
+       ['addCard','Add Card'],['removeCard','Remove Card'],
+       ['addMoney','Add Money'],['removeMoney','Remove Money'],
+       ['damage','Damage'],['heal','Heal'],['modifyStat','Modify Stat'],
+       ['travelToMap','Travel to Map'],['startCombat','Start Combat']
+     ];
+     return types.map(([v,l]) => `<option value="${v}" ${selected===v?'selected':''}>${l}</option>`).join('');
+  }
+
+  function renderOutcomeTarget(out, oi, oui) {
+     if (['addConsumable','removeConsumable','addEquipment','removeEquipment','addKeyItem','removeKeyItem'].includes(out.type)) {
+        return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
+          <option value="">--</option>
+          ${allItems.map(i => `<option value="${i.id}" ${out.target===i.id?'selected':''}>${i.name}</option>`).join('')}
+        </select>`;
+     } else if (out.type === 'modifyStat') {
+        return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
+          ${STATS.map(s => `<option value="${s}" ${out.target===s?'selected':''}>${s}</option>`).join('')}
+        </select>`;
+     } else if (out.type === 'travelToMap') {
+        return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
+          <option value="">--</option>
+          ${gameMaps.map(m => `<option value="${m.id}" ${out.target===m.id?'selected':''}>${m.name}</option>`).join('')}
+        </select>`;
+     } else if (out.type === 'startCombat') {
+        return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
+          <option value="">--</option>
+          ${enemies.map(e => `<option value="${e.id}" ${out.target===e.id?'selected':''}>${e.name}</option>`).join('')}
+        </select>`;
+     }
+     return `<input type="text" class="noo-target" data-oi="${oi}" data-oui="${oui}" value="${out.target}" placeholder="text" style="flex:1;" />`;
+  }
+
   function renderConnectionInspector(conn, map) {
      if (!conn) return '';
      const fromNode = map.nodes.find(n => n.id === conn.fromNodeId);
      const toNode = map.nodes.find(n => n.id === conn.toNodeId);
      if (!conn.conditions) conn.conditions = [];
-
-     let allItems = [
-       ...store.getAll('consumables').map(c => ({...c, _typeLabel: 'Consumable'})),
-       ...store.getAll('equipment').map(e => ({...e, _typeLabel: 'Equipment'})),
-       ...store.getAll('keyItems').map(k => ({...k, _typeLabel: 'Key Item'}))
-     ];
-     let factions = store.getAll('factions');
 
      return `
         <div style="width: 280px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column; overflow-y:auto;">
@@ -300,10 +385,16 @@ export function renderMapEditor(container) {
               selectedConnectionId = clickedConn.id;
               selectedNodeId = null;
               render();
-           } else {
+           } else if (selectedNodeId || selectedConnectionId) {
+              // Only re-render if we're deselecting something
               selectedNodeId = null;
               selectedConnectionId = null;
               render();
+           } else {
+              // Update state without re-rendering the whole UI
+              selectedNodeId = null;
+              selectedConnectionId = null;
+              drawCanvas();
            }
         }
      });
@@ -361,7 +452,7 @@ export function renderMapEditor(container) {
         const clickedNode = map.nodes.find(n => Math.hypot(n.x - x, n.y - y) <= NODE_RADIUS);
         if (clickedNode) return;
 
-        const node = createMapNode({ x, y, mapId: selectedMapId, type: map.nodes.length === 0 ? 'start' : 'combat' });
+        const node = createMapNode({ x, y });
         map.nodes.push(node);
         store.save('maps', map);
         selectedNodeId = node.id;
@@ -416,15 +507,9 @@ export function renderMapEditor(container) {
         ctx.beginPath();
         ctx.arc(node.x, node.y, NODE_RADIUS, 0, Math.PI * 2);
         
-        switch(node.type) {
-           case 'start': ctx.fillStyle = '#4caf50'; break;
-           case 'event': ctx.fillStyle = '#9c27b0'; break;
-           case 'combat': ctx.fillStyle = '#f44336'; break;
-           case 'boss': ctx.fillStyle = '#b71c1c'; break;
-           case 'shop': ctx.fillStyle = '#ffeb3b'; break;
-           case 'rest': ctx.fillStyle = '#2196f3'; break;
-           default: ctx.fillStyle = '#fff';
-        }
+        // Color based on content: has options = teal, empty = grey
+        const hasContent = node.options && node.options.length > 0;
+        ctx.fillStyle = hasContent ? '#26a69a' : '#616161';
         ctx.fill();
 
         ctx.strokeStyle = node.id === selectedNodeId ? '#fff' : '#000';
@@ -435,7 +520,7 @@ export function renderMapEditor(container) {
         ctx.fillStyle = '#fff';
         ctx.font = '12px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(node.label || node.type.toUpperCase(), node.x, node.y + NODE_RADIUS + 16);
+        ctx.fillText(node.label || '•', node.x, node.y + NODE_RADIUS + 16);
      });
   }
 
@@ -577,37 +662,144 @@ export function renderMapEditor(container) {
       });
     }
 
-    // Node inspector
-    const typeSelect = container.querySelector('#node-type');
-    if (typeSelect) {
+    // Node (location) inspector
+    const nodeLabel = container.querySelector('#node-label');
+    if (nodeLabel) {
        const saveNode = () => {
           const map = maps.find(m => m.id === selectedMapId);
           const n = map.nodes.find(x => x.id === selectedNodeId);
+          if (!n) return;
           
-          n.type = container.querySelector('#node-type').value;
           n.label = container.querySelector('#node-label').value;
-          
-          const linkSel = container.querySelector('#node-link');
-          n.linkedId = linkSel ? linkSel.value : null;
+          n.description = container.querySelector('#node-desc')?.value || '';
+
+          // Save option texts
+          container.querySelectorAll('.node-opt-text').forEach(inp => {
+             const oi = parseInt(inp.dataset.oi);
+             n.options[oi].text = inp.value;
+          });
+
+          // Save conditions
+          container.querySelectorAll('.noc-type').forEach(sel => {
+             const oi = parseInt(sel.dataset.oi);
+             const ci = parseInt(sel.dataset.ci);
+             const c = n.options[oi].conditions[ci];
+             c.type = sel.value;
+             const t = container.querySelector(`.noc-target[data-oi="${oi}"][data-ci="${ci}"]`);
+             if (t) c.target = t.value;
+             const op = container.querySelector(`.noc-op[data-oi="${oi}"][data-ci="${ci}"]`);
+             if (op) c.operator = op.value;
+             const v = container.querySelector(`.noc-val[data-oi="${oi}"][data-ci="${ci}"]`);
+             if (v) c.value = v.value;
+          });
+
+          // Save outcomes
+          container.querySelectorAll('.noo-type').forEach(sel => {
+             const oi = parseInt(sel.dataset.oi);
+             const oui = parseInt(sel.dataset.oui);
+             const o = n.options[oi].outcomes[oui];
+             o.type = sel.value;
+             const t = container.querySelector(`.noo-target[data-oi="${oi}"][data-oui="${oui}"]`);
+             if (t) o.target = t.value;
+             const v = container.querySelector(`.noo-val[data-oi="${oi}"][data-oui="${oui}"]`);
+             if (v) o.value = v.value;
+          });
 
           store.save('maps', map);
        };
 
-       container.querySelector('#node-label').addEventListener('blur', () => { saveNode(); drawCanvas(); });
-       container.querySelector('#node-type').addEventListener('change', () => { saveNode(); render(); });
-       
-       const nodeLink = container.querySelector('#node-link');
-       if (nodeLink) {
-         nodeLink.addEventListener('change', () => { saveNode(); render(); });
-       }
+       nodeLabel.addEventListener('blur', () => { saveNode(); drawCanvas(); });
+       container.querySelector('#node-desc')?.addEventListener('blur', () => { saveNode(); });
+
+       // Option text changes
+       container.querySelectorAll('.node-opt-text, .noc-val, .noc-target, .noc-op, .noo-val, .noo-target').forEach(el => {
+          el.addEventListener('blur', () => { saveNode(); });
+          el.addEventListener('change', () => { saveNode(); });
+       });
+
+       // Structural changes redraw
+       container.querySelectorAll('.noc-type, .noo-type').forEach(sel => {
+          sel.addEventListener('change', () => { saveNode(); render(); });
+       });
+
+       // Add/remove options
+       container.querySelector('#btn-add-node-opt')?.addEventListener('click', () => {
+          const map = maps.find(m => m.id === selectedMapId);
+          const n = map.nodes.find(x => x.id === selectedNodeId);
+          if (!n.options) n.options = [];
+          n.options.push(createEventOption());
+          store.save('maps', map);
+          render();
+       });
+
+       container.querySelectorAll('.btn-rm-node-opt').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+             showConfirmModal('Delete this option?', () => {
+                const oi = parseInt(ev.currentTarget.dataset.oi);
+                const map = maps.find(m => m.id === selectedMapId);
+                const n = map.nodes.find(x => x.id === selectedNodeId);
+                n.options.splice(oi, 1);
+                store.save('maps', map);
+                render();
+             });
+          });
+       });
+
+       // Add/remove conditions
+       container.querySelectorAll('.btn-add-noc').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+             const oi = parseInt(ev.currentTarget.dataset.oi);
+             const map = maps.find(m => m.id === selectedMapId);
+             const n = map.nodes.find(x => x.id === selectedNodeId);
+             n.options[oi].conditions.push(createEventCondition());
+             store.save('maps', map);
+             render();
+          });
+       });
+       container.querySelectorAll('.btn-rm-noc').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+             const oi = parseInt(ev.currentTarget.dataset.oi);
+             const ci = parseInt(ev.currentTarget.dataset.ci);
+             const map = maps.find(m => m.id === selectedMapId);
+             const n = map.nodes.find(x => x.id === selectedNodeId);
+             n.options[oi].conditions.splice(ci, 1);
+             store.save('maps', map);
+             render();
+          });
+       });
+
+       // Add/remove outcomes
+       container.querySelectorAll('.btn-add-noo').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+             const oi = parseInt(ev.currentTarget.dataset.oi);
+             const map = maps.find(m => m.id === selectedMapId);
+             const n = map.nodes.find(x => x.id === selectedNodeId);
+             n.options[oi].outcomes.push(createEventOutcome());
+             store.save('maps', map);
+             render();
+          });
+       });
+       container.querySelectorAll('.btn-rm-noo').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+             const oi = parseInt(ev.currentTarget.dataset.oi);
+             const oui = parseInt(ev.currentTarget.dataset.oui);
+             const map = maps.find(m => m.id === selectedMapId);
+             const n = map.nodes.find(x => x.id === selectedNodeId);
+             n.options[oi].outcomes.splice(oui, 1);
+             store.save('maps', map);
+             render();
+          });
+       });
 
        container.querySelector('#btn-delete-node').addEventListener('click', () => {
-          const map = maps.find(m => m.id === selectedMapId);
-          map.nodes = map.nodes.filter(n => n.id !== selectedNodeId);
-          map.connections = map.connections.filter(c => c.fromNodeId !== selectedNodeId && c.toNodeId !== selectedNodeId);
-          store.save('maps', map);
-          selectedNodeId = null;
-          render();
+          showConfirmModal('Delete this location?', () => {
+             const map = maps.find(m => m.id === selectedMapId);
+             map.nodes = map.nodes.filter(n => n.id !== selectedNodeId);
+             map.connections = map.connections.filter(c => c.fromNodeId !== selectedNodeId && c.toNodeId !== selectedNodeId);
+             store.save('maps', map);
+             selectedNodeId = null;
+             render();
+          });
        });
     }
 

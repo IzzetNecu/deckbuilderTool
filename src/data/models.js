@@ -149,9 +149,9 @@ export function createMapNode(data = {}) {
     id: data.id || uuid(),
     x: data.x || 0,
     y: data.y || 0,
-    type: data.type || 'event', // event, combat, shop, rest, boss, start
     label: data.label || '',
-    linkedId: data.linkedId || null // ID of linked event or enemy
+    description: data.description || '',
+    options: data.options || [] // same shape as event options: { text, conditions[], outcomes[] }
   };
 }
 
