@@ -1,13 +1,13 @@
-import { renderFactionEditor } from './editors/faction-editor.js';
-import { renderCardEditor } from './editors/card-editor.js';
-import { renderConsumableEditor } from './editors/consumable-editor.js';
-import { renderEquipmentEditor } from './editors/equipment-editor.js';
-import { renderKeyItemEditor } from './editors/keyitem-editor.js';
-import { renderEnemyEditor } from './editors/enemy-editor.js';
-import { renderEventEditor } from './editors/event-editor.js';
-import { renderDeckEditor } from './editors/deck-editor.js';
-import { renderMapEditor } from './editors/map-editor.js';
-import { store } from '../data/store.js';
+import { renderFactionEditor } from './editors/faction-editor.js?v=1778106278';
+import { renderCardEditor } from './editors/card-editor.js?v=1778106278';
+import { renderConsumableEditor } from './editors/consumable-editor.js?v=1778106278';
+import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1778106278';
+import { renderKeyItemEditor } from './editors/keyitem-editor.js?v=1778106278';
+import { renderEnemyEditor } from './editors/enemy-editor.js?v=1778106278';
+import { renderEventEditor } from './editors/event-editor.js?v=1778106278';
+import { renderDeckEditor } from './editors/deck-editor.js?v=1778106278';
+import { renderMapEditor } from './editors/map-editor.js?v=1778106278';
+import { store } from '../data/store.js?v=1778106278';
 
 export function initBuilder(container) {
   container.innerHTML = `
@@ -92,7 +92,14 @@ export function initBuilder(container) {
 
   // Export / Import
   container.querySelector('#btn-export-data').addEventListener('click', async () => {
+     // Force fresh read directly from localStorage
+     const rawMaps = localStorage.getItem('gamebuilder_maps');
+     console.log('[Export Debug] Raw maps from localStorage:', rawMaps);
+     
      const jsonStr = store.exportAll();
+     console.log('[Export Debug] Full export length:', jsonStr.length, 'chars');
+     console.log('[Export Debug] Export preview:', jsonStr.substring(0, 500));
+     
      const blob = new Blob([jsonStr], { type: 'application/json' });
      
      // Modern File System Access API

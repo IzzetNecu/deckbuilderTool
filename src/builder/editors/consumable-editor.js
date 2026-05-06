@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js';
-import { createConsumable } from '../../data/models.js';
-import { showConfirmModal } from '../components/modal.js';
+import { store } from '../../data/store.js?v=1778106278';
+import { createConsumable } from '../../data/models.js?v=1778106278';
+import { showConfirmModal } from '../components/modal.js?v=1778106278';
 
 export function renderConsumableEditor(container) {
   let consumables = store.getAll('consumables');
