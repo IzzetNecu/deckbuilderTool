@@ -56,7 +56,8 @@ export const store = {
   exportAll() {
     const data = {};
     COLLECTIONS.forEach(col => {
-      data[col] = this.getAll(col);
+      // Deep clone to ensure nested arrays (e.g. map nodes/connections) are fully included
+      data[col] = JSON.parse(JSON.stringify(this.getAll(col)));
     });
     return JSON.stringify(data, null, 2);
   },
