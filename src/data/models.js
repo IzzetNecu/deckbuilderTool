@@ -107,7 +107,7 @@ export function createEventCondition(data = {}) {
 export function createEventOutcome(data = {}) {
   return {
     id: data.id || uuid(),
-    type: data.type || 'text', // addConsumable, removeConsumable, addEquipment, removeEquipment, addKeyItem, removeKeyItem, addCard, removeCard, addMoney, removeMoney, damage, heal, modifyStat, text
+    type: data.type || 'text', // addConsumable, removeConsumable, addEquipment, removeEquipment, addKeyItem, removeKeyItem, addCard, removeCard, addMoney, removeMoney, damage, heal, modifyStat, travelToMap, text
     target: data.target || '', 
     value: data.value || '' 
   };
@@ -136,6 +136,7 @@ export function createGameMap(data = {}) {
     id: data.id || uuid(),
     name: data.name || '',
     description: data.description || '',
+    backgroundImage: data.backgroundImage || '',
     isOverworld: data.isOverworld || false,
     parentMapId: data.parentMapId || null,
     nodes: data.nodes || [],
@@ -148,15 +149,18 @@ export function createMapNode(data = {}) {
     id: data.id || uuid(),
     x: data.x || 0,
     y: data.y || 0,
-    type: data.type || 'event', // event, combat, shop, rest, boss, submap, start
+    type: data.type || 'event', // event, combat, shop, rest, boss, start
     label: data.label || '',
-    linkedId: data.linkedId || null // ID of linked event, enemy, or submap
+    linkedId: data.linkedId || null // ID of linked event or enemy
   };
 }
 
-export function createMapConnection(fromNodeId, toNodeId) {
+export function createMapConnection(fromNodeId, toNodeId, data = {}) {
   return {
+    id: data.id || uuid(),
     fromNodeId,
-    toNodeId
+    toNodeId,
+    conditions: data.conditions || [],
+    gateType: data.gateType || 'none' // 'none', 'soft' (visible but locked), 'hard' (hidden)
   };
 }

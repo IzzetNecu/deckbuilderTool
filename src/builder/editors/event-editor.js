@@ -14,6 +14,7 @@ export function renderEventEditor(container) {
     ...keyItems.map(k => ({...k, _typeLabel: 'Key Item'}))
   ];
   let factions = store.getAll('factions');
+  let gameMaps = store.getAll('maps');
   let selectedId = null;
 
   const STATS = ['health', 'strength', 'dexterity', 'energy', 'handsize'];
@@ -177,6 +178,13 @@ export function renderEventEditor(container) {
              ${STATS.map(s => `<option value="${s}" ${out.target === s ? 'selected' : ''}>${s}</option>`).join('')}
            </select>
         `;
+     } else if (out.type === 'travelToMap') {
+        targetHTML = `
+           <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:150px;">
+             <option value="">-- Select Map --</option>
+             ${gameMaps.map(m => `<option value="${m.id}" ${out.target === m.id ? 'selected' : ''}>${m.name}${m.isOverworld ? ' (Overworld)' : ''}</option>`).join('')}
+           </select>
+        `;
      } else {
         // generic input for cards or text
         targetHTML = `<input type="text" class="out-target" data-opt="${optInd}" data-out="${outInd}" value="${out.target}" placeholder="Target ID / Text" style="width: 150px;" />`;
@@ -199,6 +207,7 @@ export function renderEventEditor(container) {
             <option value="damage" ${out.type === 'damage' ? 'selected' : ''}>Damage Player</option>
             <option value="heal" ${out.type === 'heal' ? 'selected' : ''}>Heal Player</option>
             <option value="modifyStat" ${out.type === 'modifyStat' ? 'selected' : ''}>Modify Stat</option>
+            <option value="travelToMap" ${out.type === 'travelToMap' ? 'selected' : ''}>Travel to Map</option>
           </select>
           ${targetHTML}
           <input type="text" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Amount" style="width: 80px;" />

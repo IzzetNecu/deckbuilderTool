@@ -1,5 +1,5 @@
 import { store } from '../../data/store.js';
-import { createGameMap, createMapNode, createMapConnection } from '../../data/models.js';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition } from '../../data/models.js';
 import { showConfirmModal } from '../components/modal.js';
 
 export function renderMapEditor(container) {
@@ -14,6 +14,9 @@ export function renderMapEditor(container) {
   let isConnecting = false;
   let connectionStartNode = null;
   let mousePos = { x: 0, y: 0 };
+  let selectedConnectionId = null;
+
+  const STATS = ['health', 'strength', 'dexterity', 'energy', 'handsize'];
 
   const NODE_RADIUS = 20;
 
@@ -43,14 +46,15 @@ export function renderMapEditor(container) {
         <!-- Canvas Pane -->
         <div class="pane-form" style="position:relative; display:flex; flex-direction:column; padding: 0;">
           ${selectedMap ? `
-            <div style="padding: 16px; border-bottom: 1px solid var(--border); display:flex; gap: 16px; background:var(--bg-surface);">
-              <input type="text" id="map-name" value="${selectedMap.name}" placeholder="Map Name" style="flex:1;" />
+            <div style="padding: 16px; border-bottom: 1px solid var(--border); display:flex; gap: 16px; background:var(--bg-surface); flex-wrap:wrap;">
+              <input type="text" id="map-name" value="${selectedMap.name}" placeholder="Map Name" style="flex:1; min-width:150px;" />
+              <input type="text" id="map-bg" value="${selectedMap.backgroundImage || ''}" placeholder="Background path (e.g. res://assets/maps/overworld.png)" style="flex:2; min-width:200px; font-size:0.85em;" />
               ${selectedMap.isOverworld ? `<span style="align-self:center; color:var(--accent);">★ Overworld</span>` : `
                  <button id="btn-delete-map" class="danger">Delete Map</button>
               `}
             </div>
             <div style="padding: 8px 16px; background: #111; font-size: 0.8em; color:var(--text-secondary); display:flex; justify-content:space-between;">
-               <span>Double-click empty space to create node. Shift+drag between nodes to connect.</span>
+               <span>Dbl-click: create node · Shift+drag: connect · Click arrow: select connection</span>
                <span>Nodes: ${selectedMap.nodes.length} | Connections: ${selectedMap.connections.length}</span>
             </div>
             
@@ -60,10 +64,11 @@ export function renderMapEditor(container) {
                   <canvas id="map-canvas" style="background:#1a1a1a; cursor:crosshair; width:100%; height:100%; display:block;"></canvas>
                </div>
                
-               <!-- Node Inspector -->
-               ${selectedNodeId ? renderNodeInspector(selectedMap.nodes.find(n => n.id === selectedNodeId)) : `
-                 <div style="width: 250px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px;">
-                    <div class="empty-state">Select a node to inspect</div>
+               <!-- Node / Connection Inspector -->
+               ${selectedNodeId ? renderNodeInspector(selectedMap.nodes.find(n => n.id === selectedNodeId)) : 
+                 selectedConnectionId ? renderConnectionInspector(selectedMap.connections.find(c => c.id === selectedConnectionId), selectedMap) : `
+                 <div style="width: 280px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px;">
+                    <div class="empty-state">Select a node or connection</div>
                  </div>
                `}
             </div>
@@ -137,21 +142,10 @@ export function renderMapEditor(container) {
             </select>
           </div>
         `;
-     } else if (node.type === 'submap') {
-        const availableSubmaps = maps.filter(m => !m.isOverworld && m.id !== selectedMapId);
-        linkHtml = `
-          <div class="form-group">
-            <label>Linked Sub-Map</label>
-            <select id="node-link">
-              <option value="">-- Select Map --</option>
-              ${availableSubmaps.map(m => `<option value="${m.id}" ${node.linkedId === m.id ? 'selected' : ''}>${m.name}</option>`).join('')}
-            </select>
-          </div>
-        `;
      }
 
      return `
-        <div style="width: 250px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column;">
+        <div style="width: 280px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column;">
            <h3>Node Inspector</h3>
            
            <div class="form-group">
@@ -168,7 +162,6 @@ export function renderMapEditor(container) {
                <option value="boss" ${node.type === 'boss' ? 'selected' : ''}>Boss Combat</option>
                <option value="shop" ${node.type === 'shop' ? 'selected' : ''}>Shop / Merchant</option>
                <option value="rest" ${node.type === 'rest' ? 'selected' : ''}>Rest Site</option>
-               <option value="submap" ${node.type === 'submap' ? 'selected' : ''}>Sub-Map (Dungeon)</option>
              </select>
            </div>
 
@@ -176,6 +169,93 @@ export function renderMapEditor(container) {
 
            <div style="margin-top: auto; padding-top: 16px;">
              <button id="btn-delete-node" class="danger">Delete Node</button>
+           </div>
+        </div>
+     `;
+  }
+
+  function renderConnectionInspector(conn, map) {
+     if (!conn) return '';
+     const fromNode = map.nodes.find(n => n.id === conn.fromNodeId);
+     const toNode = map.nodes.find(n => n.id === conn.toNodeId);
+     if (!conn.conditions) conn.conditions = [];
+
+     let allItems = [
+       ...store.getAll('consumables').map(c => ({...c, _typeLabel: 'Consumable'})),
+       ...store.getAll('equipment').map(e => ({...e, _typeLabel: 'Equipment'})),
+       ...store.getAll('keyItems').map(k => ({...k, _typeLabel: 'Key Item'}))
+     ];
+     let factions = store.getAll('factions');
+
+     return `
+        <div style="width: 280px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column; overflow-y:auto;">
+           <h3>Connection Inspector</h3>
+           <div style="color:var(--text-secondary); font-size:0.85em; margin-bottom:16px;">
+             ${fromNode ? (fromNode.label || fromNode.type) : '?'} → ${toNode ? (toNode.label || toNode.type) : '?'}
+           </div>
+
+           <div class="form-group">
+             <label>Gate Type</label>
+             <select id="conn-gate-type">
+               <option value="none" ${conn.gateType === 'none' ? 'selected' : ''}>None (Always Open)</option>
+               <option value="soft" ${conn.gateType === 'soft' ? 'selected' : ''}>Soft (Visible but Locked)</option>
+               <option value="hard" ${conn.gateType === 'hard' ? 'selected' : ''}>Hard (Hidden Until Met)</option>
+             </select>
+           </div>
+
+           <div class="form-group" style="margin-top:16px;">
+             <label style="color:var(--accent);">Travel Conditions</label>
+             ${conn.conditions.length === 0 ? '<div style="color:var(--text-secondary); font-size:0.85em; margin-bottom:8px;">No conditions — path is open.</div>' : ''}
+             ${conn.conditions.map((cond, idx) => {
+                let targetHTML = '';
+                if (cond.type === 'hasStat') {
+                   targetHTML = `<select class="conn-cond-target" data-idx="${idx}" style="flex:1;">
+                     ${STATS.map(s => `<option value="${s}" ${cond.target === s ? 'selected' : ''}>${s}</option>`).join('')}
+                   </select>`;
+                } else if (['hasConsumable','lacksConsumable','hasEquipment','lacksEquipment','hasKeyItem','lacksKeyItem'].includes(cond.type)) {
+                   targetHTML = `<select class="conn-cond-target" data-idx="${idx}" style="flex:1;">
+                     <option value="">-- Item --</option>
+                     ${allItems.map(i => `<option value="${i.id}" ${cond.target === i.id ? 'selected' : ''}>${i.name} (${i._typeLabel})</option>`).join('')}
+                   </select>`;
+                } else if (cond.type === 'hasFactionRank') {
+                   targetHTML = `<select class="conn-cond-target" data-idx="${idx}" style="flex:1;">
+                     <option value="">-- Faction --</option>
+                     ${factions.map(f => `<option value="${f.id}" ${cond.target === f.id ? 'selected' : ''}>${f.name}</option>`).join('')}
+                   </select>`;
+                } else {
+                   targetHTML = `<input type="hidden" class="conn-cond-target" data-idx="${idx}" value="" />`;
+                }
+                return `
+                  <div style="background:#1a1a1a; padding:8px; border:1px solid var(--border); margin-bottom:6px; border-radius:4px;">
+                    <div style="display:flex; gap:4px; margin-bottom:4px;">
+                      <select class="conn-cond-type" data-idx="${idx}" style="flex:1; font-size:0.85em;">
+                        <option value="hasMoney" ${cond.type === 'hasMoney' ? 'selected' : ''}>Has Money</option>
+                        <option value="hasStat" ${cond.type === 'hasStat' ? 'selected' : ''}>Has Stat</option>
+                        <option value="hasConsumable" ${cond.type === 'hasConsumable' ? 'selected' : ''}>Has Consumable</option>
+                        <option value="hasEquipment" ${cond.type === 'hasEquipment' ? 'selected' : ''}>Has Equipment</option>
+                        <option value="hasKeyItem" ${cond.type === 'hasKeyItem' ? 'selected' : ''}>Has Key Item</option>
+                        <option value="lacksKeyItem" ${cond.type === 'lacksKeyItem' ? 'selected' : ''}>Lacks Key Item</option>
+                        <option value="hasFactionRank" ${cond.type === 'hasFactionRank' ? 'selected' : ''}>Has Faction Rank</option>
+                      </select>
+                      <button class="danger btn-remove-conn-cond" data-idx="${idx}" style="padding:2px 6px;">X</button>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                      ${targetHTML}
+                      <select class="conn-cond-op" data-idx="${idx}" style="width:50px;">
+                        <option value=">=" ${cond.operator === '>=' ? 'selected' : ''}>&gt;=</option>
+                        <option value="<=" ${cond.operator === '<=' ? 'selected' : ''}>&lt;=</option>
+                        <option value="==" ${cond.operator === '==' ? 'selected' : ''}>==</option>
+                      </select>
+                      <input type="text" class="conn-cond-val" data-idx="${idx}" value="${cond.value}" placeholder="Val" style="width:50px;" />
+                    </div>
+                  </div>
+                `;
+             }).join('')}
+             <button id="btn-add-conn-cond" style="font-size:0.85em; margin-top:4px;">+ Add Condition</button>
+           </div>
+
+           <div style="margin-top:auto; padding-top:16px; display:flex; gap:8px;">
+             <button id="btn-delete-conn" class="danger" style="flex:1;">Delete Connection</button>
            </div>
         </div>
      `;
@@ -209,12 +289,22 @@ export function renderMapEditor(container) {
            mousePos = { x, y };
         } else if (clickedNode) {
            selectedNodeId = clickedNode.id;
+           selectedConnectionId = null;
            dragNode = clickedNode;
            dragStartPos = { x, y };
-           render(); // update inspector
+           render();
         } else {
-           selectedNodeId = null;
-           render(); // clear inspector
+           // Check if clicking near a connection line
+           const clickedConn = findConnectionNear(map, x, y);
+           if (clickedConn) {
+              selectedConnectionId = clickedConn.id;
+              selectedNodeId = null;
+              render();
+           } else {
+              selectedNodeId = null;
+              selectedConnectionId = null;
+              render();
+           }
         }
      });
 
@@ -301,7 +391,12 @@ export function renderMapEditor(container) {
      map.connections.forEach(conn => {
         const from = map.nodes.find(n => n.id === conn.fromNodeId);
         const to = map.nodes.find(n => n.id === conn.toNodeId);
-        if (from && to) drawArrow(ctx, from.x, from.y, to.x, to.y);
+        if (from && to) {
+           const isSelected = conn.id === selectedConnectionId;
+           const hasConditions = conn.conditions && conn.conditions.length > 0;
+           const gateType = conn.gateType || 'none';
+           drawArrow(ctx, from.x, from.y, to.x, to.y, { isSelected, hasConditions, gateType });
+        }
      });
 
      // Draw active connection line
@@ -321,7 +416,6 @@ export function renderMapEditor(container) {
         ctx.beginPath();
         ctx.arc(node.x, node.y, NODE_RADIUS, 0, Math.PI * 2);
         
-        // Colors based on type
         switch(node.type) {
            case 'start': ctx.fillStyle = '#4caf50'; break;
            case 'event': ctx.fillStyle = '#9c27b0'; break;
@@ -329,7 +423,6 @@ export function renderMapEditor(container) {
            case 'boss': ctx.fillStyle = '#b71c1c'; break;
            case 'shop': ctx.fillStyle = '#ffeb3b'; break;
            case 'rest': ctx.fillStyle = '#2196f3'; break;
-           case 'submap': ctx.fillStyle = '#ff9800'; break;
            default: ctx.fillStyle = '#fff';
         }
         ctx.fill();
@@ -346,30 +439,80 @@ export function renderMapEditor(container) {
      });
   }
 
-  function drawArrow(ctx, fromX, fromY, toX, toY) {
+  function drawArrow(ctx, fromX, fromY, toX, toY, opts = {}) {
      const headlen = 10;
      const dx = toX - fromX;
      const dy = toY - fromY;
      const angle = Math.atan2(dy, dx);
      
-     // Stop drawing at the edge of the target node
      const targetX = toX - NODE_RADIUS * Math.cos(angle);
      const targetY = toY - NODE_RADIUS * Math.sin(angle);
 
+     // Style based on gate type
+     let color = '#aaa';
+     let dash = [];
+     if (opts.isSelected) {
+        color = '#fff';
+     } else if (opts.gateType === 'hard' && opts.hasConditions) {
+        color = '#f44336';
+        dash = [3, 3];
+     } else if (opts.gateType === 'soft' && opts.hasConditions) {
+        color = '#ff9800';
+        dash = [8, 4];
+     }
+
      ctx.beginPath();
+     ctx.setLineDash(dash);
      ctx.moveTo(fromX, fromY);
      ctx.lineTo(targetX, targetY);
-     ctx.strokeStyle = '#aaa';
-     ctx.lineWidth = 2;
+     ctx.strokeStyle = color;
+     ctx.lineWidth = opts.isSelected ? 3 : 2;
      ctx.stroke();
+     ctx.setLineDash([]);
 
      // Arrowhead
      ctx.beginPath();
      ctx.moveTo(targetX, targetY);
      ctx.lineTo(targetX - headlen * Math.cos(angle - Math.PI / 6), targetY - headlen * Math.sin(angle - Math.PI / 6));
      ctx.lineTo(targetX - headlen * Math.cos(angle + Math.PI / 6), targetY - headlen * Math.sin(angle + Math.PI / 6));
-     ctx.fillStyle = '#aaa';
+     ctx.fillStyle = color;
      ctx.fill();
+
+     // Lock icon for gated connections
+     if (opts.hasConditions && !opts.isSelected) {
+        const midX = (fromX + toX) / 2;
+        const midY = (fromY + toY) / 2;
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.fillText('🔒', midX, midY - 8);
+     }
+  }
+
+  // Find connection closest to point (within threshold)
+  function findConnectionNear(map, px, py, threshold = 12) {
+     let best = null;
+     let bestDist = threshold;
+     map.connections.forEach(conn => {
+        const from = map.nodes.find(n => n.id === conn.fromNodeId);
+        const to = map.nodes.find(n => n.id === conn.toNodeId);
+        if (!from || !to) return;
+        const dist = pointToSegmentDist(px, py, from.x, from.y, to.x, to.y);
+        if (dist < bestDist) {
+           bestDist = dist;
+           best = conn;
+        }
+     });
+     return best;
+  }
+
+  function pointToSegmentDist(px, py, ax, ay, bx, by) {
+     const dx = bx - ax, dy = by - ay;
+     const lenSq = dx * dx + dy * dy;
+     if (lenSq === 0) return Math.hypot(px - ax, py - ay);
+     let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+     t = Math.max(0, Math.min(1, t));
+     return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
   }
 
   function attachEvents() {
@@ -394,6 +537,7 @@ export function renderMapEditor(container) {
       el.addEventListener('click', (e) => {
         selectedMapId = e.currentTarget.dataset.id;
         selectedNodeId = null;
+        selectedConnectionId = null;
         render();
       });
     });
@@ -407,9 +551,18 @@ export function renderMapEditor(container) {
          render();
       });
 
+      // Background image path
+      const bgInput = container.querySelector('#map-bg');
+      if (bgInput) {
+        bgInput.addEventListener('blur', () => {
+           const m = maps.find(x => x.id === selectedMapId);
+           m.backgroundImage = bgInput.value;
+           store.save('maps', m);
+        });
+      }
+
       container.querySelector('#btn-delete-map')?.addEventListener('click', () => {
         showConfirmModal('Are you sure you want to delete this map and ALL its nodes?', () => {
-           // Also un-parent any children
            maps.forEach(child => {
               if (child.parentMapId === selectedMapId) {
                  child.parentMapId = null;
@@ -445,21 +598,7 @@ export function renderMapEditor(container) {
        
        const nodeLink = container.querySelector('#node-link');
        if (nodeLink) {
-         nodeLink.addEventListener('change', () => {
-            saveNode();
-            
-            // If submap, link bidirectionally (set child parentMapId to this map)
-            const map = maps.find(m => m.id === selectedMapId);
-            const n = map.nodes.find(x => x.id === selectedNodeId);
-            if (n.type === 'submap' && n.linkedId) {
-               const child = maps.find(m => m.id === n.linkedId);
-               if (child) {
-                  child.parentMapId = selectedMapId;
-                  store.save('maps', child);
-               }
-            }
-            render();
-         });
+         nodeLink.addEventListener('change', () => { saveNode(); render(); });
        }
 
        container.querySelector('#btn-delete-node').addEventListener('click', () => {
@@ -469,6 +608,74 @@ export function renderMapEditor(container) {
           store.save('maps', map);
           selectedNodeId = null;
           render();
+       });
+    }
+
+    // Connection inspector
+    const connGateType = container.querySelector('#conn-gate-type');
+    if (connGateType) {
+       const saveConn = () => {
+          const map = maps.find(m => m.id === selectedMapId);
+          const conn = map.connections.find(c => c.id === selectedConnectionId);
+          if (!conn) return;
+
+          conn.gateType = container.querySelector('#conn-gate-type').value;
+
+          // Save conditions
+          container.querySelectorAll('.conn-cond-type').forEach(sel => {
+             const idx = parseInt(sel.dataset.idx);
+             const cond = conn.conditions[idx];
+             cond.type = sel.value;
+             const targetEl = container.querySelector(`.conn-cond-target[data-idx="${idx}"]`);
+             if (targetEl) cond.target = targetEl.value;
+             const opEl = container.querySelector(`.conn-cond-op[data-idx="${idx}"]`);
+             if (opEl) cond.operator = opEl.value;
+             const valEl = container.querySelector(`.conn-cond-val[data-idx="${idx}"]`);
+             if (valEl) cond.value = valEl.value;
+          });
+
+          store.save('maps', map);
+       };
+
+       connGateType.addEventListener('change', () => { saveConn(); drawCanvas(); });
+
+       // Condition field changes
+       container.querySelectorAll('.conn-cond-type').forEach(sel => {
+          sel.addEventListener('change', () => { saveConn(); render(); });
+       });
+       container.querySelectorAll('.conn-cond-target, .conn-cond-op, .conn-cond-val').forEach(el => {
+          el.addEventListener('blur', () => { saveConn(); });
+          el.addEventListener('change', () => { saveConn(); });
+       });
+
+       container.querySelector('#btn-add-conn-cond')?.addEventListener('click', () => {
+          const map = maps.find(m => m.id === selectedMapId);
+          const conn = map.connections.find(c => c.id === selectedConnectionId);
+          if (!conn.conditions) conn.conditions = [];
+          conn.conditions.push(createEventCondition());
+          store.save('maps', map);
+          render();
+       });
+
+       container.querySelectorAll('.btn-remove-conn-cond').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+             const idx = parseInt(ev.currentTarget.dataset.idx);
+             const map = maps.find(m => m.id === selectedMapId);
+             const conn = map.connections.find(c => c.id === selectedConnectionId);
+             conn.conditions.splice(idx, 1);
+             store.save('maps', map);
+             render();
+          });
+       });
+
+       container.querySelector('#btn-delete-conn')?.addEventListener('click', () => {
+          showConfirmModal('Delete this connection?', () => {
+             const map = maps.find(m => m.id === selectedMapId);
+             map.connections = map.connections.filter(c => c.id !== selectedConnectionId);
+             store.save('maps', map);
+             selectedConnectionId = null;
+             render();
+          });
        });
     }
 
