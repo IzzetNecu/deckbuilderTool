@@ -18,9 +18,8 @@ func setup(data: Dictionary) -> void:
 		modulate = Color(1, 1, 1)
 
 func _node_has_content(data: Dictionary) -> bool:
-	# Must have a description or at least one option visible to the player
-	if data.get("description", "") != "":
-		return true
+	# Only show the dialog if there is at least one option visible to the player.
+	# A description alone is not enough — the player just passes through silently.
 	for opt in data.get("options", []):
 		var conditions_pass = ConditionEvaluator.evaluate_all(opt.get("conditions", []))
 		# Soft-locked options are still visible (shown as disabled), so they count
