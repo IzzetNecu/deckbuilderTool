@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778176265';
-import { createCard } from '../../data/models.js?v=1778176265';
-import { showConfirmModal } from '../components/modal.js?v=1778176265';
+import { store } from '../../data/store.js?v=1778176485';
+import { createCard } from '../../data/models.js?v=1778176485';
+import { showConfirmModal } from '../components/modal.js?v=1778176485';
 
 export function renderCardEditor(container) {
   let cards = store.getAll('cards');
@@ -106,12 +106,12 @@ export function renderCardEditor(container) {
               const scales = typeof eff === 'string' ? 'none' : (eff.scalesWith || 'none');
               const STATS = ['none','strength','dexterity','max_energy','hand_size','health','max_health'];
               return `
-              <div class="dynamic-item" style="gap:4px;">
-                <input type="text" value="${effVal}" class="effect-input" data-index="${index}" placeholder="e.g. ATTACK:6" style="flex:2;" />
-                <select class="effect-scales" data-index="${index}" style="font-size:0.8em; padding:2px;">
+              <div class="dynamic-item" style="gap:6px; align-items:center;">
+                <input type="text" value="${effVal}" class="effect-input" data-index="${index}" placeholder="e.g. ATTACK:6" style="flex:2; min-width:0;" />
+                <select class="effect-scales" data-index="${index}" style="flex:1; min-width:0; max-width:33%; font-size:0.8em; padding:2px;">
                   ${STATS.map(s => `<option value="${s}" ${scales === s ? 'selected' : ''}>${s === 'none' ? '— no scaling —' : '+ ' + s}</option>`).join('')}
                 </select>
-                <button class="danger btn-remove-effect" data-index="${index}">X</button>
+                <button class="danger btn-remove-effect" data-index="${index}" style="flex-shrink:0;">X</button>
               </div>`;
             }).join('')}
             <div style="margin-top: 8px;">
