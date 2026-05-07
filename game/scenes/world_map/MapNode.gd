@@ -16,14 +16,27 @@ func setup(data: Dictionary) -> void:
 		modulate = Color(1, 1, 1)
 
 func _pressed() -> void:
-	# In a real setup, we'd only allow clicking if it's connected to current_node
-	# and conditions are met. For now, let's just trigger it.
-	print("Clicked node: ", node_data.get("label", ""))
-	GameState.current_node_id = node_data.get("id", "")
-	if not GameState.visited_nodes.has(GameState.current_node_id):
-		GameState.visited_nodes.append(GameState.current_node_id)
+	if GameState.current_node_id == node_data.get("id", ""):
+		SceneManager.start_event("NODE_" + GameState.current_node_id)
+		return
 		
-	# Trigger the event dialog for this node
-	# Wait, node options are the same structure as an event.
-	# We can just pass the node data as if it were an event to the EventDialog
-	SceneManager.start_event("NODE_" + GameState.current_node_id)
+	# Check if this node is connected to the current node
+	var map_data = GameData.get_map(GameState.current_map_id)
+	var connections = map_data.get("connections", [])
+	var can_travel = false
+	
+	for conn in connections:
+		if conn.get("fromNodeId") == GameState.current_node_id and conn.get("toNodeId") == node_data.get("id"):
+			if ConditionEvaluator.evaluate_all(conn.get("conditions", [])):
+				can_travel = true
+				break
+	
+	if can_travel:
+		GameState.current_node_id = node_data.get("id", "")
+		if not GameState.visited_nodes.has(GameState.current_node_id):
+			GameState.visited_nodes.append(GameState.current_node_id)
+		
+		GameState.map_updated.emit()
+		SceneManager.start_event("NODE_" + GameState.current_node_id)
+	else:
+		print("Cannot travel: Not connected or locked.")

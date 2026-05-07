@@ -153,6 +153,7 @@ export function createMapNode(data = {}) {
     y: data.y || 0,
     label: data.label || '',
     description: data.description || '',
+    isStartingNode: data.isStartingNode || false,
     options: data.options || [] // same shape as event options: { text, conditions[], outcomes[] }
   };
 }

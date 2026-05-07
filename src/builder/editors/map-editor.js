@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778164729';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778164729';
-import { showConfirmModal } from '../components/modal.js?v=1778164729';
+import { store } from '../../data/store.js?v=1778165481';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778165481';
+import { showConfirmModal } from '../components/modal.js?v=1778165481';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -166,6 +166,10 @@ export function renderMapEditor(container) {
            <div class="form-group">
              <label>Description</label>
              <textarea id="node-desc" rows="2" placeholder="What the player sees...">${node.description || ''}</textarea>
+           </div>
+           <div class="form-group" style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+             <input type="checkbox" id="node-start" ${node.isStartingNode ? 'checked' : ''} style="width:auto;" />
+             <label for="node-start" style="margin:0; font-size:0.9em; cursor:pointer;">Starting Node for Map</label>
            </div>
 
            <div style="margin-top:16px;">
@@ -645,9 +649,14 @@ export function renderMapEditor(container) {
         ctx.fillStyle = hasContent ? '#26a69a' : '#616161';
         ctx.fill();
 
-        ctx.strokeStyle = node.id === selectedNodeId ? '#fff' : '#000';
-        ctx.lineWidth = (node.id === selectedNodeId ? 3 : 2) / zoom;
+        ctx.strokeStyle = node.id === selectedNodeId ? '#fff' : (node.isStartingNode ? '#ffd700' : '#000');
+        ctx.lineWidth = (node.id === selectedNodeId || node.isStartingNode ? 3 : 2) / zoom;
         ctx.stroke();
+        if (node.isStartingNode) {
+           ctx.fillStyle = '#ffd700';
+           ctx.font = 'bold 10px sans-serif';
+           ctx.fillText('START', node.x, node.y - NODE_RADIUS - 5);
+        }
 
         // Label
         ctx.fillStyle = '#fff';
@@ -829,6 +838,12 @@ export function renderMapEditor(container) {
           if (!n) return;
           
           n.label = container.querySelector('#node-label').value;
+          const isStart = container.querySelector('#node-start')?.checked || false;
+          if (isStart && !n.isStartingNode) {
+             const map = maps.find(m => m.id === selectedMapId);
+             map.nodes.forEach(other => other.isStartingNode = false);
+          }
+          n.isStartingNode = isStart;
           n.x = parseFloat(container.querySelector('#node-x').value) || n.x;
           n.y = parseFloat(container.querySelector('#node-y').value) || n.y;
           n.description = container.querySelector('#node-desc')?.value || '';
@@ -876,6 +891,7 @@ export function renderMapEditor(container) {
        container.querySelector('#node-x')?.addEventListener('input', () => { saveNode(); drawCanvas(); });
        container.querySelector('#node-y')?.addEventListener('input', () => { saveNode(); drawCanvas(); });
        container.querySelector('#node-desc')?.addEventListener('blur', () => { saveNode(); });
+       container.querySelector('#node-start')?.addEventListener('change', () => { saveNode(); render(); });
 
        // Option text changes
        container.querySelectorAll('.node-opt-text, .noc-val, .noc-target, .noc-op, .noo-val, .noo-target').forEach(el => {

@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778164729';
-import { createEnemy } from '../../data/models.js?v=1778164729';
-import { showConfirmModal } from '../components/modal.js?v=1778164729';
+import { store } from '../../data/store.js?v=1778165481';
+import { createEnemy } from '../../data/models.js?v=1778165481';
+import { showConfirmModal } from '../components/modal.js?v=1778165481';
 
 export function renderEnemyEditor(container) {
   let enemies = store.getAll('enemies');

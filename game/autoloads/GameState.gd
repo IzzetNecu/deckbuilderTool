@@ -1,4 +1,6 @@
 extends Node
++
++signal map_updated
 
 # Persistent player data
 var health: int = 50

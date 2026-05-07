@@ -26,7 +26,25 @@ func _ready() -> void:
 		else:
 			print("Could not load background image: ", bg_path)
 			
+	# If current node is not set, try to find the starting node
+	if GameState.current_node_id == "":
+		for n in map_data.get("nodes", []):
+			if n.get("isStartingNode", false):
+				GameState.current_node_id = n.id
+				break
+				
+	GameState.map_updated.connect(_on_map_updated)
 	_build_map()
+
+func _on_map_updated() -> void:
+	# Refresh all nodes to update colors (green for current, etc.)
+	for node_id in node_lookup:
+		var instance = node_lookup[node_id]
+		# Find the data for this node in our current map_data
+		for n in map_data.get("nodes", []):
+			if n.id == node_id:
+				instance.setup(n)
+				break
 
 func _build_map() -> void:
 	var nodes_container = $Nodes

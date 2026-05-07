@@ -227,6 +227,22 @@
               "lockType": "soft"
             }
           ]
+        },
+        {
+          "id": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
+          "x": 629,
+          "y": 323,
+          "label": "nothing",
+          "description": "",
+          "options": []
+        },
+        {
+          "id": "5f0912cf-37bf-42cb-a977-c15936822b10",
+          "x": 709,
+          "y": 460,
+          "label": "also nothing",
+          "description": "",
+          "options": []
         }
       ],
       "connections": [
@@ -241,6 +257,20 @@
           "id": "53e964c7-8f31-418b-9467-7b9be6271e02",
           "fromNodeId": "82fd65d3-72fd-48c6-b23f-18777b8f01cb",
           "toNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "0aa544bd-6224-4aee-9c6e-9200130af3ee",
+          "fromNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
+          "toNodeId": "5f0912cf-37bf-42cb-a977-c15936822b10",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "5ffcfde6-ef90-4293-be5c-daed63a57f3a",
+          "fromNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
+          "toNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
           "conditions": [],
           "gateType": "none"
         }

@@ -7,6 +7,19 @@ extends Control
 var event_data: Dictionary = {}
 
 func _ready() -> void:
+	# Make background semi-transparent and pretty
+	$ColorRect.color = Color(0, 0, 0, 0.4) # Less dimming of background
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.05, 0.05, 0.85) # Transparent dark panel
+	style.set_corner_radius_all(12)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0.4, 0.4, 0.4, 0.5)
+	$Panel.add_theme_stylebox_override("panel", style)
+
 	if SceneManager.current_event_id != "":
 		load_event(SceneManager.current_event_id)
 
