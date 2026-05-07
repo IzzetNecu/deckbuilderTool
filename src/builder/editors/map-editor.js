@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778165481';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778165481';
-import { showConfirmModal } from '../components/modal.js?v=1778165481';
+import { store } from '../../data/store.js?v=1778166105';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778166105';
+import { showConfirmModal } from '../components/modal.js?v=1778166105';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -699,13 +699,7 @@ export function renderMapEditor(container) {
      ctx.stroke();
      ctx.setLineDash([]);
 
-     // Arrowhead
-     ctx.beginPath();
-     ctx.moveTo(targetX, targetY);
-     ctx.lineTo(targetX - headlen * Math.cos(angle - Math.PI / 6), targetY - headlen * Math.sin(angle - Math.PI / 6));
-     ctx.lineTo(targetX - headlen * Math.cos(angle + Math.PI / 6), targetY - headlen * Math.sin(angle + Math.PI / 6));
-     ctx.fillStyle = color;
-     ctx.fill();
+     // Removed arrowhead since connections are bidirectional
 
      // Lock icon for gated connections
      if (opts.hasConditions && !opts.isSelected) {

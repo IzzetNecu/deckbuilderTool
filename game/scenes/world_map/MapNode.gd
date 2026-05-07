@@ -26,7 +26,12 @@ func _pressed() -> void:
 	var can_travel = false
 	
 	for conn in connections:
-		if conn.get("fromNodeId") == GameState.current_node_id and conn.get("toNodeId") == node_data.get("id"):
+		var from_id = conn.get("fromNodeId")
+		var to_id = conn.get("toNodeId")
+		var target_id = node_data.get("id")
+		
+		if (from_id == GameState.current_node_id and to_id == target_id) or \
+		   (to_id == GameState.current_node_id and from_id == target_id):
 			if ConditionEvaluator.evaluate_all(conn.get("conditions", [])):
 				can_travel = true
 				break

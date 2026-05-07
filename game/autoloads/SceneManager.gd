@@ -18,9 +18,11 @@ var current_event_id: String = ""
 func start_event(event_id: String) -> void:
 	print("SceneManager: Starting Event ID: ", event_id)
 	current_event_id = event_id
-	var err = get_tree().change_scene_to_file("res://scenes/event/EventDialog.tscn")
-	if err != OK:
-		push_error("Failed to load EventDialog scene.")
+	var event_scene = preload("res://scenes/event/EventDialog.tscn").instantiate()
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 100
+	canvas_layer.add_child(event_scene)
+	get_tree().current_scene.add_child(canvas_layer)
 func show_text(text: String) -> void:
 	print("SceneManager: Showing Text: ", text)
 	# TODO: overlay a message box

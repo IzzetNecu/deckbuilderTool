@@ -92,7 +92,13 @@ func _on_option_pressed(outcomes: Array) -> void:
 			break
 			
 	if not changed_scene:
-		SceneManager.load_map(GameState.current_map_id)
+		_close_dialog()
 
 func _on_leave_pressed() -> void:
-	SceneManager.load_map(GameState.current_map_id)
+	_close_dialog()
+
+func _close_dialog() -> void:
+	if get_parent() is CanvasLayer:
+		get_parent().queue_free()
+	else:
+		queue_free()
