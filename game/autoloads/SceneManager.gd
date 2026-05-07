@@ -11,9 +11,13 @@ func load_map(map_id: String) -> void:
 
 func start_combat(enemy_id: String) -> void:
 	print("SceneManager: Starting Combat with Enemy ID: ", enemy_id)
-	# TODO: load CombatScene.tscn and pass enemy_id
+	current_enemy_id = enemy_id
+	var err = get_tree().change_scene_to_file("res://scenes/combat/CombatScene.tscn")
+	if err != OK:
+		push_error("Failed to load CombatScene.")
 
 var current_event_id: String = ""
+var current_enemy_id: String = ""
 
 func start_event(event_id: String) -> void:
 	print("SceneManager: Starting Event ID: ", event_id)

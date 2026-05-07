@@ -1,0 +1,46 @@
+[gd_scene load_steps=2 format=3 uid="uid://enemy_unit"]
+
+[ext_resource type="Script" path="res://scenes/combat/EnemyUnit.gd" id="1_eu"]
+
+[node name="EnemyUnit" type="VBoxContainer"]
+custom_minimum_size = Vector2(300, 200)
+script = ExtResource("1_eu")
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Enemy"
+horizontal_alignment = 1
+
+[node name="HPBar" type="ProgressBar" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+value = 100.0
+
+[node name="HPLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "HP"
+horizontal_alignment = 1
+
+[node name="BlockLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+modulate = Color(0.5, 0.7, 1, 1)
+text = "Block: 0"
+horizontal_alignment = 1
+
+[node name="HighlightRect" type="ColorRect" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 4)
+color = Color(1, 0.8, 0, 0.5)
+
+[node name="RevealedLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+modulate = Color(1, 0.5, 0.5, 1)
+text = "Incoming cards:"
+
+[node name="RevealedCardsContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
