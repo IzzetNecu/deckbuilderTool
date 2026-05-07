@@ -113,13 +113,15 @@
               "target": "cdbb3dd6-b04f-41a3-af57-0d9af9c5f04f",
               "value": ""
             }
-          ]
+          ],
+          "lockType": "soft"
         },
         {
           "id": "724d2481-4082-45d2-8ef7-d46e38e8de39",
           "text": "let the rock be and move on",
           "conditions": [],
-          "outcomes": []
+          "outcomes": [],
+          "lockType": "soft"
         }
       ]
     },
