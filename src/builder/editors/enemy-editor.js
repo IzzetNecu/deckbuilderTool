@@ -1,11 +1,12 @@
-import { store } from '../../data/store.js?v=1778176996';
-import { createEnemy } from '../../data/models.js?v=1778176996';
-import { showConfirmModal } from '../components/modal.js?v=1778176996';
+import { store } from '../../data/store.js?v=1778177534';
+import { createEnemy } from '../../data/models.js?v=1778177534';
+import { showConfirmModal } from '../components/modal.js?v=1778177534';
 
 export function renderEnemyEditor(container) {
   let enemies = store.getAll('enemies');
   let factions = store.getAll('factions');
   let allCards = store.getAll('cards');
+  let deckTemplates = store.getAll('deckTemplates');
   
   let consumables = store.getAll('consumables');
   let equipment = store.getAll('equipment');
@@ -96,11 +97,32 @@ export function renderEnemyEditor(container) {
         <!-- Right Column: Deck & Loot -->
         <div style="flex: 1; border-left: 1px solid var(--border); padding-left: 32px;">
           
-          <!-- Enemy Deck Settings -->
+          <!-- Enemy Deck Templates -->
           <div class="form-group">
-             <h3 style="margin-top:0;">Enemy Deck / Intent Pool</h3>
-             <label style="font-size: 0.8em; color:var(--text-secondary);">Cards this enemy can draw/play.</label>
-             <div class="dynamic-list" id="enemy-deck-list" style="max-height: 200px; overflow-y:auto;">
+            <h3 style="margin-top:0;">Deck Templates</h3>
+            <label style="font-size:0.8em; color:var(--text-secondary);">All cards from selected templates are added to the enemy's deck.</label>
+            <div class="dynamic-list" id="enemy-template-list" style="max-height:160px; overflow-y:auto; margin-top:6px;">
+              ${(enemy.deckTemplateIds || []).map((tId, index) => {
+                return `
+                  <div class="dynamic-item">
+                    <select class="enemy-template-select" data-index="${index}" style="flex:1;">
+                      <option value="">-- Select Template --</option>
+                      ${deckTemplates.map(t => `<option value="${t.id}" ${t.id === tId ? 'selected' : ''}>${t.name || 'Unnamed Template'}</option>`).join('')}
+                    </select>
+                    <button class="danger btn-remove-template" data-index="${index}">X</button>
+                  </div>`;
+              }).join('')}
+              <div style="margin-top:8px;">
+                <button id="btn-add-template" ${deckTemplates.length === 0 ? 'disabled title="No deck templates created yet"' : ''}>+ Add Deck Template</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enemy Individual Cards -->
+          <div class="form-group" style="margin-top:16px;">
+             <h4 style="margin-top:0; color:var(--text-secondary); font-weight:normal;">Extra Individual Cards</h4>
+             <label style="font-size: 0.8em; color:var(--text-secondary);">Additional cards on top of any templates.</label>
+             <div class="dynamic-list" id="enemy-deck-list" style="max-height: 160px; overflow-y:auto;">
                ${enemy.deckIds.map((cId, index) => {
                  const card = allCards.find(c => c.id === cId);
                  return `
@@ -187,7 +209,11 @@ export function renderEnemyEditor(container) {
         e.factionId = container.querySelector('#enemy-faction').value;
         e.description = container.querySelector('#enemy-desc').value;
         
-        // Build deck
+        // Build deckTemplateIds
+        const templateInputs = container.querySelectorAll('.enemy-template-select');
+        e.deckTemplateIds = Array.from(templateInputs).map(inp => inp.value).filter(v => v);
+
+        // Build individual deck cards
         const deckInputs = container.querySelectorAll('.enemy-deck-select');
         e.deckIds = Array.from(deckInputs).map(inp => inp.value).filter(v => v);
 
@@ -216,8 +242,26 @@ export function renderEnemyEditor(container) {
       });
       container.querySelector('#enemy-faction').addEventListener('change', () => { onChange(); render(); });
       
-      container.querySelectorAll('.enemy-deck-select, .loot-type-select, .loot-id-select, .loot-amount-input, .loot-chance-input').forEach(inp => {
+      container.querySelectorAll('.enemy-deck-select, .enemy-template-select, .loot-type-select, .loot-id-select, .loot-amount-input, .loot-chance-input').forEach(inp => {
           inp.addEventListener('change', () => { onChange(); render(); });
+      });
+
+      container.querySelector('#btn-add-template')?.addEventListener('click', () => {
+         const e = enemies.find(x => x.id === selectedId);
+         if (!e.deckTemplateIds) e.deckTemplateIds = [];
+         e.deckTemplateIds.push('');
+         store.save('enemies', e);
+         render();
+      });
+
+      container.querySelectorAll('.btn-remove-template').forEach(btn => {
+         btn.addEventListener('click', (ev) => {
+            const index = parseInt(ev.currentTarget.dataset.index);
+            const e = enemies.find(x => x.id === selectedId);
+            e.deckTemplateIds.splice(index, 1);
+            store.save('enemies', e);
+            render();
+         });
       });
 
       container.querySelector('#btn-add-deck-card')?.addEventListener('click', () => {

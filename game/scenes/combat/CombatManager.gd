@@ -34,12 +34,15 @@ func start_combat(enemy_id: String) -> void:
 	enemy_block = 0
 	player_block = 0
 
-	# Build enemy deck from deckIds (list of deck template ids)
+	# Build enemy deck from templates first, then individual extra cards
 	enemy_deck = []
-	for deck_id in enemy_data.get("deckIds", []):
-		var tmpl = GameData.deck_templates.get(deck_id, {})
+	for tmpl_id in enemy_data.get("deckTemplateIds", []):
+		var tmpl = GameData.deck_templates.get(tmpl_id, {})
 		for card_id in tmpl.get("cardIds", []):
 			enemy_deck.append(card_id)
+	# Then add individual extra cards
+	for card_id in enemy_data.get("deckIds", []):
+		enemy_deck.append(card_id)
 	enemy_draw_pile = enemy_deck.duplicate()
 	enemy_draw_pile.shuffle()
 	enemy_discard_pile = []

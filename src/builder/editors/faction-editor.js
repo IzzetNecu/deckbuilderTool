@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778176996';
-import { createFaction } from '../../data/models.js?v=1778176996';
-import { showConfirmModal } from '../components/modal.js?v=1778176996';
+import { store } from '../../data/store.js?v=1778177534';
+import { createFaction } from '../../data/models.js?v=1778177534';
+import { showConfirmModal } from '../components/modal.js?v=1778177534';
 
 export function renderFactionEditor(container) {
   let factions = store.getAll('factions');

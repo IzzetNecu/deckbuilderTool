@@ -84,7 +84,8 @@ export function createEnemy(data = {}) {
     hp: data.hp ?? 10,
     hand_size: data.hand_size ?? 3,
     factionId: data.factionId || null,
-    deckIds: data.deckIds || [],
+    deckTemplateIds: data.deckTemplateIds || [], // deck templates included in enemy's deck
+    deckIds: data.deckIds || [],                 // individual extra cards
     lootTable: data.lootTable || []
   };
 }
