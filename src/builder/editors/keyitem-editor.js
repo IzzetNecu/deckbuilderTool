@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778152488';
-import { createKeyItem } from '../../data/models.js?v=1778152488';
-import { showConfirmModal } from '../components/modal.js?v=1778152488';
+import { store } from '../../data/store.js?v=1778152872';
+import { createKeyItem } from '../../data/models.js?v=1778152872';
+import { showConfirmModal } from '../components/modal.js?v=1778152872';
 
 export function renderKeyItemEditor(container) {
   let keyItems = store.getAll('keyItems');

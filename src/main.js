@@ -1,5 +1,5 @@
-import { store } from './data/store.js?v=1778152488';
-import { initBuilder } from './builder/builder.js?v=1778152488';
+import { store } from './data/store.js?v=1778152872';
+import { initBuilder } from './builder/builder.js?v=1778152872';
 
 // Entry point
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778152488';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778152488';
-import { showConfirmModal } from '../components/modal.js?v=1778152488';
+import { store } from '../../data/store.js?v=1778152872';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778152872';
+import { showConfirmModal } from '../components/modal.js?v=1778152872';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -569,11 +569,7 @@ export function renderMapEditor(container) {
         }
      }
 
-     // Draw grid
-     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-     ctx.lineWidth = 1 / zoom;
-     for (let x = 0; x <= imgWidth; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, imgHeight); ctx.stroke(); }
-     for (let y = 0; y <= imgHeight; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(imgWidth, y); ctx.stroke(); }
+
 
      // Draw connections
      map.connections.forEach(conn => {

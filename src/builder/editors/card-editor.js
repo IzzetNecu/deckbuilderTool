@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778152488';
-import { createCard } from '../../data/models.js?v=1778152488';
-import { showConfirmModal } from '../components/modal.js?v=1778152488';
+import { store } from '../../data/store.js?v=1778152872';
+import { createCard } from '../../data/models.js?v=1778152872';
+import { showConfirmModal } from '../components/modal.js?v=1778152872';
 
 export function renderCardEditor(container) {
   let cards = store.getAll('cards');
