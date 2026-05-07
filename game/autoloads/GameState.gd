@@ -3,11 +3,11 @@ extends Node
 signal map_updated
 
 # Persistent player data
-var health: int = 50
-var max_health: int = 50
-var strength: int = 0
-var dexterity: int = 0
-var max_energy: int = 3
+var health: int = 20
+var max_health: int = 20
+var strength: int = 1
+var dexterity: int = 1
+var max_energy: int = 2
 var gold: int = 0
 var hand_size: int = 5
 
