@@ -13,10 +13,14 @@ func start_combat(enemy_id: String) -> void:
 	print("SceneManager: Starting Combat with Enemy ID: ", enemy_id)
 	# TODO: load CombatScene.tscn and pass enemy_id
 
+var current_event_id: String = ""
+
 func start_event(event_id: String) -> void:
 	print("SceneManager: Starting Event ID: ", event_id)
-	# TODO: load EventDialog.tscn and pass event_id
-
+	current_event_id = event_id
+	var err = get_tree().change_scene_to_file("res://scenes/event/EventDialog.tscn")
+	if err != OK:
+		push_error("Failed to load EventDialog scene.")
 func show_text(text: String) -> void:
 	print("SceneManager: Showing Text: ", text)
 	# TODO: overlay a message box
