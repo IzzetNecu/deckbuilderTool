@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778169189';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778169189';
-import { showConfirmModal } from '../components/modal.js?v=1778169189';
+import { store } from '../../data/store.js?v=1778169309';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778169309';
+import { showConfirmModal } from '../components/modal.js?v=1778169309';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -887,14 +887,14 @@ export function renderMapEditor(container) {
        container.querySelector('#node-desc')?.addEventListener('blur', () => { saveNode(); });
        container.querySelector('#node-start')?.addEventListener('change', () => { saveNode(); render(); });
 
-       // Option text changes
-       container.querySelectorAll('.node-opt-text, .noc-val, .noc-target, .noc-op, .noo-val, .noo-target').forEach(el => {
+       // Option text/simple changes (no re-render needed)
+       container.querySelectorAll('.node-opt-text, .noc-val, .noc-target, .noc-op, .noo-val, .noo-target, .node-opt-lock-type').forEach(el => {
           el.addEventListener('blur', () => { saveNode(); });
           el.addEventListener('change', () => { saveNode(); });
        });
 
-       // Structural changes redraw
-       container.querySelectorAll('.noc-type, .noo-type, .node-opt-lock-type').forEach(sel => {
+       // Structural changes that need a full re-render (condition/outcome type changes add/remove fields)
+       container.querySelectorAll('.noc-type, .noo-type').forEach(sel => {
           sel.addEventListener('change', () => { saveNode(); render(); });
        });
 

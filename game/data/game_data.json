@@ -187,7 +187,7 @@
         {
           "id": "8d8923cd-aca2-4507-9a73-8891463580a7",
           "x": 538,
-          "y": 384,
+          "y": 385,
           "label": "great way",
           "description": "way to the box",
           "options": [
@@ -211,7 +211,7 @@
                   "value": ""
                 }
               ],
-              "lockType": "soft"
+              "lockType": "hard"
             }
           ],
           "isStartingNode": false
