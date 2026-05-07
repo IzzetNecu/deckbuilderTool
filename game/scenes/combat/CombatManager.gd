@@ -166,17 +166,35 @@ func _end_phase() -> void:
 # ──────────────────────────────────────────────
 #  Effect application
 # ──────────────────────────────────────────────
-func _apply_effect(effect: String, source: String, target: String) -> void:
-	var parts = effect.split(":")
+func _apply_effect(effect, source: String, target: String) -> void:
+	# Effects can be plain strings OR objects {value, scalesWith}
+	var effect_str: String
+	var scales_with: String = "none"
+	if effect is Dictionary:
+		effect_str = effect.get("value", "")
+		scales_with = effect.get("scalesWith", "none")
+	else:
+		effect_str = str(effect)
+
+	var parts = effect_str.split(":")
 	if parts.size() < 2:
 		return
 	var type = parts[0]
-	var value = int(parts[1])
+	var base_value = int(parts[1])
+
+	# Apply stat scaling
+	var bonus = 0
+	if scales_with != "none":
+		if source == "player":
+			bonus = int(GameState.get(scales_with) if GameState.get(scales_with) != null else 0)
+		else:
+			# Enemies don't have individual stats — no bonus for now
+			bonus = 0
+	var value = base_value + bonus
 
 	match type:
 		"ATTACK":
-			var bonus = GameState.strength if source == "player" else 0
-			var dmg = max(0, value + bonus)
+			var dmg = max(0, value)
 			if target == "enemy":
 				var absorbed = min(dmg, enemy_block)
 				enemy_block -= absorbed
@@ -189,8 +207,7 @@ func _apply_effect(effect: String, source: String, target: String) -> void:
 				GameState.health = max(0, GameState.health - dmg)
 
 		"DEFEND":
-			var bonus = GameState.dexterity if source == "player" else 0
-			var shield = value + bonus
+			var shield = max(0, value)
 			if source == "player":
 				player_block += shield
 			else:

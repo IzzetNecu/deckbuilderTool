@@ -27,7 +27,9 @@ export function createCard(data = {}) {
     cost: data.cost ?? 1,
     rarity: data.rarity || 'common', // common, uncommon, rare
     requiresTarget: data.requiresTarget ?? false, // if true, must be dragged onto an enemy
-    effects: data.effects || []
+    effects: (data.effects || []).map(e =>
+      typeof e === 'string' ? { value: e, scalesWith: 'none' } : e
+    ) // [{value: "ATTACK:6", scalesWith: "strength"|"none"|...}]
   };
 }
 

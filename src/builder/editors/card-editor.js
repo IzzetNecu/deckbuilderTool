@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778175618';
-import { createCard } from '../../data/models.js?v=1778175618';
-import { showConfirmModal } from '../components/modal.js?v=1778175618';
+import { store } from '../../data/store.js?v=1778176265';
+import { createCard } from '../../data/models.js?v=1778176265';
+import { showConfirmModal } from '../components/modal.js?v=1778176265';
 
 export function renderCardEditor(container) {
   let cards = store.getAll('cards');
@@ -101,12 +101,19 @@ export function renderCardEditor(container) {
             <span style="font-size:0.78em; color:var(--text-secondary);">(card must be dragged onto an enemy to play)</span>
           </div>
           <div class="dynamic-list" id="effects-list">
-            ${card.effects.map((eff, index) => `
-              <div class="dynamic-item">
-                <input type="text" value="${eff}" class="effect-input" data-index="${index}" placeholder="e.g. ATTACK:6" />
+            ${card.effects.map((eff, index) => {
+              const effVal = typeof eff === 'string' ? eff : (eff.value || '');
+              const scales = typeof eff === 'string' ? 'none' : (eff.scalesWith || 'none');
+              const STATS = ['none','strength','dexterity','max_energy','hand_size','health','max_health'];
+              return `
+              <div class="dynamic-item" style="gap:4px;">
+                <input type="text" value="${effVal}" class="effect-input" data-index="${index}" placeholder="e.g. ATTACK:6" style="flex:2;" />
+                <select class="effect-scales" data-index="${index}" style="font-size:0.8em; padding:2px;">
+                  ${STATS.map(s => `<option value="${s}" ${scales === s ? 'selected' : ''}>${s === 'none' ? '— no scaling —' : '+ ' + s}</option>`).join('')}
+                </select>
                 <button class="danger btn-remove-effect" data-index="${index}">X</button>
-              </div>
-            `).join('')}
+              </div>`;
+            }).join('')}
             <div style="margin-top: 8px;">
               <button id="btn-add-effect">Add Effect</button>
             </div>
@@ -189,7 +196,12 @@ export function renderCardEditor(container) {
         c.requiresTarget = container.querySelector('#card-requires-target')?.checked ?? false;
         
         const effInputs = container.querySelectorAll('.effect-input');
-        c.effects = Array.from(effInputs).map(inp => inp.value);
+        const effScales = container.querySelectorAll('.effect-scales');
+        c.effects = Array.from(effInputs).map((inp, i) => ({
+          value: inp.value,
+          scalesWith: effScales[i]?.value || 'none'
+        }));
+        c.effects = c.effects.filter(e => e.value.trim() !== '');
 
         store.save('cards', c);
       };
@@ -204,13 +216,13 @@ export function renderCardEditor(container) {
       });
       container.querySelector('#card-requires-target')?.addEventListener('change', () => { onChange(); });
 
-      container.querySelectorAll('.effect-input').forEach(inp => {
+      container.querySelectorAll('.effect-input, .effect-scales').forEach(inp => {
         inp.addEventListener('change', onChange);
       });
 
       container.querySelector('#btn-add-effect').addEventListener('click', () => {
          const c = cards.find(x => x.id === selectedId);
-         c.effects.push('');
+         c.effects.push({ value: '', scalesWith: 'none' });
          store.save('cards', c);
          render();
       });

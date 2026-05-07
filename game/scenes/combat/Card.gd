@@ -22,8 +22,12 @@ func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 	name_label.text = data.get("name", "?")
 	cost_label.text = "Cost: %d" % data.get("cost", 0)
 
-	var effects = data.get("effects", [])
-	effects_label.text = "\n".join(effects) if effects.size() > 0 else ""
+	var effects = card_data.get("effects", [])
+	effects_label.text = "\n".join(effects.map(func(e):
+		var txt = e.get("value", str(e)) if e is Dictionary else str(e)
+		var s = e.get("scalesWith", "none") if e is Dictionary else "none"
+		return txt + (" (+" + s + ")" if s != "none" else "")
+	)) if effects.size() > 0 else ""
 
 func _is_targeted() -> bool:
 	# Determined by the card's explicit requiresTarget flag, not by effect name.

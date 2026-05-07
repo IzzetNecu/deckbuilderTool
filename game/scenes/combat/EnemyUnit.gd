@@ -50,8 +50,12 @@ func _make_card_preview(card_data: Dictionary) -> PanelContainer:
 	vbox.add_child(name_lbl)
 
 	for effect in card_data.get("effects", []):
+		var eff_text = effect.get("value", str(effect)) if effect is Dictionary else str(effect)
+		var scales = effect.get("scalesWith", "none") if effect is Dictionary else "none"
+		if scales != "none":
+			eff_text += " (+" + scales + ")"
 		var eff_lbl = Label.new()
-		eff_lbl.text = effect
+		eff_lbl.text = eff_text
 		eff_lbl.add_theme_font_size_override("font_size", 9)
 		eff_lbl.modulate = Color(1, 0.5, 0.5)
 		vbox.add_child(eff_lbl)
