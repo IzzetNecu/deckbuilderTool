@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778151619';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778151619';
-import { showConfirmModal } from '../components/modal.js?v=1778151619';
+import { store } from '../../data/store.js?v=1778152488';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778152488';
+import { showConfirmModal } from '../components/modal.js?v=1778152488';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -23,6 +23,12 @@ export function renderMapEditor(container) {
   let mousePos = { x: 0, y: 0 };
   let selectedConnectionId = null;
   let loadedImages = {};
+  
+  let panX = 0;
+  let panY = 0;
+  let zoom = 1;
+  let isPanning = false;
+  let panStart = { x: 0, y: 0 };
 
   const STATS = ['health', 'strength', 'dexterity', 'energy', 'handsize'];
 
@@ -380,10 +386,40 @@ export function renderMapEditor(container) {
      window.addEventListener('resize', resize);
      resize();
 
+     function screenToWorld(x, y) {
+        return { x: (x - panX) / zoom, y: (y - panY) / zoom };
+     }
+
+     canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+     canvas.addEventListener('wheel', (e) => {
+         e.preventDefault();
+         const rect = canvas.getBoundingClientRect();
+         const mouseX = e.clientX - rect.left;
+         const mouseY = e.clientY - rect.top;
+         
+         const zoomIntensity = 0.1;
+         const wheel = e.deltaY < 0 ? 1 : -1;
+         const newZoom = Math.max(0.1, Math.min(Math.exp(wheel * zoomIntensity) * zoom, 5));
+         
+         panX = mouseX - (mouseX - panX) * (newZoom / zoom);
+         panY = mouseY - (mouseY - panY) * (newZoom / zoom);
+         zoom = newZoom;
+         drawCanvas();
+     });
+
      canvas.addEventListener('mousedown', (e) => {
+        if (e.button === 1 || e.button === 2) {
+            e.preventDefault();
+            isPanning = true;
+            panStart = { x: e.clientX - panX, y: e.clientY - panY };
+            return;
+        }
+
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const { x, y } = screenToWorld(sx, sy);
 
         const map = maps.find(m => m.id === selectedMapId);
         const clickedNode = map.nodes.find(n => Math.hypot(n.x - x, n.y - y) <= NODE_RADIUS);
@@ -399,19 +435,16 @@ export function renderMapEditor(container) {
            dragStartPos = { x, y };
            render();
         } else {
-           // Check if clicking near a connection line
            const clickedConn = findConnectionNear(map, x, y);
            if (clickedConn) {
               selectedConnectionId = clickedConn.id;
               selectedNodeId = null;
               render();
            } else if (selectedNodeId || selectedConnectionId) {
-              // Only re-render if we're deselecting something
               selectedNodeId = null;
               selectedConnectionId = null;
               render();
            } else {
-              // Update state without re-rendering the whole UI
               selectedNodeId = null;
               selectedConnectionId = null;
               drawCanvas();
@@ -420,9 +453,17 @@ export function renderMapEditor(container) {
      });
 
      canvas.addEventListener('mousemove', (e) => {
+        if (isPanning) {
+            panX = e.clientX - panStart.x;
+            panY = e.clientY - panStart.y;
+            drawCanvas();
+            return;
+        }
+
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const { x, y } = screenToWorld(sx, sy);
         mousePos = { x, y };
 
         if (isConnecting) {
@@ -431,20 +472,32 @@ export function renderMapEditor(container) {
            dragNode.x += x - dragStartPos.x;
            dragNode.y += y - dragStartPos.y;
            dragStartPos = { x, y };
+           
+           // Update inspector if open
+           const xInput = document.getElementById('node-x');
+           const yInput = document.getElementById('node-y');
+           if (xInput) xInput.value = Math.round(dragNode.x);
+           if (yInput) yInput.value = Math.round(dragNode.y);
+           
            drawCanvas();
         }
      });
 
      canvas.addEventListener('mouseup', (e) => {
+        if (isPanning) {
+            isPanning = false;
+            return;
+        }
+
         const map = maps.find(m => m.id === selectedMapId);
         if (isConnecting && connectionStartNode) {
            const rect = canvas.getBoundingClientRect();
-           const x = e.clientX - rect.left;
-           const y = e.clientY - rect.top;
+           const sx = e.clientX - rect.left;
+           const sy = e.clientY - rect.top;
+           const { x, y } = screenToWorld(sx, sy);
            const targetNode = map.nodes.find(n => Math.hypot(n.x - x, n.y - y) <= NODE_RADIUS);
 
            if (targetNode && targetNode.id !== connectionStartNode.id) {
-              // Avoid duplicates
               const exists = map.connections.find(c => c.fromNodeId === connectionStartNode.id && c.toNodeId === targetNode.id);
               if (!exists) {
                  map.connections.push(createMapConnection(connectionStartNode.id, targetNode.id));
@@ -463,12 +516,12 @@ export function renderMapEditor(container) {
 
      canvas.addEventListener('dblclick', (e) => {
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const { x, y } = screenToWorld(sx, sy);
 
         const map = maps.find(m => m.id === selectedMapId);
         
-        // Don't create if clicking an existing node
         const clickedNode = map.nodes.find(n => Math.hypot(n.x - x, n.y - y) <= NODE_RADIUS);
         if (clickedNode) return;
 
@@ -492,6 +545,13 @@ export function renderMapEditor(container) {
 
      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+     ctx.save();
+     ctx.translate(panX, panY);
+     ctx.scale(zoom, zoom);
+
+     let imgWidth = canvas.width / zoom;
+     let imgHeight = canvas.height / zoom;
+
      if (map.backgroundImage) {
         if (loadedImages[map.backgroundImage] === undefined) {
            loadedImages[map.backgroundImage] = null; // Mark as loading
@@ -500,18 +560,20 @@ export function renderMapEditor(container) {
               loadedImages[map.backgroundImage] = img;
               drawCanvas(); // Redraw once loaded
            };
-           // Serve from python server root (e.g. /assets/maps/...)
            img.src = '/' + map.backgroundImage + '?v=' + Date.now();
         } else if (loadedImages[map.backgroundImage] !== null) {
-           ctx.drawImage(loadedImages[map.backgroundImage], 0, 0, canvas.width, canvas.height);
+           const img = loadedImages[map.backgroundImage];
+           imgWidth = img.width;
+           imgHeight = img.height;
+           ctx.drawImage(img, 0, 0);
         }
      }
 
      // Draw grid
-     ctx.strokeStyle = '#333';
-     ctx.lineWidth = 1;
-     for (let x = 0; x < canvas.width; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
-     for (let y = 0; y < canvas.height; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+     ctx.lineWidth = 1 / zoom;
+     for (let x = 0; x <= imgWidth; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, imgHeight); ctx.stroke(); }
+     for (let y = 0; y <= imgHeight; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(imgWidth, y); ctx.stroke(); }
 
      // Draw connections
      map.connections.forEach(conn => {
@@ -548,7 +610,7 @@ export function renderMapEditor(container) {
         ctx.fill();
 
         ctx.strokeStyle = node.id === selectedNodeId ? '#fff' : '#000';
-        ctx.lineWidth = node.id === selectedNodeId ? 3 : 2;
+        ctx.lineWidth = (node.id === selectedNodeId ? 3 : 2) / zoom;
         ctx.stroke();
 
         // Label
@@ -557,6 +619,8 @@ export function renderMapEditor(container) {
         ctx.textAlign = 'center';
         ctx.fillText(node.label || '•', node.x, node.y + NODE_RADIUS + 16);
      });
+
+     ctx.restore();
   }
 
   function drawArrow(ctx, fromX, fromY, toX, toY, opts = {}) {
