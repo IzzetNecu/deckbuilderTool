@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778152941';
-import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778152941';
-import { showConfirmModal } from '../components/modal.js?v=1778152941';
+import { store } from '../../data/store.js?v=1778159200';
+import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778159200';
+import { showConfirmModal } from '../components/modal.js?v=1778159200';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
@@ -21,6 +21,12 @@ export function renderEventEditor(container) {
 
   function render() {
     const selectedEvent = events.find(e => e.id === selectedId) || null;
+
+    let scrollPos = 0;
+    const existingPane = container.querySelector('.pane-form');
+    if (existingPane) {
+       scrollPos = existingPane.scrollTop;
+    }
 
     container.innerHTML = `
       <div class="editor-header">
@@ -53,6 +59,11 @@ export function renderEventEditor(container) {
     `;
 
     attachEvents();
+
+    const newPane = container.querySelector('.pane-form');
+    if (newPane) {
+       newPane.scrollTop = scrollPos;
+    }
   }
 
   function renderForm(event) {
