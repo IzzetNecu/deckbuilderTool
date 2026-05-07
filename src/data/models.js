@@ -165,3 +165,12 @@ export function createMapConnection(fromNodeId, toNodeId, data = {}) {
     gateType: data.gateType || 'none' // 'none', 'soft' (visible but locked), 'hard' (hidden)
   };
 }
+
+export function createFlag(data = {}) {
+  return {
+    id: data.id || uuid(),
+    name: data.name || '',
+    description: data.description || '',
+    defaultValue: data.defaultValue || false
+  };
+}

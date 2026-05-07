@@ -1,13 +1,14 @@
-import { renderFactionEditor } from './editors/faction-editor.js?v=1778161213';
-import { renderCardEditor } from './editors/card-editor.js?v=1778161213';
-import { renderConsumableEditor } from './editors/consumable-editor.js?v=1778161213';
-import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1778161213';
-import { renderKeyItemEditor } from './editors/keyitem-editor.js?v=1778161213';
-import { renderEnemyEditor } from './editors/enemy-editor.js?v=1778161213';
-import { renderEventEditor } from './editors/event-editor.js?v=1778161213';
-import { renderDeckEditor } from './editors/deck-editor.js?v=1778161213';
-import { renderMapEditor } from './editors/map-editor.js?v=1778161213';
-import { store } from '../data/store.js?v=1778161213';
+import { renderFactionEditor } from './editors/faction-editor.js?v=1778161760';
+import { renderCardEditor } from './editors/card-editor.js?v=1778161760';
+import { renderConsumableEditor } from './editors/consumable-editor.js?v=1778161760';
+import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1778161760';
+import { renderKeyItemEditor } from './editors/keyitem-editor.js?v=1778161760';
+import { renderEnemyEditor } from './editors/enemy-editor.js?v=1778161760';
+import { renderEventEditor } from './editors/event-editor.js?v=1778161760';
+import { renderDeckEditor } from './editors/deck-editor.js?v=1778161760';
+import { renderMapEditor } from './editors/map-editor.js?v=1778161760';
+import { renderFlagEditor } from './editors/flag-editor.js?v=1778161760';
+import { store } from '../data/store.js?v=1778161760';
 
 export function initBuilder(container) {
   container.innerHTML = `
@@ -28,6 +29,7 @@ export function initBuilder(container) {
           <div class="nav-item" data-tab="events">Events</div>
           <div class="nav-item" data-tab="decks">Deck Templates</div>
           <div class="nav-item" data-tab="maps">Maps</div>
+          <div class="nav-item" data-tab="flags">Flags</div>
         </div>
         <div style="padding: var(--spacing-md); border-top: 1px solid var(--border);">
           <button id="btn-export-data" style="width:100%; margin-bottom: 8px;">Export JSON</button>
@@ -71,6 +73,8 @@ export function initBuilder(container) {
       renderDeckEditor(editorContainer);
     } else if (tabId === 'maps') {
       renderMapEditor(editorContainer);
+    } else if (tabId === 'flags') {
+      renderFlagEditor(editorContainer);
     } else {
       editorContainer.innerHTML = `
         <div class="editor-header">

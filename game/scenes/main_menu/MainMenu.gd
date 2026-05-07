@@ -7,6 +7,7 @@ func _on_start_pressed() -> void:
 	print("Start Game Pressed")
 	# Initialize GameState
 	GameState.health = GameState.max_health
+	GameState.initialize_flags()
 	
 	# Find first overworld map or something?
 	# We can just start on a hardcoded map or check GameData.maps

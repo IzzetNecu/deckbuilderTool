@@ -31,6 +31,8 @@ func evaluate_one(cond: Dictionary) -> bool:
 		"hasFactionRank":
 			# Future implementation
 			return false
+		"checkFlag":
+			return GameState.get_flag(target)
 	return false
 
 func _compare(val1: int, op: String, val2: int) -> bool:

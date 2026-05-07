@@ -17,6 +17,13 @@ var key_items: Array = []      # Array of key item ids (String)
 var current_map_id: String = ""
 var current_node_id: String = ""
 var visited_nodes: Array = []
+var flags: Dictionary = {}
+
+func set_flag(flag_name: String, value: bool) -> void:
+	flags[flag_name] = value
+
+func get_flag(flag_name: String) -> bool:
+	return flags.get(flag_name, false)
 
 func get_stat(stat_name: String) -> int:
 	if stat_name in self:
@@ -72,3 +79,9 @@ func save() -> void:
 
 func load() -> void:
 	pass # To be implemented in Phase 6
+
+func initialize_flags() -> void:
+	flags.clear()
+	for flag_id in GameData.flags:
+		var f = GameData.flags[flag_id]
+		flags[f.name] = f.get("defaultValue", false)

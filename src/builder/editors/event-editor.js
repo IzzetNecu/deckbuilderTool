@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778161213';
-import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778161213';
-import { showConfirmModal } from '../components/modal.js?v=1778161213';
+import { store } from '../../data/store.js?v=1778161760';
+import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778161760';
+import { showConfirmModal } from '../components/modal.js?v=1778161760';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
@@ -15,6 +15,7 @@ export function renderEventEditor(container) {
   ];
   let factions = store.getAll('factions');
   let gameMaps = store.getAll('maps');
+  let flags = store.getAll('flags');
   let selectedId = null;
 
   const STATS = ['health', 'strength', 'dexterity', 'energy', 'handsize'];
@@ -149,6 +150,13 @@ export function renderEventEditor(container) {
              ${factions.map(f => `<option value="${f.id}" ${cond.target === f.id ? 'selected' : ''}>${f.name}</option>`).join('')}
            </select>
         `;
+     } else if (cond.type === 'checkFlag') {
+        targetHTML = `
+           <select class="cond-target" data-opt="${optInd}" data-cond="${condInd}" style="width:150px;">
+             <option value="">-- Select Flag --</option>
+             ${flags.map(f => `<option value="${f.name}" ${cond.target === f.name ? 'selected' : ''}>${f.name}</option>`).join('')}
+           </select>
+        `;
      } else {
         // hasMoney doesn't need target
         targetHTML = `<input type="hidden" class="cond-target" data-opt="${optInd}" data-cond="${condInd}" value="" />`;
@@ -166,6 +174,7 @@ export function renderEventEditor(container) {
             <option value="hasKeyItem" ${cond.type === 'hasKeyItem' ? 'selected' : ''}>Has Key Item</option>
             <option value="lacksKeyItem" ${cond.type === 'lacksKeyItem' ? 'selected' : ''}>Lacks Key Item</option>
             <option value="hasFactionRank" ${cond.type === 'hasFactionRank' ? 'selected' : ''}>Has Faction Rank</option>
+            <option value="checkFlag" ${cond.type === 'checkFlag' ? 'selected' : ''}>Check Flag</option>
           </select>
           ${targetHTML}
           <select class="cond-operator" data-opt="${optInd}" data-cond="${condInd}" style="width: 60px;">
@@ -207,6 +216,13 @@ export function renderEventEditor(container) {
              ${events.map(e => `<option value="${e.id}" ${out.target === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
            </select>
         `;
+     } else if (out.type === 'setFlag') {
+        targetHTML = `
+           <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:150px;">
+             <option value="">-- Select Flag --</option>
+             ${flags.map(f => `<option value="${f.name}" ${out.target === f.name ? 'selected' : ''}>${f.name}</option>`).join('')}
+           </select>
+        `;
      } else {
         // generic input for cards or text
         targetHTML = `<input type="text" class="out-target" data-opt="${optInd}" data-out="${outInd}" value="${out.target}" placeholder="Target ID / Text" style="width: 150px;" />`;
@@ -231,6 +247,7 @@ export function renderEventEditor(container) {
             <option value="modifyStat" ${out.type === 'modifyStat' ? 'selected' : ''}>Modify Stat</option>
             <option value="travelToMap" ${out.type === 'travelToMap' ? 'selected' : ''}>Travel to Map</option>
             <option value="startEvent" ${out.type === 'startEvent' ? 'selected' : ''}>Start Event</option>
+            <option value="setFlag" ${out.type === 'setFlag' ? 'selected' : ''}>Set Flag</option>
           </select>
           ${targetHTML}
           <input type="text" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Amount" style="width: 80px;" />

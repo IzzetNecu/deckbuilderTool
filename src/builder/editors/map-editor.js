@@ -1,17 +1,22 @@
-import { store } from '../../data/store.js?v=1778161213';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778161213';
-import { showConfirmModal } from '../components/modal.js?v=1778161213';
+import { store } from '../../data/store.js?v=1778161760';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778161760';
+import { showConfirmModal } from '../components/modal.js?v=1778161760';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
   let events = store.getAll('events');
   let enemies = store.getAll('enemies');
   let factions = store.getAll('factions');
-  let gameMaps = store.getAll('maps');
+  let flags = store.getAll('flags');
+  
+  let consumables = store.getAll('consumables');
+  let equipment = store.getAll('equipment');
+  let keyItems = store.getAll('keyItems');
+  
   let allItems = [
-    ...store.getAll('consumables').map(c => ({...c, _typeLabel: 'Consumable'})),
-    ...store.getAll('equipment').map(e => ({...e, _typeLabel: 'Equipment'})),
-    ...store.getAll('keyItems').map(k => ({...k, _typeLabel: 'Key Item'}))
+    ...consumables.map(c => ({...c, _typeLabel: 'Consumable'})),
+    ...equipment.map(e => ({...e, _typeLabel: 'Equipment'})),
+    ...keyItems.map(k => ({...k, _typeLabel: 'Key Item'}))
   ];
   
   let selectedMapId = null;
@@ -224,7 +229,7 @@ export function renderMapEditor(container) {
        ['hasMoney','Has Money'],['hasStat','Has Stat'],
        ['hasConsumable','Has Consumable'],['hasEquipment','Has Equipment'],
        ['hasKeyItem','Has Key Item'],['lacksKeyItem','Lacks Key Item'],
-       ['hasFactionRank','Has Faction Rank']
+       ['hasFactionRank','Has Faction Rank'],['checkFlag','Check Flag']
      ];
      return types.map(([v,l]) => `<option value="${v}" ${selected===v?'selected':''}>${l}</option>`).join('');
   }
@@ -248,6 +253,11 @@ export function renderMapEditor(container) {
           <option value="">--</option>
           ${factions.map(f => `<option value="${f.id}" ${cond.target===f.id?'selected':''}>${f.name}</option>`).join('')}
         </select>`;
+     } else if (cond.type === 'checkFlag') {
+        return `<select class="${prefix}-target" data-oi="${oi}" data-ci="${ci}" style="flex:1;">
+          <option value="">--</option>
+          ${flags.map(f => `<option value="${f.name}" ${cond.target===f.name?'selected':''}>${f.name}</option>`).join('')}
+        </select>`;
      }
      return `<input type="hidden" class="${prefix}-target" data-oi="${oi}" data-ci="${ci}" value="" />`;
   }
@@ -260,7 +270,8 @@ export function renderMapEditor(container) {
        ['addCard','Add Card'],['removeCard','Remove Card'],
        ['addMoney','Add Money'],['removeMoney','Remove Money'],
        ['damage','Damage'],['heal','Heal'],['modifyStat','Modify Stat'],
-       ['travelToMap','Travel to Map'],['startCombat','Start Combat'],['startEvent','Start Event']
+       ['travelToMap','Travel to Map'],['startCombat','Start Combat'],['startEvent','Start Event'],
+       ['setFlag','Set Flag']
      ];
      return types.map(([v,l]) => `<option value="${v}" ${selected===v?'selected':''}>${l}</option>`).join('');
   }
@@ -289,6 +300,11 @@ export function renderMapEditor(container) {
         return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
           <option value="">--</option>
           ${events.map(e => `<option value="${e.id}" ${out.target===e.id?'selected':''}>${e.name}</option>`).join('')}
+        </select>`;
+     } else if (out.type === 'setFlag') {
+        return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
+          <option value="">--</option>
+          ${flags.map(f => `<option value="${f.name}" ${out.target===f.name?'selected':''}>${f.name}</option>`).join('')}
         </select>`;
      }
      return `<input type="text" class="noo-target" data-oi="${oi}" data-oui="${oui}" value="${out.target}" placeholder="text" style="flex:1;" />`;

@@ -48,5 +48,7 @@ func execute_one(out: Dictionary) -> void:
 			SceneManager.start_combat(target)
 		"startEvent":
 			SceneManager.start_event(target)
+		"setFlag":
+			GameState.set_flag(target, value.to_lower() == "true")
 		"text":
 			SceneManager.show_text(value)

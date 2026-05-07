@@ -12,7 +12,8 @@ const COLLECTIONS = [
   'enemies',
   'events',
   'deckTemplates',
-  'maps'
+  'maps',
+  'flags'
 ];
 
 export const store = {

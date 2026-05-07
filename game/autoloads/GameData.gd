@@ -9,6 +9,7 @@ var enemies: Dictionary = {}
 var events: Dictionary = {}
 var deck_templates: Dictionary = {}
 var maps: Dictionary = {}
+var flags: Dictionary = {}
 
 func _ready() -> void:
 	load_data("res://data/game_data.json")
@@ -40,6 +41,7 @@ func load_data(path: String) -> void:
 	_index_collection(data.get("events", []), events)
 	_index_collection(data.get("deckTemplates", []), deck_templates)
 	_index_collection(data.get("maps", []), maps)
+	_index_collection(data.get("flags", []), flags)
 
 func _index_collection(arr: Array, target_dict: Dictionary) -> void:
 	target_dict.clear()
