@@ -1,13 +1,13 @@
-import { renderFactionEditor } from './editors/faction-editor.js?v=1778159383';
-import { renderCardEditor } from './editors/card-editor.js?v=1778159383';
-import { renderConsumableEditor } from './editors/consumable-editor.js?v=1778159383';
-import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1778159383';
-import { renderKeyItemEditor } from './editors/keyitem-editor.js?v=1778159383';
-import { renderEnemyEditor } from './editors/enemy-editor.js?v=1778159383';
-import { renderEventEditor } from './editors/event-editor.js?v=1778159383';
-import { renderDeckEditor } from './editors/deck-editor.js?v=1778159383';
-import { renderMapEditor } from './editors/map-editor.js?v=1778159383';
-import { store } from '../data/store.js?v=1778159383';
+import { renderFactionEditor } from './editors/faction-editor.js?v=1778160185';
+import { renderCardEditor } from './editors/card-editor.js?v=1778160185';
+import { renderConsumableEditor } from './editors/consumable-editor.js?v=1778160185';
+import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1778160185';
+import { renderKeyItemEditor } from './editors/keyitem-editor.js?v=1778160185';
+import { renderEnemyEditor } from './editors/enemy-editor.js?v=1778160185';
+import { renderEventEditor } from './editors/event-editor.js?v=1778160185';
+import { renderDeckEditor } from './editors/deck-editor.js?v=1778160185';
+import { renderMapEditor } from './editors/map-editor.js?v=1778160185';
+import { store } from '../data/store.js?v=1778160185';
 
 export function initBuilder(container) {
   container.innerHTML = `
@@ -106,7 +106,7 @@ export function initBuilder(container) {
      if ('showSaveFilePicker' in window) {
        try {
          const handle = await window.showSaveFilePicker({
-           suggestedName: 'game_data_export.json',
+           suggestedName: 'game_data.json',
            types: [{
              description: 'JSON File',
              accept: { 'application/json': ['.json'] },
@@ -127,7 +127,7 @@ export function initBuilder(container) {
      const a = document.createElement('a');
      a.style.display = 'none';
      a.href = url;
-     a.download = 'game_data_export.json';
+     a.download = 'game_data.json';
      
      document.body.appendChild(a);
      a.click();
