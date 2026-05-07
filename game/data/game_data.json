@@ -1,0 +1,109 @@
+{
+  "factions": [],
+  "cards": [
+    {
+      "id": "54950b35-bea2-4e24-8e3d-2628fef84499",
+      "name": "Strike",
+      "description": "",
+      "type": "attack",
+      "factionId": "",
+      "cost": 1,
+      "rarity": "common",
+      "effects": []
+    },
+    {
+      "id": "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
+      "name": "",
+      "description": "",
+      "type": "attack",
+      "factionId": null,
+      "cost": 1,
+      "rarity": "common",
+      "effects": []
+    }
+  ],
+  "consumables": [
+    {
+      "id": "cdbb3dd6-b04f-41a3-af57-0d9af9c5f04f",
+      "name": "Health Potion",
+      "description": "",
+      "rarity": "common",
+      "value": 50,
+      "effects": [
+        "HEAL:20"
+      ]
+    }
+  ],
+  "equipment": [
+    {
+      "id": "05fbb2b9-ff10-477e-afda-27f7016b286d",
+      "name": "boots",
+      "description": "",
+      "type": "onehandedWeapon",
+      "rarity": "common",
+      "value": 10,
+      "effects": [],
+      "cardIds": [],
+      "conditions": []
+    }
+  ],
+  "keyItems": [
+    {
+      "id": "614de54a-5c0e-4f55-b4e4-c00d597b48c6",
+      "name": "Boss Key",
+      "description": ""
+    }
+  ],
+  "enemies": [
+    {
+      "id": "a7bf27ff-485c-4982-b682-5edf34df4503",
+      "name": "",
+      "description": "",
+      "hp": 10,
+      "factionId": "",
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "item",
+          "chance": 100,
+          "id": "048868e5-49ff-4574-8e51-cf178cf1dce0"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "bde53165-1f55-45de-9548-01d9dea870da",
+      "name": "",
+      "description": "",
+      "options": [
+        {
+          "id": "724d2481-4082-45d2-8ef7-d46e38e8de39",
+          "text": "",
+          "conditions": [
+            {
+              "id": "5c160f70-dbf5-4609-ba25-12cc89e15383",
+              "type": "hasConsumable",
+              "target": "614de54a-5c0e-4f55-b4e4-c00d597b48c6",
+              "operator": ">=",
+              "value": ""
+            }
+          ],
+          "outcomes": []
+        }
+      ]
+    }
+  ],
+  "deckTemplates": [],
+  "maps": [
+    {
+      "id": "0794f723-845c-4dbf-963e-c53135168063",
+      "name": "Overworld",
+      "description": "",
+      "isOverworld": true,
+      "parentMapId": null,
+      "nodes": [],
+      "connections": []
+    }
+  ]
+}
