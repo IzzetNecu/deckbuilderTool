@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778177838';
-import { createEnemy } from '../../data/models.js?v=1778177838';
-import { showConfirmModal } from '../components/modal.js?v=1778177838';
+import { store } from '../../data/store.js?v=1778178125';
+import { createEnemy } from '../../data/models.js?v=1778178125';
+import { showConfirmModal } from '../components/modal.js?v=1778178125';
 
 export function renderEnemyEditor(container) {
   let enemies = store.getAll('enemies');
@@ -22,6 +22,7 @@ export function renderEnemyEditor(container) {
   function render() {
     const selectedEnemy = enemies.find(e => e.id === selectedId) || null;
 
+    const _pane = container.querySelector(".pane-form"); const _st = _pane ? _pane.scrollTop : 0;
     container.innerHTML = `
       <div class="editor-header">
         <h2>Enemy Editor</h2>
@@ -53,6 +54,7 @@ export function renderEnemyEditor(container) {
     `;
 
     attachEvents();
+    requestAnimationFrame(() => { const _p = container.querySelector(".pane-form"); if (_p) _p.scrollTop = _st; });
   }
 
   function renderForm(enemy) {

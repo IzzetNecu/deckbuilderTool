@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778177838';
-import { createConsumable } from '../../data/models.js?v=1778177838';
-import { showConfirmModal } from '../components/modal.js?v=1778177838';
+import { store } from '../../data/store.js?v=1778178125';
+import { createConsumable } from '../../data/models.js?v=1778178125';
+import { showConfirmModal } from '../components/modal.js?v=1778178125';
 
 export function renderConsumableEditor(container) {
   let consumables = store.getAll('consumables');
@@ -9,6 +9,7 @@ export function renderConsumableEditor(container) {
   function render() {
     const selectedItem = consumables.find(i => i.id === selectedId) || null;
 
+    const _pane = container.querySelector(".pane-form"); const _st = _pane ? _pane.scrollTop : 0;
     container.innerHTML = `
       <div class="editor-header">
         <h2>Consumables Editor</h2>
@@ -40,6 +41,7 @@ export function renderConsumableEditor(container) {
     `;
 
     attachEvents();
+    requestAnimationFrame(() => { const _p = container.querySelector(".pane-form"); if (_p) _p.scrollTop = _st; });
   }
 
   function renderForm(item) {

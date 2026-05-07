@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778177838';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778177838';
-import { showConfirmModal } from '../components/modal.js?v=1778177838';
+import { store } from '../../data/store.js?v=1778178125';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778178125';
+import { showConfirmModal } from '../components/modal.js?v=1778178125';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -42,6 +42,10 @@ export function renderMapEditor(container) {
   function render() {
     const selectedMap = maps.find(m => m.id === selectedMapId) || null;
     const overworld = maps.find(m => m.isOverworld);
+
+    // Preserve inspector scroll position across re-renders
+    const _inspector = container.querySelector('#node-inspector');
+    const _st = _inspector ? _inspector.scrollTop : 0;
 
     container.innerHTML = `
       <div class="editor-header">
@@ -104,6 +108,10 @@ export function renderMapEditor(container) {
     if (selectedMap) {
       initCanvas();
     }
+    requestAnimationFrame(() => {
+      const _insp = container.querySelector('#node-inspector');
+      if (_insp) _insp.scrollTop = _st;
+    });
   }
 
   function renderMapTree(mapNode, depth = 0) {
@@ -144,7 +152,7 @@ export function renderMapEditor(container) {
      if (!node.options) node.options = [];
 
      return `
-        <div style="width: 350px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column; overflow-y:auto;">
+        <div id="node-inspector" style="width: 350px; background:var(--bg-surface); border-left:1px solid var(--border); padding:16px; display:flex; flex-direction:column; overflow-y:auto;">
            <h3>Location Inspector</h3>
            
            <div class="form-group">
