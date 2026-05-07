@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778175010';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778175010';
-import { showConfirmModal } from '../components/modal.js?v=1778175010';
+import { store } from '../../data/store.js?v=1778175618';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778175618';
+import { showConfirmModal } from '../components/modal.js?v=1778175618';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');

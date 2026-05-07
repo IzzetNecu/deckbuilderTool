@@ -26,11 +26,9 @@ func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 	effects_label.text = "\n".join(effects) if effects.size() > 0 else ""
 
 func _is_targeted() -> bool:
-	# Cards with ATTACK effects need a target (enemy)
-	for effect in card_data.get("effects", []):
-		if effect.begins_with("ATTACK"):
-			return true
-	return false
+	# Determined by the card's explicit requiresTarget flag, not by effect name.
+	# This allows AOE attacks (no target) and targeted skills.
+	return card_data.get("requiresTarget", false)
 
 func _can_afford() -> bool:
 	if not combat_manager:

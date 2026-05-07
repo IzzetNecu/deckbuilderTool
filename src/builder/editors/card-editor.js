@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778175010';
-import { createCard } from '../../data/models.js?v=1778175010';
-import { showConfirmModal } from '../components/modal.js?v=1778175010';
+import { store } from '../../data/store.js?v=1778175618';
+import { createCard } from '../../data/models.js?v=1778175618';
+import { showConfirmModal } from '../components/modal.js?v=1778175618';
 
 export function renderCardEditor(container) {
   let cards = store.getAll('cards');
@@ -95,10 +95,15 @@ export function renderCardEditor(container) {
 
         <div class="form-group">
           <label>Mechanic Effects (Internal Logic for Godot)</label>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <input type="checkbox" id="card-requires-target" ${card.requiresTarget ? 'checked' : ''} style="width:auto;" />
+            <label for="card-requires-target" style="margin:0; font-size:0.9em; cursor:pointer;">Requires Enemy Target</label>
+            <span style="font-size:0.78em; color:var(--text-secondary);">(card must be dragged onto an enemy to play)</span>
+          </div>
           <div class="dynamic-list" id="effects-list">
             ${card.effects.map((eff, index) => `
               <div class="dynamic-item">
-                <input type="text" value="${eff}" class="effect-input" data-index="${index}" placeholder="e.g. DEAL_DAMAGE:6" />
+                <input type="text" value="${eff}" class="effect-input" data-index="${index}" placeholder="e.g. ATTACK:6" />
                 <button class="danger btn-remove-effect" data-index="${index}">X</button>
               </div>
             `).join('')}
@@ -181,6 +186,7 @@ export function renderCardEditor(container) {
         c.rarity = container.querySelector('#card-rarity').value;
         c.factionId = container.querySelector('#card-faction').value;
         c.description = container.querySelector('#card-desc').value;
+        c.requiresTarget = container.querySelector('#card-requires-target')?.checked ?? false;
         
         const effInputs = container.querySelectorAll('.effect-input');
         c.effects = Array.from(effInputs).map(inp => inp.value);
@@ -196,6 +202,7 @@ export function renderCardEditor(container) {
       ['#card-type', '#card-rarity', '#card-faction'].forEach(id => {
          container.querySelector(id).addEventListener('change', () => { onChange(); render(); });
       });
+      container.querySelector('#card-requires-target')?.addEventListener('change', () => { onChange(); });
 
       container.querySelectorAll('.effect-input').forEach(inp => {
         inp.addEventListener('change', onChange);
@@ -307,7 +314,7 @@ export function renderCardEditor(container) {
         </table>
 
         <p style="color:var(--text-secondary); font-size:0.82em; border-top:1px solid var(--border); padding-top:12px;">
-          💡 <strong>Tip:</strong> Attack cards are identified by the <code style="background:#1a1a1a; padding:2px 4px; border-radius:3px;">ATTACK</code> effect — the game requires them to be dragged onto an enemy to play. All other effects play freely in the combat zone.
+          💡 <strong>Tip:</strong> Enable <strong>Requires Enemy Target</strong> if the card should be dragged onto a specific enemy to play (e.g. single-target attacks, debuffs). Leave it off for AOE attacks, buffs, heals, or any card that should play freely in the zone.
         </p>
       </div>
     `;

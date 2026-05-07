@@ -26,6 +26,7 @@ export function createCard(data = {}) {
     factionId: data.factionId || null, 
     cost: data.cost ?? 1,
     rarity: data.rarity || 'common', // common, uncommon, rare
+    requiresTarget: data.requiresTarget ?? false, // if true, must be dragged onto an enemy
     effects: data.effects || []
   };
 }
