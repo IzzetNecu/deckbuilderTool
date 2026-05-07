@@ -115,11 +115,65 @@ func remove_key_item(id: String, amount: int = 1) -> void:
 			if removed >= amount:
 				break
 
-func save() -> void:
-	pass # To be implemented in Phase 6
+const SAVE_PATH = "user://savegame.json"
 
-func load() -> void:
-	pass # To be implemented in Phase 6
+func save() -> void:
+	var save_data = {
+		"health": health,
+		"max_health": max_health,
+		"strength": strength,
+		"dexterity": dexterity,
+		"max_energy": max_energy,
+		"gold": gold,
+		"hand_size": hand_size,
+		"deck": deck,
+		"consumables": consumables,
+		"equipment": equipment,
+		"key_items": key_items,
+		"current_map_id": current_map_id,
+		"current_node_id": current_node_id,
+		"visited_nodes": visited_nodes,
+		"flags": flags
+	}
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(save_data)
+		file.store_string(json_string)
+		print("GameState: Saved successfully to ", SAVE_PATH)
+
+func load_game() -> bool:
+	if not FileAccess.file_exists(SAVE_PATH):
+		print("GameState: No save file found.")
+		return false
+		
+	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var json_string = file.get_as_text()
+	var json = JSON.new()
+	var parse_result = json.parse(json_string)
+	
+	if parse_result != OK:
+		push_error("GameState: Failed to parse save file.")
+		return false
+		
+	var data = json.data
+	health = data.get("health", health)
+	max_health = data.get("max_health", max_health)
+	strength = data.get("strength", strength)
+	dexterity = data.get("dexterity", dexterity)
+	max_energy = data.get("max_energy", max_energy)
+	gold = data.get("gold", gold)
+	hand_size = data.get("hand_size", hand_size)
+	deck = data.get("deck", deck)
+	consumables = data.get("consumables", consumables)
+	equipment = data.get("equipment", equipment)
+	key_items = data.get("key_items", key_items)
+	current_map_id = data.get("current_map_id", current_map_id)
+	current_node_id = data.get("current_node_id", current_node_id)
+	visited_nodes = data.get("visited_nodes", visited_nodes)
+	flags = data.get("flags", flags)
+	
+	print("GameState: Loaded successfully from ", SAVE_PATH)
+	return true
 
 func initialize_flags() -> void:
 	flags.clear()

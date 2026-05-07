@@ -27,6 +27,21 @@ func start_event(event_id: String) -> void:
 	canvas_layer.layer = 100
 	canvas_layer.add_child(event_scene)
 	get_tree().current_scene.add_child(canvas_layer)
+func toggle_inventory() -> void:
+	# Check if inventory is already open
+	var existing = get_tree().current_scene.get_node_or_null("InventoryOverlay")
+	if existing:
+		existing.queue_free()
+		return
+
+	print("SceneManager: Opening Inventory")
+	var inv_scene = preload("res://scenes/ui/InventoryPanel.tscn").instantiate()
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.name = "InventoryOverlay"
+	canvas_layer.layer = 110
+	canvas_layer.add_child(inv_scene)
+	get_tree().current_scene.add_child(canvas_layer)
+
 func show_text(text: String) -> void:
 	print("SceneManager: Showing Text: ", text)
 	# TODO: overlay a message box

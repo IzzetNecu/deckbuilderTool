@@ -54,6 +54,7 @@ func _pressed() -> void:
 			GameState.visited_nodes.append(GameState.current_node_id)
 		
 		GameState.map_updated.emit()
+		GameState.save()
 		# Only open the event dialog if this node has something to show
 		if _node_has_content(node_data):
 			SceneManager.start_event("NODE_" + GameState.current_node_id)

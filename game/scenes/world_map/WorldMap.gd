@@ -5,6 +5,8 @@ var node_lookup: Dictionary = {}
 var map_node_scene = preload("res://scenes/world_map/MapNode.tscn")
 
 func _ready() -> void:
+	if has_node("UI/InventoryButton"):
+		$UI/InventoryButton.pressed.connect(SceneManager.toggle_inventory)
 	if GameState.current_map_id == "":
 		push_error("No current map ID set.")
 		return

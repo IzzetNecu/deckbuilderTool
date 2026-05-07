@@ -231,11 +231,13 @@ func _check_win_lose() -> bool:
 		current_phase = Phase.WIN
 		phase_changed.emit(current_phase)
 		combat_ended.emit(true)
+		GameState.save()
 		return true
 	if GameState.health <= 0:
 		current_phase = Phase.LOSE
 		phase_changed.emit(current_phase)
 		combat_ended.emit(false)
+		GameState.save()
 		return true
 	return false
 
