@@ -18,8 +18,8 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
             content_length = int(self.headers.get('Content-Length', 0))
             data = self.rfile.read(content_length)
             
-            os.makedirs('assets/maps', exist_ok=True)
-            filepath = os.path.join('assets/maps', filename)
+            os.makedirs('game/assets/maps', exist_ok=True)
+            filepath = os.path.join('game/assets/maps', filename)
             
             with open(filepath, 'wb') as f:
                 f.write(data)

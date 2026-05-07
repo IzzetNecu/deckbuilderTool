@@ -16,7 +16,10 @@ func _ready() -> void:
 	# Try to load background
 	var bg_path = map_data.get("backgroundImage", "")
 	if bg_path != "":
-		var tex = load(bg_path)
+		var full_path = bg_path
+		if not full_path.begins_with("res://"):
+			full_path = "res://" + full_path
+		var tex = load(full_path)
 		if tex:
 			$Background.texture = tex
 		else:

@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778160185';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778160185';
-import { showConfirmModal } from '../components/modal.js?v=1778160185';
+import { store } from '../../data/store.js?v=1778161213';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778161213';
+import { showConfirmModal } from '../components/modal.js?v=1778161213';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -568,7 +568,7 @@ export function renderMapEditor(container) {
               loadedImages[map.backgroundImage] = img;
               drawCanvas(); // Redraw once loaded
            };
-           img.src = '/' + map.backgroundImage + '?v=' + Date.now();
+           img.src = '/game/' + map.backgroundImage + '?v=' + Date.now();
         } else if (loadedImages[map.backgroundImage] !== null) {
            const img = loadedImages[map.backgroundImage];
            imgWidth = img.width;

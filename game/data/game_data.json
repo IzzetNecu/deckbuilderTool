@@ -45,6 +45,19 @@
       "effects": [],
       "cardIds": [],
       "conditions": []
+    },
+    {
+      "id": "9a00c718-2f3f-48f7-bc25-49543ca90fbb",
+      "name": "swprd",
+      "description": "",
+      "type": "onehandedWeapon",
+      "rarity": "common",
+      "value": 10,
+      "effects": [
+        "poisp"
+      ],
+      "cardIds": [],
+      "conditions": []
     }
   ],
   "keyItems": [
@@ -74,21 +87,32 @@
   "events": [
     {
       "id": "bde53165-1f55-45de-9548-01d9dea870da",
-      "name": "",
-      "description": "",
+      "name": "first event",
+      "description": "this is the first event, you find a rock on the floor",
       "options": [
         {
-          "id": "724d2481-4082-45d2-8ef7-d46e38e8de39",
-          "text": "",
-          "conditions": [
+          "id": "53f5aae8-ea7d-4d89-ab34-6c013f2b8082",
+          "text": "pick up the rock",
+          "conditions": [],
+          "outcomes": [
             {
-              "id": "5c160f70-dbf5-4609-ba25-12cc89e15383",
-              "type": "hasConsumable",
-              "target": "614de54a-5c0e-4f55-b4e4-c00d597b48c6",
-              "operator": ">=",
+              "id": "d2f383ef-fe0d-46b2-8bfb-3fd3869cf298",
+              "type": "addConsumable",
+              "target": "cdbb3dd6-b04f-41a3-af57-0d9af9c5f04f",
+              "value": "1"
+            },
+            {
+              "id": "f7665f92-7a98-47c2-8114-c8dd070b1b4b",
+              "type": "text",
+              "target": "oh, it was a health potion",
               "value": ""
             }
-          ],
+          ]
+        },
+        {
+          "id": "724d2481-4082-45d2-8ef7-d46e38e8de39",
+          "text": "let the rock be and move on",
+          "conditions": [],
           "outcomes": []
         }
       ]
@@ -102,8 +126,70 @@
       "description": "",
       "isOverworld": true,
       "parentMapId": null,
-      "nodes": [],
-      "connections": []
+      "nodes": [
+        {
+          "id": "8d8923cd-aca2-4507-9a73-8891463580a7",
+          "x": 520,
+          "y": 374,
+          "label": "great way",
+          "description": "way to the box",
+          "options": [
+            {
+              "id": "a05ad081-2451-41fb-9d34-fe126aadc2f5",
+              "text": "what's on the floor?",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "90cc22ef-e6fd-4479-85b4-3c19f309cecb",
+                  "type": "startEvent",
+                  "target": "bde53165-1f55-45de-9548-01d9dea870da",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "82fd65d3-72fd-48c6-b23f-18777b8f01cb",
+          "x": 391.7434622708016,
+          "y": 506.18586556770043,
+          "label": "start",
+          "description": "",
+          "options": []
+        },
+        {
+          "id": "20fe3d25-879e-45ec-8cdd-9fbf0d5c03ba",
+          "x": 301,
+          "y": 283,
+          "label": "strange box",
+          "description": "",
+          "options": [
+            {
+              "id": "47436d8c-bad2-4908-b3b6-0c0a7a6c7fc4",
+              "text": "what is this?",
+              "conditions": [],
+              "outcomes": []
+            }
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "id": "cc3204c7-c9df-4d19-bb28-59eeb4b0a5f0",
+          "fromNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
+          "toNodeId": "20fe3d25-879e-45ec-8cdd-9fbf0d5c03ba",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "53e964c7-8f31-418b-9467-7b9be6271e02",
+          "fromNodeId": "82fd65d3-72fd-48c6-b23f-18777b8f01cb",
+          "toNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
+          "conditions": [],
+          "gateType": "none"
+        }
+      ],
+      "backgroundImage": "assets/maps/Highland-Pass-battle-map-color-no-grid.jpg"
     }
   ]
 }
