@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778141595';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778141595';
-import { showConfirmModal } from '../components/modal.js?v=1778141595';
+import { store } from '../../data/store.js?v=1778151460';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778151460';
+import { showConfirmModal } from '../components/modal.js?v=1778151460';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -22,6 +22,7 @@ export function renderMapEditor(container) {
   let connectionStartNode = null;
   let mousePos = { x: 0, y: 0 };
   let selectedConnectionId = null;
+  let loadedImages = {};
 
   const STATS = ['health', 'strength', 'dexterity', 'energy', 'handsize'];
 
@@ -55,7 +56,10 @@ export function renderMapEditor(container) {
           ${selectedMap ? `
             <div style="padding: 16px; border-bottom: 1px solid var(--border); display:flex; gap: 16px; background:var(--bg-surface); flex-wrap:wrap;">
               <input type="text" id="map-name" value="${selectedMap.name}" placeholder="Map Name" style="flex:1; min-width:150px;" />
-              <input type="text" id="map-bg" value="${selectedMap.backgroundImage || ''}" placeholder="Background path (e.g. res://assets/maps/overworld.png)" style="flex:2; min-width:200px; font-size:0.85em;" />
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="text" id="map-bg" value="${selectedMap.backgroundImage || ''}" placeholder="e.g. assets/maps/overworld.png" style="flex:2; min-width:200px; font-size:0.85em;" />
+                <input type="file" id="map-bg-upload" accept="image/*" style="width: 200px; font-size:0.8em;" />
+              </div>
               ${selectedMap.isOverworld ? `<span style="align-self:center; color:var(--accent);">★ Overworld</span>` : `
                  <button id="btn-delete-map" class="danger">Delete Map</button>
               `}
@@ -477,6 +481,21 @@ export function renderMapEditor(container) {
 
      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+     if (map.backgroundImage) {
+        if (loadedImages[map.backgroundImage] === undefined) {
+           loadedImages[map.backgroundImage] = null; // Mark as loading
+           const img = new Image();
+           img.onload = () => {
+              loadedImages[map.backgroundImage] = img;
+              drawCanvas(); // Redraw once loaded
+           };
+           // Serve from python server root (e.g. /assets/maps/...)
+           img.src = '/' + map.backgroundImage + '?v=' + Date.now();
+        } else if (loadedImages[map.backgroundImage] !== null) {
+           ctx.drawImage(loadedImages[map.backgroundImage], 0, 0, canvas.width, canvas.height);
+        }
+     }
+
      // Draw grid
      ctx.strokeStyle = '#333';
      ctx.lineWidth = 1;
@@ -643,12 +662,35 @@ export function renderMapEditor(container) {
 
       // Background image path
       const bgInput = container.querySelector('#map-bg');
+      const bgUpload = container.querySelector('#map-bg-upload');
+      
       if (bgInput) {
         bgInput.addEventListener('blur', () => {
            const m = maps.find(x => x.id === selectedMapId);
            m.backgroundImage = bgInput.value;
            store.save('maps', m);
+           drawCanvas();
         });
+      }
+
+      if (bgUpload) {
+         bgUpload.addEventListener('change', async (e) => {
+             const file = e.target.files[0];
+             if (!file) return;
+             try {
+                 await fetch('/upload-image', {
+                     method: 'POST',
+                     headers: { 'X-Filename': file.name },
+                     body: file
+                 });
+                 const m = maps.find(x => x.id === selectedMapId);
+                 m.backgroundImage = `assets/maps/${file.name}`;
+                 store.save('maps', m);
+                 render();
+             } catch (err) {
+                 alert("Upload failed. Make sure python server is running.");
+             }
+         });
       }
 
       container.querySelector('#btn-delete-map')?.addEventListener('click', () => {
