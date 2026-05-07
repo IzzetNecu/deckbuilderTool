@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778106278';
-import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778106278';
-import { showConfirmModal } from '../components/modal.js?v=1778106278';
+import { store } from '../../data/store.js?v=1778133956';
+import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778133956';
+import { showConfirmModal } from '../components/modal.js?v=1778133956';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
@@ -185,6 +185,13 @@ export function renderEventEditor(container) {
              ${gameMaps.map(m => `<option value="${m.id}" ${out.target === m.id ? 'selected' : ''}>${m.name}${m.isOverworld ? ' (Overworld)' : ''}</option>`).join('')}
            </select>
         `;
+     } else if (out.type === 'startEvent') {
+        targetHTML = `
+           <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:150px;">
+             <option value="">-- Select Event --</option>
+             ${events.map(e => `<option value="${e.id}" ${out.target === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
+           </select>
+        `;
      } else {
         // generic input for cards or text
         targetHTML = `<input type="text" class="out-target" data-opt="${optInd}" data-out="${outInd}" value="${out.target}" placeholder="Target ID / Text" style="width: 150px;" />`;
@@ -208,6 +215,7 @@ export function renderEventEditor(container) {
             <option value="heal" ${out.type === 'heal' ? 'selected' : ''}>Heal Player</option>
             <option value="modifyStat" ${out.type === 'modifyStat' ? 'selected' : ''}>Modify Stat</option>
             <option value="travelToMap" ${out.type === 'travelToMap' ? 'selected' : ''}>Travel to Map</option>
+            <option value="startEvent" ${out.type === 'startEvent' ? 'selected' : ''}>Start Event</option>
           </select>
           ${targetHTML}
           <input type="text" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Amount" style="width: 80px;" />

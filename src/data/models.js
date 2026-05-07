@@ -107,7 +107,7 @@ export function createEventCondition(data = {}) {
 export function createEventOutcome(data = {}) {
   return {
     id: data.id || uuid(),
-    type: data.type || 'text', // addConsumable, removeConsumable, addEquipment, removeEquipment, addKeyItem, removeKeyItem, addCard, removeCard, addMoney, removeMoney, damage, heal, modifyStat, travelToMap, text
+    type: data.type || 'text', // addConsumable, removeConsumable, addEquipment, removeEquipment, addKeyItem, removeKeyItem, addCard, removeCard, addMoney, removeMoney, damage, heal, modifyStat, travelToMap, startCombat, startEvent, text
     target: data.target || '', 
     value: data.value || '' 
   };

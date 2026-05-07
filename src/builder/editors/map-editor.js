@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778106278';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778106278';
-import { showConfirmModal } from '../components/modal.js?v=1778106278';
+import { store } from '../../data/store.js?v=1778133956';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778133956';
+import { showConfirmModal } from '../components/modal.js?v=1778133956';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -237,7 +237,7 @@ export function renderMapEditor(container) {
        ['addCard','Add Card'],['removeCard','Remove Card'],
        ['addMoney','Add Money'],['removeMoney','Remove Money'],
        ['damage','Damage'],['heal','Heal'],['modifyStat','Modify Stat'],
-       ['travelToMap','Travel to Map'],['startCombat','Start Combat']
+       ['travelToMap','Travel to Map'],['startCombat','Start Combat'],['startEvent','Start Event']
      ];
      return types.map(([v,l]) => `<option value="${v}" ${selected===v?'selected':''}>${l}</option>`).join('');
   }
@@ -261,6 +261,11 @@ export function renderMapEditor(container) {
         return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
           <option value="">--</option>
           ${enemies.map(e => `<option value="${e.id}" ${out.target===e.id?'selected':''}>${e.name}</option>`).join('')}
+        </select>`;
+     } else if (out.type === 'startEvent') {
+        return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
+          <option value="">--</option>
+          ${events.map(e => `<option value="${e.id}" ${out.target===e.id?'selected':''}>${e.name}</option>`).join('')}
         </select>`;
      }
      return `<input type="text" class="noo-target" data-oi="${oi}" data-oui="${oui}" value="${out.target}" placeholder="text" style="flex:1;" />`;
