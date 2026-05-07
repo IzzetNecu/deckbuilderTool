@@ -84,15 +84,7 @@ func _populate_options(options: Array) -> void:
 func _on_option_pressed(outcomes: Array) -> void:
 	OutcomeExecutor.execute_all(outcomes)
 	
-	# Transition back to map by default unless scene changed
-	var changed_scene = false
-	for out in outcomes:
-		if out.get("type") in ["travelToMap", "startCombat", "startEvent"]:
-			changed_scene = true
-			break
-			
-	if not changed_scene:
-		_close_dialog()
+	_close_dialog()
 
 func _on_leave_pressed() -> void:
 	_close_dialog()

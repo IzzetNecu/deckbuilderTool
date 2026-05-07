@@ -7,3 +7,4 @@ res://scenes/main_menu/MainMenu.gd
 res://scenes/event/EventDialog.gd
 res://scenes/world_map/MapNode.gd
 res://scenes/world_map/MapNode.tscn
+res://autoloads/SceneManager.gd
