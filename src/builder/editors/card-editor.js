@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778169309';
-import { createCard } from '../../data/models.js?v=1778169309';
-import { showConfirmModal } from '../components/modal.js?v=1778169309';
+import { store } from '../../data/store.js?v=1778175010';
+import { createCard } from '../../data/models.js?v=1778175010';
+import { showConfirmModal } from '../components/modal.js?v=1778175010';
 
 export function renderCardEditor(container) {
   let cards = store.getAll('cards');
@@ -13,7 +13,10 @@ export function renderCardEditor(container) {
     container.innerHTML = `
       <div class="editor-header">
         <h2>Card Editor</h2>
-        <button id="btn-create-card" class="primary">+ New Card</button>
+        <div style="display:flex; gap:8px;">
+          <button id="btn-card-help" style="background:var(--bg-surface); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; font-size:1em; cursor:pointer; color:var(--text-secondary);" title="How to create a card">?</button>
+          <button id="btn-create-card" class="primary">+ New Card</button>
+        </div>
       </div>
       <div class="editor-body split-pane">
         
@@ -102,10 +105,6 @@ export function renderCardEditor(container) {
             <div style="margin-top: 8px;">
               <button id="btn-add-effect">Add Effect</button>
             </div>
-            <div style="font-size:0.8em; color:var(--text-secondary); margin-top:8px;">
-               Define effects your Godot engine understands (e.g. DAMAGE:6, HEAL:3, DRAW:1, APPLY_WEAK:2).
-            </div>
-          </div>
         </div>
 
         <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between;">
@@ -153,6 +152,10 @@ export function renderCardEditor(container) {
   }
 
   function attachEvents() {
+    container.querySelector('#btn-card-help')?.addEventListener('click', () => {
+      openHelpPopup();
+    });
+
     container.querySelector('#btn-create-card')?.addEventListener('click', () => {
       const c = createCard();
       store.save('cards', c);
@@ -235,6 +238,86 @@ export function renderCardEditor(container) {
             previewContainer.outerHTML = renderPreview(c);
         }
      }
+  }
+  function openHelpPopup() {
+    document.getElementById('card-help-overlay')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'card-help-overlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+    `;
+
+    overlay.innerHTML = `
+      <div id="card-help-popup" style="
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 32px;
+        max-width: 560px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      ">
+        <button id="card-help-close" style="
+          position: absolute; top: 16px; right: 16px;
+          background: none; border: none; color: var(--text-secondary);
+          font-size: 1.3em; cursor: pointer; line-height: 1;
+        ">✕</button>
+
+        <h2 style="margin-bottom: 8px;">How to Create a Card</h2>
+        <p style="color:var(--text-secondary); margin-bottom: 24px; font-size:0.9em;">
+          Cards are used by both the player and enemies in combat. Each card has a display side (name, description) and a mechanic side (effects).
+        </p>
+
+        <h3 style="margin-bottom: 8px; color: var(--accent);">Card Fields</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:0.88em; margin-bottom:24px;">
+          <thead><tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left; padding:6px 8px;">Field</th>
+            <th style="text-align:left; padding:6px 8px;">Description</th>
+          </tr></thead>
+          <tbody>
+            <tr><td style="padding:6px 8px;"><strong>Name</strong></td><td style="padding:6px 8px;">Displayed on the card in-game.</td></tr>
+            <tr><td style="padding:6px 8px;"><strong>Cost</strong></td><td style="padding:6px 8px;">Energy required to play. Player starts each turn with their max energy.</td></tr>
+            <tr><td style="padding:6px 8px;"><strong>Type</strong></td><td style="padding:6px 8px;"><em>Attack</em> — must be dragged onto an enemy. <em>Defend / Heal / Skill</em> — dropped in the play zone.</td></tr>
+            <tr><td style="padding:6px 8px;"><strong>Rarity</strong></td><td style="padding:6px 8px;">Common / Uncommon / Rare — affects card border colour in preview.</td></tr>
+            <tr><td style="padding:6px 8px;"><strong>Description</strong></td><td style="padding:6px 8px;">Flavour/rules text shown on the card face. Does not affect mechanics.</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-bottom: 8px; color: var(--accent);">Mechanic Effects</h3>
+        <p style="color:var(--text-secondary); font-size:0.88em; margin-bottom:12px;">
+          Effects use the format <code style="background:#1a1a1a; padding:2px 5px; border-radius:3px;">TYPE:VALUE</code>. Each card can have multiple effects — they all fire in order when played.
+        </p>
+        <table style="width:100%; border-collapse:collapse; font-size:0.88em; margin-bottom:24px;">
+          <thead><tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left; padding:6px 8px;">Effect</th>
+            <th style="text-align:left; padding:6px 8px;">What it does</th>
+            <th style="text-align:left; padding:6px 8px;">Example</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)33;"><td style="padding:6px 8px;"><code style="background:#1a1a1a; padding:2px 5px; border-radius:3px;">ATTACK:N</code></td><td style="padding:6px 8px;">Deal N damage to target. Player gains +Strength bonus.</td><td style="padding:6px 8px; color:var(--text-secondary);"><code>ATTACK:6</code></td></tr>
+            <tr style="border-bottom:1px solid var(--border)33;"><td style="padding:6px 8px;"><code style="background:#1a1a1a; padding:2px 5px; border-radius:3px;">DEFEND:N</code></td><td style="padding:6px 8px;">Gain N block this turn. Player gains +Dexterity bonus.</td><td style="padding:6px 8px; color:var(--text-secondary);"><code>DEFEND:4</code></td></tr>
+            <tr><td style="padding:6px 8px;"><code style="background:#1a1a1a; padding:2px 5px; border-radius:3px;">HEAL:N</code></td><td style="padding:6px 8px;">Restore N HP (capped at max HP).</td><td style="padding:6px 8px; color:var(--text-secondary);"><code>HEAL:3</code></td></tr>
+          </tbody>
+        </table>
+
+        <p style="color:var(--text-secondary); font-size:0.82em; border-top:1px solid var(--border); padding-top:12px;">
+          💡 <strong>Tip:</strong> Attack cards are identified by the <code style="background:#1a1a1a; padding:2px 4px; border-radius:3px;">ATTACK</code> effect — the game requires them to be dragged onto an enemy to play. All other effects play freely in the combat zone.
+        </p>
+      </div>
+    `;
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+    overlay.querySelector('#card-help-close').addEventListener('click', () => overlay.remove());
+
+    document.body.appendChild(overlay);
   }
 
   render();
