@@ -46,6 +46,8 @@ func _on_map_updated() -> void:
 			if n.id == node_id:
 				instance.setup(n)
 				break
+	
+	_draw_connections()
 
 func _build_map() -> void:
 	var nodes_container = $Nodes
@@ -62,6 +64,17 @@ func _build_map() -> void:
 		node_lookup[n.get("id")] = instance
 		
 	# Draw connections
+	_draw_connections()
+
+	# Ensure lines are drawn behind nodes
+	move_child($Connections, 1)
+	move_child($Nodes, 2)
+
+func _draw_connections() -> void:
+	var connections_container = $Connections
+	for child in connections_container.get_children():
+		child.queue_free()
+		
 	var connections_list = map_data.get("connections", [])
 	for conn in connections_list:
 		var from_id = conn.get("fromNodeId")
@@ -86,14 +99,13 @@ func _build_map() -> void:
 		line.add_point(to_node.position + to_node.custom_minimum_size / 2.0)
 		line.width = 4.0
 		
-		if is_unlocked:
+		var can_travel_now = false
+		if GameState.current_node_id == "" or GameState.current_node_id == from_id or GameState.current_node_id == to_id:
+			can_travel_now = true
+		
+		if is_unlocked and can_travel_now:
 			line.default_color = Color(1, 1, 1, 0.8)
-		elif gate_type == "soft":
-			line.default_color = Color(0.3, 0.3, 0.3, 0.5)
-			# Maybe draw dashes if possible, but Godot Line2D dashed needs texture
+		else:
+			line.default_color = Color(0.3, 0.3, 0.3, 0.3)
 			
 		connections_container.add_child(line)
-
-	# Ensure lines are drawn behind nodes
-	move_child($Connections, 1)
-	move_child($Nodes, 2)
