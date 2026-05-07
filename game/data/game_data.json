@@ -200,17 +200,20 @@
                   "target": "e9bfc6a2-36fa-4e14-a47b-54c65df57287",
                   "value": ""
                 }
-              ]
+              ],
+              "lockType": "soft"
             }
-          ]
+          ],
+          "isStartingNode": false
         },
         {
           "id": "82fd65d3-72fd-48c6-b23f-18777b8f01cb",
-          "x": 391.7434622708016,
-          "y": 506.18586556770043,
+          "x": 392,
+          "y": 506,
           "label": "start",
           "description": "",
-          "options": []
+          "options": [],
+          "isStartingNode": true
         },
         {
           "id": "20fe3d25-879e-45ec-8cdd-9fbf0d5c03ba",
@@ -226,7 +229,8 @@
               "outcomes": [],
               "lockType": "soft"
             }
-          ]
+          ],
+          "isStartingNode": false
         },
         {
           "id": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
@@ -234,7 +238,8 @@
           "y": 323,
           "label": "nothing",
           "description": "",
-          "options": []
+          "options": [],
+          "isStartingNode": false
         },
         {
           "id": "5f0912cf-37bf-42cb-a977-c15936822b10",
@@ -242,7 +247,8 @@
           "y": 460,
           "label": "also nothing",
           "description": "",
-          "options": []
+          "options": [],
+          "isStartingNode": false
         }
       ],
       "connections": [
