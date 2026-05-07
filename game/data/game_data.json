@@ -189,13 +189,13 @@
           "options": [
             {
               "id": "a05ad081-2451-41fb-9d34-fe126aadc2f5",
-              "text": "what's on the floor?",
+              "text": "walking",
               "conditions": [],
               "outcomes": [
                 {
                   "id": "90cc22ef-e6fd-4479-85b4-3c19f309cecb",
                   "type": "startEvent",
-                  "target": "bde53165-1f55-45de-9548-01d9dea870da",
+                  "target": "e9bfc6a2-36fa-4e14-a47b-54c65df57287",
                   "value": ""
                 }
               ]

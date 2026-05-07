@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778163704';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778163704';
-import { showConfirmModal } from '../components/modal.js?v=1778163704';
+import { store } from '../../data/store.js?v=1778164258';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778164258';
+import { showConfirmModal } from '../components/modal.js?v=1778164258';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -178,6 +178,10 @@ export function renderMapEditor(container) {
                <div style="background:#1a1a1a; border:1px solid var(--border); border-radius:4px; padding:8px; margin-bottom:8px;">
                  <div style="display:flex; gap:4px; margin-bottom:6px;">
                    <input type="text" class="node-opt-text" data-oi="${oi}" value="${opt.text}" placeholder="Option text" style="flex:1; font-size:0.85em;" />
+                   <select class="node-opt-lock-type" data-oi="${oi}" style="width: 80px; font-size:0.8em; padding:2px;">
+                     <option value="soft" ${opt.lockType === 'soft' ? 'selected' : ''}>Soft Lock</option>
+                     <option value="hard" ${opt.lockType === 'hard' ? 'selected' : ''}>Hard Lock</option>
+                   </select>
                    <button class="btn-move-node-opt-up" data-oi="${oi}" ${oi === 0 ? 'disabled' : ''} style="padding:2px 4px;">▲</button>
                    <button class="btn-move-node-opt-down" data-oi="${oi}" ${oi === node.options.length - 1 ? 'disabled' : ''} style="padding:2px 4px;">▼</button>
                    <button class="danger btn-rm-node-opt" data-oi="${oi}" style="padding:2px 6px;">X</button>
@@ -829,10 +833,14 @@ export function renderMapEditor(container) {
           n.y = parseFloat(container.querySelector('#node-y').value) || n.y;
           n.description = container.querySelector('#node-desc')?.value || '';
 
-          // Save option texts
+          // Save option texts and lockType
           container.querySelectorAll('.node-opt-text').forEach(inp => {
              const oi = parseInt(inp.dataset.oi);
              n.options[oi].text = inp.value;
+          });
+          container.querySelectorAll('.node-opt-lock-type').forEach(sel => {
+             const oi = parseInt(sel.dataset.oi);
+             n.options[oi].lockType = sel.value;
           });
 
           // Save conditions

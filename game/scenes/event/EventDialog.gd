@@ -59,6 +59,9 @@ func _populate_options(options: Array) -> void:
 		var btn = Button.new()
 		btn.text = opt.get("text", "Option")
 		if not can_select:
+			if opt.get("lockType", "soft") == "hard":
+				btn.queue_free()
+				continue
 			btn.disabled = true
 			btn.text += " (Locked)"
 			

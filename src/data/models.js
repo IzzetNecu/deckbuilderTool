@@ -90,6 +90,7 @@ export function createEventOption(data = {}) {
   return {
     id: data.id || uuid(),
     text: data.text || '',
+    lockType: data.lockType || 'soft', // 'soft' (visible but locked), 'hard' (invisible)
     conditions: data.conditions || [],
     outcomes: data.outcomes || []
   };

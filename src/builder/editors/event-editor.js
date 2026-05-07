@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778163704';
-import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778163704';
-import { showConfirmModal } from '../components/modal.js?v=1778163704';
+import { store } from '../../data/store.js?v=1778164258';
+import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778164258';
+import { showConfirmModal } from '../components/modal.js?v=1778164258';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
@@ -92,9 +92,18 @@ export function renderEventEditor(container) {
           ${event.options.map((opt, optIndex) => `
             <div style="background-color: var(--bg-surface); padding: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 24px;">
               <div style="display:flex; gap: 16px; margin-bottom: 16px; align-items:flex-end;">
-                 <div style="flex:1;">
-                   <label>Option Button Text</label>
-                   <input type="text" class="opt-text" data-opt="${optIndex}" value="${opt.text}" placeholder="e.g. Pray to the shrine" />
+                 <div style="flex:1; display:flex; gap:16px;">
+                   <div style="flex:1;">
+                     <label>Option Button Text</label>
+                     <input type="text" class="opt-text" data-opt="${optIndex}" value="${opt.text}" placeholder="e.g. Pray to the shrine" />
+                   </div>
+                   <div style="width:150px;">
+                     <label>If Conditions Fail</label>
+                     <select class="opt-lock-type" data-opt="${optIndex}">
+                       <option value="soft" ${opt.lockType === 'soft' ? 'selected' : ''}>Show as Locked</option>
+                       <option value="hard" ${opt.lockType === 'hard' ? 'selected' : ''}>Hide Option</option>
+                     </select>
+                   </div>
                  </div>
                  <div style="display:flex; gap: 4px;">
                    <button class="btn-move-opt-up" data-opt="${optIndex}" ${optIndex === 0 ? 'disabled' : ''}>▲</button>
@@ -324,9 +333,12 @@ export function renderEventEditor(container) {
        e.name = container.querySelector('#event-name').value;
        e.description = container.querySelector('#event-desc').value;
        
-       // update options texts
+       // update options texts and lock type
        container.querySelectorAll('.opt-text').forEach(inp => {
           e.options[parseInt(inp.dataset.opt)].text = inp.value;
+       });
+       container.querySelectorAll('.opt-lock-type').forEach(sel => {
+          e.options[parseInt(sel.dataset.opt)].lockType = sel.value;
        });
 
        // update conditions
@@ -363,8 +375,11 @@ export function renderEventEditor(container) {
     container.querySelector('#event-desc').addEventListener('blur', () => { saveEvent(); render(); });
     
     // Any input change saves
-    container.querySelectorAll('.opt-text, .cond-operator, .cond-val, .cond-target, .out-val, .out-target').forEach(inp => {
+    container.querySelectorAll('.opt-text, .opt-lock-type, .cond-operator, .cond-val, .cond-target, .out-val, .out-target').forEach(inp => {
         inp.addEventListener('blur', () => { saveEvent(); render(); });
+        if (inp.tagName === 'SELECT') {
+           inp.addEventListener('change', () => { saveEvent(); render(); });
+        }
     });
 
     // Structual changes redraw immediately
