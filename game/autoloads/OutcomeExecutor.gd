@@ -25,17 +25,17 @@ func execute_one(out: Dictionary) -> void:
 			if current != null:
 				GameState.set(target, current + int(value))
 		"addKeyItem":
-			GameState.add_key_item(target)
+			GameState.add_key_item(target, max(1, int(value)))
 		"removeKeyItem":
-			GameState.remove_key_item(target)
+			GameState.remove_key_item(target, max(1, int(value)))
 		"addEquipment":
-			GameState.add_equipment(target)
+			GameState.add_equipment(target, max(1, int(value)))
 		"removeEquipment":
-			GameState.remove_equipment(target)
+			GameState.remove_equipment(target, max(1, int(value)))
 		"addConsumable":
-			GameState.add_consumable(target)
+			GameState.add_consumable(target, max(1, int(value)))
 		"removeConsumable":
-			GameState.remove_consumable(target)
+			GameState.remove_consumable(target, max(1, int(value)))
 		"addCard":
 			GameState.deck.append(target)
 		"removeCard":

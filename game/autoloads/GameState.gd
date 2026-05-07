@@ -30,24 +30,52 @@ func get_stat(stat_name: String) -> int:
 		return get(stat_name)
 	return 0
 
+func get_consumable_count(id: String) -> int:
+	var count = 0
+	for item in consumables:
+		if item == id: count += 1
+	return count
+
+func get_equipment_count(id: String) -> int:
+	var count = 0
+	for item in equipment:
+		if item == id: count += 1
+	return count
+
+func get_key_item_count(id: String) -> int:
+	var count = 0
+	for item in key_items:
+		if item == id: count += 1
+	return count
+
 func has_consumable(id: String) -> bool:
-	return id in consumables
+	return get_consumable_count(id) > 0
 
 func has_equipment(id: String) -> bool:
-	return id in equipment
+	return get_equipment_count(id) > 0
 
 func has_key_item(id: String) -> bool:
-	return id in key_items
+	return get_key_item_count(id) > 0
 
-func add_consumable(id: String) -> void:
-	consumables.append(id)
+func add_consumable(id: String, amount: int = 1) -> void:
+	for i in range(amount):
+		consumables.append(id)
 
-func remove_consumable(id: String) -> void:
-	if id in consumables:
-		consumables.erase(id)
+func remove_consumable(id: String, amount: int = 1) -> void:
+	var removed = 0
+	for i in range(consumables.size() - 1, -1, -1):
+		if consumables[i] == id:
+			consumables.remove_at(i)
+			removed += 1
+			if removed >= amount:
+				break
 
-func add_equipment(id: String) -> void:
-	if not has_equipment(id):
+func add_equipment(id: String, amount: int = 1) -> void:
+	for i in range(amount):
+		if not has_equipment(id):
+			# If we want to allow multiple identical equipment, we remove the `if not`
+			# But typically equipment is unique. We'll allow multiples if requested:
+			pass
 		equipment.append(id)
 		# Add associated cards
 		var equip_data = GameData.get_equipment(id)
@@ -55,24 +83,35 @@ func add_equipment(id: String) -> void:
 			for card_id in equip_data.cardIds:
 				deck.append(card_id)
 
-func remove_equipment(id: String) -> void:
-	if has_equipment(id):
-		equipment.erase(id)
-		# Remove associated cards
-		var equip_data = GameData.get_equipment(id)
-		if equip_data.has("cardIds"):
-			for card_id in equip_data.cardIds:
-				var idx = deck.find(card_id)
-				if idx != -1:
-					deck.remove_at(idx)
+func remove_equipment(id: String, amount: int = 1) -> void:
+	var removed = 0
+	for i in range(equipment.size() - 1, -1, -1):
+		if equipment[i] == id:
+			equipment.remove_at(i)
+			# Remove associated cards
+			var equip_data = GameData.get_equipment(id)
+			if equip_data.has("cardIds"):
+				for card_id in equip_data.cardIds:
+					var idx = deck.find(card_id)
+					if idx != -1:
+						deck.remove_at(idx)
+			removed += 1
+			if removed >= amount:
+				break
 
-func add_key_item(id: String) -> void:
-	if not has_key_item(id):
-		key_items.append(id)
+func add_key_item(id: String, amount: int = 1) -> void:
+	for i in range(amount):
+		if not has_key_item(id):
+			key_items.append(id)
 
-func remove_key_item(id: String) -> void:
-	if has_key_item(id):
-		key_items.erase(id)
+func remove_key_item(id: String, amount: int = 1) -> void:
+	var removed = 0
+	for i in range(key_items.size() - 1, -1, -1):
+		if key_items[i] == id:
+			key_items.remove_at(i)
+			removed += 1
+			if removed >= amount:
+				break
 
 func save() -> void:
 	pass # To be implemented in Phase 6

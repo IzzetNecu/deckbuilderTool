@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778162835';
-import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778162835';
-import { showConfirmModal } from '../components/modal.js?v=1778162835';
+import { store } from '../../data/store.js?v=1778163704';
+import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778163704';
+import { showConfirmModal } from '../components/modal.js?v=1778163704';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
@@ -165,7 +165,7 @@ export function renderEventEditor(container) {
      let opHTML = '';
      let valHTML = '';
 
-     if (['hasMoney', 'hasStat'].includes(cond.type)) {
+     if (['hasMoney', 'hasStat', 'hasConsumable', 'hasEquipment', 'hasKeyItem'].includes(cond.type)) {
         opHTML = `
            <select class="cond-operator" data-opt="${optInd}" data-cond="${condInd}" style="width: 60px;">
              <option value=">=" ${cond.operator === '>=' ? 'selected' : ''}>&gt;=</option>
@@ -220,7 +220,7 @@ export function renderEventEditor(container) {
              ${allItems.length === 0 ? '<option value="">No items available</option>' : allItems.map(i => `<option value="${i.id}" ${out.target === i.id ? 'selected' : ''}>${i.name} (${i._typeLabel})</option>`).join('')}
            </select>
         `;
-        valHTML = `<input type="hidden" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="" />`;
+        valHTML = `<input type="number" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Amount" style="width: 80px;" />`;
      } else if (out.type === 'modifyStat') {
         targetHTML = `
            <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:120px;">

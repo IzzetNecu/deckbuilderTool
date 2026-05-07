@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778162835';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778162835';
-import { showConfirmModal } from '../components/modal.js?v=1778162835';
+import { store } from '../../data/store.js?v=1778163704';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778163704';
+import { showConfirmModal } from '../components/modal.js?v=1778163704';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -262,7 +262,7 @@ export function renderMapEditor(container) {
   }
 
   function renderConditionOpAndVal(cond, oi, ci, prefix) {
-     if (['hasMoney', 'hasStat'].includes(cond.type)) {
+     if (['hasMoney', 'hasStat', 'hasConsumable', 'hasEquipment', 'hasKeyItem'].includes(cond.type)) {
         return `
           <select class="${prefix}-op" data-oi="${oi}" data-ci="${ci}" style="width:40px;">${renderOpOptions(cond.operator)}</select>
           <input type="number" class="${prefix}-val" data-oi="${oi}" data-ci="${ci}" value="${cond.value}" style="width:40px;" />
@@ -337,7 +337,7 @@ export function renderMapEditor(container) {
   }
 
   function renderOutcomeVal(out, oi, oui) {
-     if (['addConsumable', 'removeConsumable', 'addEquipment', 'removeEquipment', 'addKeyItem', 'removeKeyItem', 'travelToMap', 'startEvent', 'startCombat', 'addCard', 'removeCard'].includes(out.type)) {
+     if (['travelToMap', 'startEvent', 'startCombat', 'addCard', 'removeCard'].includes(out.type)) {
         return `<input type="hidden" class="noo-val" data-oi="${oi}" data-oui="${oui}" value="" />`;
      } else if (out.type === 'setFlag') {
         return `

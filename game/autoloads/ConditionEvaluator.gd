@@ -21,13 +21,13 @@ func evaluate_one(cond: Dictionary) -> bool:
 		"lacksKeyItem":
 			return target not in GameState.key_items
 		"hasConsumable":
-			return target in GameState.consumables
+			return _compare(GameState.get_consumable_count(target), op, max(1, int(value)))
 		"lacksConsumable":
-			return target not in GameState.consumables
+			return GameState.get_consumable_count(target) == 0
 		"hasEquipment":
-			return target in GameState.equipment
+			return _compare(GameState.get_equipment_count(target), op, max(1, int(value)))
 		"lacksEquipment":
-			return target not in GameState.equipment
+			return GameState.get_equipment_count(target) == 0
 		"hasFactionRank":
 			# Future implementation
 			return false

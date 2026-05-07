@@ -87,7 +87,7 @@
   "events": [
     {
       "id": "bde53165-1f55-45de-9548-01d9dea870da",
-      "name": "first event",
+      "name": "a rock on the floor",
       "description": "this is the first event, you find a rock on the floor",
       "options": [
         {
@@ -96,15 +96,21 @@
           "conditions": [],
           "outcomes": [
             {
-              "id": "d2f383ef-fe0d-46b2-8bfb-3fd3869cf298",
-              "type": "addConsumable",
-              "target": "cdbb3dd6-b04f-41a3-af57-0d9af9c5f04f",
-              "value": "1"
+              "id": "1b116e63-75e3-4e5a-b8eb-bcb5391d5fda",
+              "type": "setFlag",
+              "target": "pick_up_rock",
+              "value": "true"
             },
             {
-              "id": "f7665f92-7a98-47c2-8114-c8dd070b1b4b",
-              "type": "text",
-              "target": "oh, it was a health potion",
+              "id": "718f08cc-d4ef-4733-8855-ecc8be395cc1",
+              "type": "startEvent",
+              "target": "260e9dc2-d7da-4529-a973-edb57fa69a82",
+              "value": ""
+            },
+            {
+              "id": "dea99fd4-fac4-49a3-80a0-9dc5d4cd516e",
+              "type": "addConsumable",
+              "target": "cdbb3dd6-b04f-41a3-af57-0d9af9c5f04f",
               "value": ""
             }
           ]
@@ -112,6 +118,53 @@
         {
           "id": "724d2481-4082-45d2-8ef7-d46e38e8de39",
           "text": "let the rock be and move on",
+          "conditions": [],
+          "outcomes": []
+        }
+      ]
+    },
+    {
+      "id": "260e9dc2-d7da-4529-a973-edb57fa69a82",
+      "name": "picked up rock",
+      "description": "it seems like the rock was a health potion!  are you wearing your glasses?",
+      "options": [
+        {
+          "id": "ccef68f2-1afc-4ecc-9507-eae69e36f950",
+          "text": "continue",
+          "conditions": [],
+          "outcomes": []
+        }
+      ]
+    },
+    {
+      "id": "e9bfc6a2-36fa-4e14-a47b-54c65df57287",
+      "name": "walking along",
+      "description": "you walk ",
+      "options": [
+        {
+          "id": "522a4a07-8414-4720-ba59-dea11a9bc4bc",
+          "text": "what's on the floor?",
+          "conditions": [
+            {
+              "id": "2b262c49-c430-4f2a-b684-cb9ab76ffb9f",
+              "type": "checkFlag",
+              "target": "pick_up_rock",
+              "operator": "==",
+              "value": "false"
+            }
+          ],
+          "outcomes": [
+            {
+              "id": "cc11f74d-2e7c-4ec3-9764-eed2dddac817",
+              "type": "startEvent",
+              "target": "bde53165-1f55-45de-9548-01d9dea870da",
+              "value": ""
+            }
+          ]
+        },
+        {
+          "id": "c1282b38-2029-4638-9692-a0ceb6a9dc9e",
+          "text": "moving on",
           "conditions": [],
           "outcomes": []
         }
