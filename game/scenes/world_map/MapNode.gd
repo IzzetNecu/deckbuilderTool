@@ -5,7 +5,7 @@ var node_data: Dictionary = {}
 func setup(data: Dictionary) -> void:
 	node_data = data
 	$Label.text = data.get("label", "Unknown")
-	position = Vector2(data.get("x", 0), data.get("y", 0)) - size / 2.0
+	position = Vector2(data.get("x", 0), data.get("y", 0)) - custom_minimum_size / 2.0
 	
 	# Determine state based on visited status
 	if GameState.current_node_id == data.get("id", ""):

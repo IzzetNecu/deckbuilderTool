@@ -22,6 +22,7 @@ func _ready() -> void:
 		var tex = load(full_path)
 		if tex:
 			$Background.texture = tex
+			$Background.size = tex.get_size()
 		else:
 			print("Could not load background image: ", bg_path)
 			
@@ -62,8 +63,8 @@ func _build_map() -> void:
 			continue # Hidden entirely
 			
 		var line = Line2D.new()
-		line.add_point(from_node.position + from_node.size / 2)
-		line.add_point(to_node.position + to_node.size / 2)
+		line.add_point(from_node.position + from_node.custom_minimum_size / 2.0)
+		line.add_point(to_node.position + to_node.custom_minimum_size / 2.0)
 		line.width = 4.0
 		
 		if is_unlocked:

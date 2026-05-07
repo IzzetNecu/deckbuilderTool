@@ -160,13 +160,15 @@
               "target": "bde53165-1f55-45de-9548-01d9dea870da",
               "value": ""
             }
-          ]
+          ],
+          "lockType": "hard"
         },
         {
           "id": "c1282b38-2029-4638-9692-a0ceb6a9dc9e",
           "text": "moving on",
           "conditions": [],
-          "outcomes": []
+          "outcomes": [],
+          "lockType": "soft"
         }
       ]
     }
@@ -212,8 +214,8 @@
         },
         {
           "id": "20fe3d25-879e-45ec-8cdd-9fbf0d5c03ba",
-          "x": 301,
-          "y": 283,
+          "x": 300,
+          "y": 300,
           "label": "strange box",
           "description": "",
           "options": [
@@ -221,7 +223,8 @@
               "id": "47436d8c-bad2-4908-b3b6-0c0a7a6c7fc4",
               "text": "what is this?",
               "conditions": [],
-              "outcomes": []
+              "outcomes": [],
+              "lockType": "soft"
             }
           ]
         }

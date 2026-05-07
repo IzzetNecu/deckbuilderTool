@@ -4,3 +4,4 @@ res://autoloads/GameData.gd
 res://autoloads/GameState.gd
 res://autoloads/OutcomeExecutor.gd
 res://scenes/main_menu/MainMenu.gd
+res://scenes/event/EventDialog.gd
