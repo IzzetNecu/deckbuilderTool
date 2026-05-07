@@ -38,8 +38,18 @@ func _ready() -> void:
 				
 	GameState.map_updated.connect(_on_map_updated)
 	_build_map()
+	_update_stat_bar()
+
+func _update_stat_bar() -> void:
+	if not has_node("UI/StatBar"): return
+	var hbox = $UI/StatBar/HBox
+	hbox.get_node("HPLabel").text = "HP: %d/%d" % [GameState.health, GameState.max_health]
+	hbox.get_node("StrLabel").text = "STR: %d" % GameState.strength
+	hbox.get_node("DexLabel").text = "DEX: %d" % GameState.dexterity
+	hbox.get_node("GoldLabel").text = "Gold: %d" % GameState.gold
 
 func _on_map_updated() -> void:
+	_update_stat_bar()
 	# Refresh all nodes to update colors (green for current, etc.)
 	for node_id in node_lookup:
 		var instance = node_lookup[node_id]

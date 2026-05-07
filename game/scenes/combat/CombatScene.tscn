@@ -96,6 +96,18 @@ offset_top = 65.0
 offset_right = 200.0
 offset_bottom = 90.0
 
+[node name="PlayerStrLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 90.0
+offset_right = 200.0
+offset_bottom = 115.0
+
+[node name="PlayerDexLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 115.0
+offset_right = 200.0
+offset_bottom = 140.0
+
 [node name="EnergyLabel" type="Label" parent="HUD"]
 offset_right = 200.0
 offset_top = 10.0

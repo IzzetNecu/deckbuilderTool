@@ -15,6 +15,14 @@ func _ready() -> void:
 	compendium_tab.pressed.connect(func(): _switch_tab("compendium"))
 	
 	_switch_tab("deck")
+	_update_stats()
+
+func _update_stats() -> void:
+	var stats = $Window/VBox/Header/Stats
+	stats.get_node("HP").text = "HP: %d/%d" % [GameState.health, GameState.max_health]
+	stats.get_node("Str").text = "STR: %d" % GameState.strength
+	stats.get_node("Dex").text = "DEX: %d" % GameState.dexterity
+	stats.get_node("Gold").text = "Gold: %d" % GameState.gold
 
 func _on_close_pressed() -> void:
 	# If this is inside a CanvasLayer (created by SceneManager), we should free that too

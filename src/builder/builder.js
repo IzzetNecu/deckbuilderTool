@@ -1,14 +1,14 @@
-import { renderFactionEditor } from './editors/faction-editor.js?v=1778178125';
-import { renderCardEditor } from './editors/card-editor.js?v=1778178125';
-import { renderConsumableEditor } from './editors/consumable-editor.js?v=1778178125';
-import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1778178125';
-import { renderKeyItemEditor } from './editors/keyitem-editor.js?v=1778178125';
-import { renderEnemyEditor } from './editors/enemy-editor.js?v=1778178125';
-import { renderEventEditor } from './editors/event-editor.js?v=1778178125';
-import { renderDeckEditor } from './editors/deck-editor.js?v=1778178125';
-import { renderMapEditor } from './editors/map-editor.js?v=1778178125';
-import { renderFlagEditor } from './editors/flag-editor.js?v=1778178125';
-import { store } from '../data/store.js?v=1778178125';
+import { renderFactionEditor } from './editors/faction-editor.js?v=1778179374';
+import { renderCardEditor } from './editors/card-editor.js?v=1778179374';
+import { renderConsumableEditor } from './editors/consumable-editor.js?v=1778179374';
+import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1778179374';
+import { renderKeyItemEditor } from './editors/keyitem-editor.js?v=1778179374';
+import { renderEnemyEditor } from './editors/enemy-editor.js?v=1778179374';
+import { renderEventEditor } from './editors/event-editor.js?v=1778179374';
+import { renderDeckEditor } from './editors/deck-editor.js?v=1778179374';
+import { renderMapEditor } from './editors/map-editor.js?v=1778179374';
+import { renderFlagEditor } from './editors/flag-editor.js?v=1778179374';
+import { store } from '../data/store.js?v=1778179374';
 
 export function initBuilder(container) {
   container.innerHTML = `

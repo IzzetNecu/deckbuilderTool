@@ -21,3 +21,30 @@ offset_top = 20.0
 offset_right = 140.0
 offset_bottom = 60.0
 text = "Inventory"
+
+[node name="StatBar" type="PanelContainer" parent="UI"]
+offset_left = 160.0
+offset_top = 20.0
+offset_right = 560.0
+offset_bottom = 60.0
+
+[node name="HBox" type="HBoxContainer" parent="UI/StatBar"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="HPLabel" type="Label" parent="UI/StatBar/HBox"]
+layout_mode = 2
+text = "HP: 20/20"
+
+[node name="StrLabel" type="Label" parent="UI/StatBar/HBox"]
+layout_mode = 2
+text = "STR: 1"
+
+[node name="DexLabel" type="Label" parent="UI/StatBar/HBox"]
+layout_mode = 2
+text = "DEX: 1"
+
+[node name="GoldLabel" type="Label" parent="UI/StatBar/HBox"]
+layout_mode = 2
+text = "Gold: 0"

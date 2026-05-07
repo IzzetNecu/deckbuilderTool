@@ -20,6 +20,17 @@ func _on_start_pressed() -> void:
 	# Initialize GameState
 	GameState.health = GameState.max_health
 	GameState.initialize_flags()
+	GameState.visited_nodes = []
+	GameState.current_node_id = ""
+	
+	# Load Starter Deck
+	GameState.deck = []
+	for template_id in GameData.deck_templates:
+		var template = GameData.deck_templates[template_id]
+		if template.get("name", "").to_lower() == "starter deck":
+			for card_id in template.get("cardIds", []):
+				GameState.deck.append(card_id)
+			break
 	
 	# Find first overworld map or something?
 	# We can just start on a hardcoded map or check GameData.maps

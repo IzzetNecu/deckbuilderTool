@@ -11,3 +11,4 @@ res://autoloads/SceneManager.gd
 res://scenes/combat/Card.gd
 res://scenes/combat/CombatManager.gd
 res://scenes/combat/EnemyUnit.gd
+res://scenes/ui/InventoryPanel.tscn

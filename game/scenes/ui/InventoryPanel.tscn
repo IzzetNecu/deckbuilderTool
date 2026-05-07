@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://de4f5g6h7j8k"]
+[gd_scene format=3 uid="uid://de4f5g6h7j8k"]
 
 [ext_resource type="Script" path="res://scenes/ui/InventoryPanel.gd" id="1_inv"]
 
@@ -56,6 +56,26 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 text = "Inventory"
+
+[node name="Stats" type="HBoxContainer" parent="Window/VBox/Header"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="HP" type="Label" parent="Window/VBox/Header/Stats"]
+layout_mode = 2
+text = "HP: 20/20"
+
+[node name="Str" type="Label" parent="Window/VBox/Header/Stats"]
+layout_mode = 2
+text = "STR: 1"
+
+[node name="Dex" type="Label" parent="Window/VBox/Header/Stats"]
+layout_mode = 2
+text = "DEX: 1"
+
+[node name="Gold" type="Label" parent="Window/VBox/Header/Stats"]
+layout_mode = 2
+text = "Gold: 0"
 
 [node name="CloseButton" type="Button" parent="Window/VBox/Header"]
 custom_minimum_size = Vector2(40, 40)

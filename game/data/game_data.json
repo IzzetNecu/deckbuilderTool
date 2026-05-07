@@ -196,6 +196,23 @@
         "54950b35-bea2-4e24-8e3d-2628fef84499",
         "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2"
       ]
+    },
+    {
+      "id": "starter-deck-template",
+      "name": "Starter Deck",
+      "factionId": "",
+      "cardIds": [
+        "54950b35-bea2-4e24-8e3d-2628fef84499",
+        "54950b35-bea2-4e24-8e3d-2628fef84499",
+        "54950b35-bea2-4e24-8e3d-2628fef84499",
+        "54950b35-bea2-4e24-8e3d-2628fef84499",
+        "54950b35-bea2-4e24-8e3d-2628fef84499",
+        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
+        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
+        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
+        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
+        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2"
+      ]
     }
   ],
   "maps": [

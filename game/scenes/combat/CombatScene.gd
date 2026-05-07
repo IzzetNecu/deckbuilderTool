@@ -67,6 +67,8 @@ func _on_stats_updated() -> void:
 	energy_label.text = "Energy: %d / %d" % [combat_manager.player_energy, GameState.max_energy]
 	player_hp_label.text = "HP: %d / %d" % [GameState.health, GameState.max_health]
 	player_block_label.text = "Block: %d" % combat_manager.player_block
+	$HUD/PlayerStrLabel.text = "STR: %d" % GameState.strength
+	$HUD/PlayerDexLabel.text = "DEX: %d" % GameState.dexterity
 	if enemy_unit_instance:
 		enemy_unit_instance.update_stats(combat_manager.enemy_hp, combat_manager.enemy_max_hp, combat_manager.enemy_block)
 
