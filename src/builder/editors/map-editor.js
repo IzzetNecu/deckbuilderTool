@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778151460';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778151460';
-import { showConfirmModal } from '../components/modal.js?v=1778151460';
+import { store } from '../../data/store.js?v=1778151619';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778151619';
+import { showConfirmModal } from '../components/modal.js?v=1778151619';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -139,6 +139,17 @@ export function renderMapEditor(container) {
            <div class="form-group">
              <label>Name</label>
              <input type="text" id="node-label" value="${node.label}" placeholder="e.g. Old Oak Crossroads" />
+           </div>
+
+           <div class="form-row" style="display:flex; gap:8px;">
+             <div class="form-group" style="flex:1;">
+               <label>X Pos</label>
+               <input type="number" id="node-x" value="${Math.round(node.x)}" />
+             </div>
+             <div class="form-group" style="flex:1;">
+               <label>Y Pos</label>
+               <input type="number" id="node-y" value="${Math.round(node.y)}" />
+             </div>
            </div>
 
            <div class="form-group">
@@ -718,6 +729,8 @@ export function renderMapEditor(container) {
           if (!n) return;
           
           n.label = container.querySelector('#node-label').value;
+          n.x = parseFloat(container.querySelector('#node-x').value) || n.x;
+          n.y = parseFloat(container.querySelector('#node-y').value) || n.y;
           n.description = container.querySelector('#node-desc')?.value || '';
 
           // Save option texts
@@ -756,6 +769,8 @@ export function renderMapEditor(container) {
        };
 
        nodeLabel.addEventListener('blur', () => { saveNode(); drawCanvas(); });
+       container.querySelector('#node-x')?.addEventListener('input', () => { saveNode(); drawCanvas(); });
+       container.querySelector('#node-y')?.addEventListener('input', () => { saveNode(); drawCanvas(); });
        container.querySelector('#node-desc')?.addEventListener('blur', () => { saveNode(); });
 
        // Option text changes
