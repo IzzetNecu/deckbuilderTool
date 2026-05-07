@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778161760';
-import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778161760';
-import { showConfirmModal } from '../components/modal.js?v=1778161760';
+import { store } from '../../data/store.js?v=1778162835';
+import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778162835';
+import { showConfirmModal } from '../components/modal.js?v=1778162835';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
@@ -162,6 +162,31 @@ export function renderEventEditor(container) {
         targetHTML = `<input type="hidden" class="cond-target" data-opt="${optInd}" data-cond="${condInd}" value="" />`;
      }
 
+     let opHTML = '';
+     let valHTML = '';
+
+     if (['hasMoney', 'hasStat'].includes(cond.type)) {
+        opHTML = `
+           <select class="cond-operator" data-opt="${optInd}" data-cond="${condInd}" style="width: 60px;">
+             <option value=">=" ${cond.operator === '>=' ? 'selected' : ''}>&gt;=</option>
+             <option value="<=" ${cond.operator === '<=' ? 'selected' : ''}>&lt;=</option>
+             <option value="==" ${cond.operator === '==' ? 'selected' : ''}>==</option>
+           </select>
+        `;
+        valHTML = `<input type="number" class="cond-val" data-opt="${optInd}" data-cond="${condInd}" value="${cond.value}" placeholder="Value" style="width: 80px;" />`;
+     } else if (cond.type === 'checkFlag') {
+        opHTML = `<input type="hidden" class="cond-operator" data-opt="${optInd}" data-cond="${condInd}" value="==" />`;
+        valHTML = `
+           <select class="cond-val" data-opt="${optInd}" data-cond="${condInd}" style="width: 80px;">
+             <option value="true" ${String(cond.value).toLowerCase() === 'true' ? 'selected' : ''}>IS ON</option>
+             <option value="false" ${String(cond.value).toLowerCase() === 'false' ? 'selected' : ''}>IS OFF</option>
+           </select>
+        `;
+     } else {
+        opHTML = `<input type="hidden" class="cond-operator" data-opt="${optInd}" data-cond="${condInd}" value="==" />`;
+        valHTML = `<input type="hidden" class="cond-val" data-opt="${optInd}" data-cond="${condInd}" value="" />`;
+     }
+
      return `
        <div style="display:flex; gap: 8px; margin-bottom: 8px; align-items:center;">
           <select class="cond-type" data-opt="${optInd}" data-cond="${condInd}" style="width: 150px;">
@@ -177,31 +202,32 @@ export function renderEventEditor(container) {
             <option value="checkFlag" ${cond.type === 'checkFlag' ? 'selected' : ''}>Check Flag</option>
           </select>
           ${targetHTML}
-          <select class="cond-operator" data-opt="${optInd}" data-cond="${condInd}" style="width: 60px;">
-            <option value=">=" ${cond.operator === '>=' ? 'selected' : ''}>&gt;=</option>
-            <option value="<=" ${cond.operator === '<=' ? 'selected' : ''}>&lt;=</option>
-            <option value="==" ${cond.operator === '==' ? 'selected' : ''}>==</option>
-          </select>
-          <input type="text" class="cond-val" data-opt="${optInd}" data-cond="${condInd}" value="${cond.value}" placeholder="Value" style="width: 80px;" />
+          ${opHTML}
+          ${valHTML}
           <button class="danger btn-remove-cond" data-opt="${optInd}" data-cond="${condInd}">X</button>
        </div>
      `;
   }
 
-  function renderOutcomeForm(out, optInd, outInd) {
+   function renderOutcomeForm(out, optInd, outInd) {
      let targetHTML = '';
+     let valHTML = '';
+
      if (['addConsumable', 'removeConsumable', 'addEquipment', 'removeEquipment', 'addKeyItem', 'removeKeyItem'].includes(out.type)) {
         targetHTML = `
            <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:150px;">
+             <option value="">-- Select Item --</option>
              ${allItems.length === 0 ? '<option value="">No items available</option>' : allItems.map(i => `<option value="${i.id}" ${out.target === i.id ? 'selected' : ''}>${i.name} (${i._typeLabel})</option>`).join('')}
            </select>
         `;
+        valHTML = `<input type="hidden" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="" />`;
      } else if (out.type === 'modifyStat') {
         targetHTML = `
            <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:120px;">
              ${STATS.map(s => `<option value="${s}" ${out.target === s ? 'selected' : ''}>${s}</option>`).join('')}
            </select>
         `;
+        valHTML = `<input type="number" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Amount" style="width: 80px;" />`;
      } else if (out.type === 'travelToMap') {
         targetHTML = `
            <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:150px;">
@@ -209,6 +235,7 @@ export function renderEventEditor(container) {
              ${gameMaps.map(m => `<option value="${m.id}" ${out.target === m.id ? 'selected' : ''}>${m.name}${m.isOverworld ? ' (Overworld)' : ''}</option>`).join('')}
            </select>
         `;
+        valHTML = `<input type="hidden" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="" />`;
      } else if (out.type === 'startEvent') {
         targetHTML = `
            <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:150px;">
@@ -216,6 +243,7 @@ export function renderEventEditor(container) {
              ${events.map(e => `<option value="${e.id}" ${out.target === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
            </select>
         `;
+        valHTML = `<input type="hidden" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="" />`;
      } else if (out.type === 'setFlag') {
         targetHTML = `
            <select class="out-target" data-opt="${optInd}" data-out="${outInd}" style="width:150px;">
@@ -223,9 +251,24 @@ export function renderEventEditor(container) {
              ${flags.map(f => `<option value="${f.name}" ${out.target === f.name ? 'selected' : ''}>${f.name}</option>`).join('')}
            </select>
         `;
+        valHTML = `
+           <select class="out-val" data-opt="${optInd}" data-out="${outInd}" style="width: 80px;">
+             <option value="true" ${String(out.value).toLowerCase() === 'true' ? 'selected' : ''}>ON</option>
+             <option value="false" ${String(out.value).toLowerCase() === 'false' ? 'selected' : ''}>OFF</option>
+           </select>
+        `;
+     } else if (['addMoney', 'removeMoney', 'damage', 'heal'].includes(out.type)) {
+        targetHTML = `<input type="hidden" class="out-target" data-opt="${optInd}" data-out="${outInd}" value="" />`;
+        valHTML = `<input type="number" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Amount" style="width: 80px;" />`;
+     } else if (['addCard', 'removeCard'].includes(out.type)) {
+        targetHTML = `<input type="text" class="out-target" data-opt="${optInd}" data-out="${outInd}" value="${out.target}" placeholder="Card ID" style="width: 150px;" />`;
+        valHTML = `<input type="hidden" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="" />`;
+     } else if (out.type === 'text') {
+        targetHTML = `<input type="hidden" class="out-target" data-opt="${optInd}" data-out="${outInd}" value="" />`;
+        valHTML = `<input type="text" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Log text..." style="flex: 1;" />`;
      } else {
-        // generic input for cards or text
-        targetHTML = `<input type="text" class="out-target" data-opt="${optInd}" data-out="${outInd}" value="${out.target}" placeholder="Target ID / Text" style="width: 150px;" />`;
+        targetHTML = `<input type="text" class="out-target" data-opt="${optInd}" data-out="${outInd}" value="${out.target}" placeholder="Target ID" style="width: 150px;" />`;
+        valHTML = `<input type="text" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Value" style="width: 80px;" />`;
      }
 
      return `
@@ -250,7 +293,7 @@ export function renderEventEditor(container) {
             <option value="setFlag" ${out.type === 'setFlag' ? 'selected' : ''}>Set Flag</option>
           </select>
           ${targetHTML}
-          <input type="text" class="out-val" data-opt="${optInd}" data-out="${outInd}" value="${out.value}" placeholder="Amount" style="width: 80px;" />
+          ${valHTML}
           <button class="danger btn-remove-out" data-opt="${optInd}" data-out="${outInd}">X</button>
        </div>
      `;

@@ -1,1 +1,6 @@
 res://scenes/world_map/WorldMap.gd
+res://autoloads/ConditionEvaluator.gd
+res://autoloads/GameData.gd
+res://autoloads/GameState.gd
+res://autoloads/OutcomeExecutor.gd
+res://scenes/main_menu/MainMenu.gd

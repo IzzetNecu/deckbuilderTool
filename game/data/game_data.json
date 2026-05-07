@@ -191,5 +191,13 @@
       ],
       "backgroundImage": "assets/maps/Highland-Pass-battle-map-color-no-grid.jpg"
     }
+  ],
+  "flags": [
+    {
+      "id": "25a99e6e-6dc7-4019-ae6c-c8adf8d92707",
+      "name": "pick_up_rock",
+      "description": "you picked up a rock at the beginning",
+      "defaultValue": false
+    }
   ]
 }

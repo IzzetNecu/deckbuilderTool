@@ -32,7 +32,8 @@ func evaluate_one(cond: Dictionary) -> bool:
 			# Future implementation
 			return false
 		"checkFlag":
-			return GameState.get_flag(target)
+			var expected = value.to_lower() == "true"
+			return GameState.get_flag(target) == expected
 	return false
 
 func _compare(val1: int, op: String, val2: int) -> bool:

@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778161760';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778161760';
-import { showConfirmModal } from '../components/modal.js?v=1778161760';
+import { store } from '../../data/store.js?v=1778162835';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778162835';
+import { showConfirmModal } from '../components/modal.js?v=1778162835';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -191,8 +191,7 @@ export function renderMapEditor(container) {
                          ${renderConditionTypeOptions(c.type)}
                        </select>
                        ${renderConditionTarget(c, oi, ci, 'noc')}
-                       <select class="noc-op" data-oi="${oi}" data-ci="${ci}" style="width:40px;">${renderOpOptions(c.operator)}</select>
-                       <input type="text" class="noc-val" data-oi="${oi}" data-ci="${ci}" value="${c.value}" style="width:35px;" />
+                       ${renderConditionOpAndVal(c, oi, ci, 'noc')}
                        <button class="danger btn-rm-noc" data-oi="${oi}" data-ci="${ci}" style="padding:1px 4px;">x</button>
                      </div>
                    `).join('')}
@@ -207,7 +206,7 @@ export function renderMapEditor(container) {
                          ${renderOutcomeTypeOptions(o.type)}
                        </select>
                        ${renderOutcomeTarget(o, oi, oui)}
-                       <input type="text" class="noo-val" data-oi="${oi}" data-oui="${oui}" value="${o.value}" style="width:35px;" placeholder="val" />
+                       ${renderOutcomeVal(o, oi, oui)}
                        <button class="danger btn-rm-noo" data-oi="${oi}" data-oui="${oui}" style="padding:1px 4px;">x</button>
                      </div>
                    `).join('')}
@@ -262,6 +261,27 @@ export function renderMapEditor(container) {
      return `<input type="hidden" class="${prefix}-target" data-oi="${oi}" data-ci="${ci}" value="" />`;
   }
 
+  function renderConditionOpAndVal(cond, oi, ci, prefix) {
+     if (['hasMoney', 'hasStat'].includes(cond.type)) {
+        return `
+          <select class="${prefix}-op" data-oi="${oi}" data-ci="${ci}" style="width:40px;">${renderOpOptions(cond.operator)}</select>
+          <input type="number" class="${prefix}-val" data-oi="${oi}" data-ci="${ci}" value="${cond.value}" style="width:40px;" />
+        `;
+     } else if (cond.type === 'checkFlag') {
+        return `
+          <input type="hidden" class="${prefix}-op" data-oi="${oi}" data-ci="${ci}" value="==" />
+          <select class="${prefix}-val" data-oi="${oi}" data-ci="${ci}" style="width:50px;">
+            <option value="true" ${String(cond.value).toLowerCase() === 'true' ? 'selected' : ''}>ON</option>
+            <option value="false" ${String(cond.value).toLowerCase() === 'false' ? 'selected' : ''}>OFF</option>
+          </select>
+        `;
+     }
+     return `
+        <input type="hidden" class="${prefix}-op" data-oi="${oi}" data-ci="${ci}" value="==" />
+        <input type="hidden" class="${prefix}-val" data-oi="${oi}" data-ci="${ci}" value="" />
+     `;
+  }
+
   function renderOutcomeTypeOptions(selected) {
      const types = [
        ['text','Show Text'],['addConsumable','Add Consumable'],['removeConsumable','Remove Consumable'],
@@ -306,8 +326,31 @@ export function renderMapEditor(container) {
           <option value="">--</option>
           ${flags.map(f => `<option value="${f.name}" ${out.target===f.name?'selected':''}>${f.name}</option>`).join('')}
         </select>`;
+     } else if (['addMoney', 'removeMoney', 'damage', 'heal'].includes(out.type)) {
+        return `<input type="hidden" class="noo-target" data-oi="${oi}" data-oui="${oui}" value="" />`;
+     } else if (['addCard', 'removeCard'].includes(out.type)) {
+        return `<input type="text" class="noo-target" data-oi="${oi}" data-oui="${oui}" value="${out.target}" placeholder="Card ID" style="flex:1;" />`;
+     } else if (out.type === 'text') {
+        return `<input type="hidden" class="noo-target" data-oi="${oi}" data-oui="${oui}" value="" />`;
      }
-     return `<input type="text" class="noo-target" data-oi="${oi}" data-oui="${oui}" value="${out.target}" placeholder="text" style="flex:1;" />`;
+     return `<input type="text" class="noo-target" data-oi="${oi}" data-oui="${oui}" value="${out.target}" placeholder="target" style="flex:1;" />`;
+  }
+
+  function renderOutcomeVal(out, oi, oui) {
+     if (['addConsumable', 'removeConsumable', 'addEquipment', 'removeEquipment', 'addKeyItem', 'removeKeyItem', 'travelToMap', 'startEvent', 'startCombat', 'addCard', 'removeCard'].includes(out.type)) {
+        return `<input type="hidden" class="noo-val" data-oi="${oi}" data-oui="${oui}" value="" />`;
+     } else if (out.type === 'setFlag') {
+        return `
+          <select class="noo-val" data-oi="${oi}" data-oui="${oui}" style="width:50px;">
+            <option value="true" ${String(out.value).toLowerCase() === 'true' ? 'selected' : ''}>ON</option>
+            <option value="false" ${String(out.value).toLowerCase() === 'false' ? 'selected' : ''}>OFF</option>
+          </select>
+        `;
+     } else if (out.type === 'text') {
+        return `<input type="text" class="noo-val" data-oi="${oi}" data-oui="${oui}" value="${out.value}" placeholder="log text..." style="flex:1;" />`;
+     }
+     // Default for money, stats, damage, heal
+     return `<input type="number" class="noo-val" data-oi="${oi}" data-oui="${oui}" value="${out.value}" style="width:40px;" placeholder="val" />`;
   }
 
   function renderConnectionInspector(conn, map) {
@@ -335,51 +378,20 @@ export function renderMapEditor(container) {
            <div class="form-group" style="margin-top:16px;">
              <label style="color:var(--accent);">Travel Conditions</label>
              ${conn.conditions.length === 0 ? '<div style="color:var(--text-secondary); font-size:0.85em; margin-bottom:8px;">No conditions — path is open.</div>' : ''}
-             ${conn.conditions.map((cond, idx) => {
-                let targetHTML = '';
-                if (cond.type === 'hasStat') {
-                   targetHTML = `<select class="conn-cond-target" data-idx="${idx}" style="flex:1;">
-                     ${STATS.map(s => `<option value="${s}" ${cond.target === s ? 'selected' : ''}>${s}</option>`).join('')}
-                   </select>`;
-                } else if (['hasConsumable','lacksConsumable','hasEquipment','lacksEquipment','hasKeyItem','lacksKeyItem'].includes(cond.type)) {
-                   targetHTML = `<select class="conn-cond-target" data-idx="${idx}" style="flex:1;">
-                     <option value="">-- Item --</option>
-                     ${allItems.map(i => `<option value="${i.id}" ${cond.target === i.id ? 'selected' : ''}>${i.name} (${i._typeLabel})</option>`).join('')}
-                   </select>`;
-                } else if (cond.type === 'hasFactionRank') {
-                   targetHTML = `<select class="conn-cond-target" data-idx="${idx}" style="flex:1;">
-                     <option value="">-- Faction --</option>
-                     ${factions.map(f => `<option value="${f.id}" ${cond.target === f.id ? 'selected' : ''}>${f.name}</option>`).join('')}
-                   </select>`;
-                } else {
-                   targetHTML = `<input type="hidden" class="conn-cond-target" data-idx="${idx}" value="" />`;
-                }
-                return `
+             ${conn.conditions.map((cond, idx) => `
                   <div style="background:#1a1a1a; padding:8px; border:1px solid var(--border); margin-bottom:6px; border-radius:4px;">
                     <div style="display:flex; gap:4px; margin-bottom:4px;">
-                      <select class="conn-cond-type" data-idx="${idx}" style="flex:1; font-size:0.85em;">
-                        <option value="hasMoney" ${cond.type === 'hasMoney' ? 'selected' : ''}>Has Money</option>
-                        <option value="hasStat" ${cond.type === 'hasStat' ? 'selected' : ''}>Has Stat</option>
-                        <option value="hasConsumable" ${cond.type === 'hasConsumable' ? 'selected' : ''}>Has Consumable</option>
-                        <option value="hasEquipment" ${cond.type === 'hasEquipment' ? 'selected' : ''}>Has Equipment</option>
-                        <option value="hasKeyItem" ${cond.type === 'hasKeyItem' ? 'selected' : ''}>Has Key Item</option>
-                        <option value="lacksKeyItem" ${cond.type === 'lacksKeyItem' ? 'selected' : ''}>Lacks Key Item</option>
-                        <option value="hasFactionRank" ${cond.type === 'hasFactionRank' ? 'selected' : ''}>Has Faction Rank</option>
+                      <select class="conn-cond-type" data-ci="${idx}" style="flex:1; font-size:0.85em;">
+                        ${renderConditionTypeOptions(cond.type)}
                       </select>
-                      <button class="danger btn-remove-conn-cond" data-idx="${idx}" style="padding:2px 6px;">X</button>
+                      <button class="danger btn-remove-conn-cond" data-ci="${idx}" style="padding:2px 6px;">X</button>
                     </div>
                     <div style="display:flex; gap:4px;">
-                      ${targetHTML}
-                      <select class="conn-cond-op" data-idx="${idx}" style="width:50px;">
-                        <option value=">=" ${cond.operator === '>=' ? 'selected' : ''}>&gt;=</option>
-                        <option value="<=" ${cond.operator === '<=' ? 'selected' : ''}>&lt;=</option>
-                        <option value="==" ${cond.operator === '==' ? 'selected' : ''}>==</option>
-                      </select>
-                      <input type="text" class="conn-cond-val" data-idx="${idx}" value="${cond.value}" placeholder="Val" style="width:50px;" />
+                      ${renderConditionTarget(cond, null, idx, 'conn-cond')}
+                      ${renderConditionOpAndVal(cond, null, idx, 'conn-cond')}
                     </div>
                   </div>
-                `;
-             }).join('')}
+                `).join('')}
              <button id="btn-add-conn-cond" style="font-size:0.85em; margin-top:4px;">+ Add Condition</button>
            </div>
 
@@ -991,14 +1003,14 @@ export function renderMapEditor(container) {
 
           // Save conditions
           container.querySelectorAll('.conn-cond-type').forEach(sel => {
-             const idx = parseInt(sel.dataset.idx);
+             const idx = parseInt(sel.dataset.ci);
              const cond = conn.conditions[idx];
              cond.type = sel.value;
-             const targetEl = container.querySelector(`.conn-cond-target[data-idx="${idx}"]`);
+             const targetEl = container.querySelector(`.conn-cond-target[data-ci="${idx}"]`);
              if (targetEl) cond.target = targetEl.value;
-             const opEl = container.querySelector(`.conn-cond-op[data-idx="${idx}"]`);
+             const opEl = container.querySelector(`.conn-cond-op[data-ci="${idx}"]`);
              if (opEl) cond.operator = opEl.value;
-             const valEl = container.querySelector(`.conn-cond-val[data-idx="${idx}"]`);
+             const valEl = container.querySelector(`.conn-cond-val[data-ci="${idx}"]`);
              if (valEl) cond.value = valEl.value;
           });
 
@@ -1027,7 +1039,7 @@ export function renderMapEditor(container) {
 
        container.querySelectorAll('.btn-remove-conn-cond').forEach(btn => {
           btn.addEventListener('click', (ev) => {
-             const idx = parseInt(ev.currentTarget.dataset.idx);
+             const idx = parseInt(ev.currentTarget.dataset.ci);
              const map = maps.find(m => m.id === selectedMapId);
              const conn = map.connections.find(c => c.id === selectedConnectionId);
              conn.conditions.splice(idx, 1);
