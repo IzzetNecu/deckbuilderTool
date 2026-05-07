@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778177534';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778177534';
-import { showConfirmModal } from '../components/modal.js?v=1778177534';
+import { store } from '../../data/store.js?v=1778177838';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778177838';
+import { showConfirmModal } from '../components/modal.js?v=1778177838';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -910,8 +910,8 @@ export function renderMapEditor(container) {
 
        container.querySelectorAll('.btn-rm-node-opt').forEach(btn => {
           btn.addEventListener('click', (ev) => {
+             const oi = parseInt(ev.currentTarget.dataset.oi); // capture now, before modal
              showConfirmModal('Delete this option?', () => {
-                const oi = parseInt(ev.currentTarget.dataset.oi);
                 const map = maps.find(m => m.id === selectedMapId);
                 const n = map.nodes.find(x => x.id === selectedNodeId);
                 n.options.splice(oi, 1);

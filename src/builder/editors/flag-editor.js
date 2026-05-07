@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778177534';
-import { createFlag } from '../../data/models.js?v=1778177534';
-import { showConfirmModal } from '../components/modal.js?v=1778177534';
+import { store } from '../../data/store.js?v=1778177838';
+import { createFlag } from '../../data/models.js?v=1778177838';
+import { showConfirmModal } from '../components/modal.js?v=1778177838';
 
 export function renderFlagEditor(container) {
   let flags = store.getAll('flags');
