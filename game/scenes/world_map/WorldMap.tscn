@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://map123456789"]
+
+[ext_resource type="Script" path="res://scenes/world_map/WorldMap.gd" id="1_wmap"]
+
+[node name="WorldMap" type="Node2D"]
+script = ExtResource("1_wmap")
+
+[node name="Background" type="TextureRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+expand_mode = 1
+
+[node name="Connections" type="Node2D" parent="."]
+
+[node name="Nodes" type="Node2D" parent="."]
