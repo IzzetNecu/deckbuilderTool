@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778152872';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778152872';
-import { showConfirmModal } from '../components/modal.js?v=1778152872';
+import { store } from '../../data/store.js?v=1778152941';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778152941';
+import { showConfirmModal } from '../components/modal.js?v=1778152941';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -394,17 +394,23 @@ export function renderMapEditor(container) {
 
      canvas.addEventListener('wheel', (e) => {
          e.preventDefault();
-         const rect = canvas.getBoundingClientRect();
-         const mouseX = e.clientX - rect.left;
-         const mouseY = e.clientY - rect.top;
-         
-         const zoomIntensity = 0.1;
-         const wheel = e.deltaY < 0 ? 1 : -1;
-         const newZoom = Math.max(0.1, Math.min(Math.exp(wheel * zoomIntensity) * zoom, 5));
-         
-         panX = mouseX - (mouseX - panX) * (newZoom / zoom);
-         panY = mouseY - (mouseY - panY) * (newZoom / zoom);
-         zoom = newZoom;
+         if (e.ctrlKey) {
+             // Pinch zoom or Ctrl+Scroll
+             const rect = canvas.getBoundingClientRect();
+             const mouseX = e.clientX - rect.left;
+             const mouseY = e.clientY - rect.top;
+             
+             const zoomIntensity = e.deltaY * -0.01;
+             const newZoom = Math.max(0.1, Math.min(zoom * Math.exp(zoomIntensity), 5));
+             
+             panX = mouseX - (mouseX - panX) * (newZoom / zoom);
+             panY = mouseY - (mouseY - panY) * (newZoom / zoom);
+             zoom = newZoom;
+         } else {
+             // Two-finger pan or regular scroll
+             panX -= e.deltaX;
+             panY -= e.deltaY;
+         }
          drawCanvas();
      });
 
