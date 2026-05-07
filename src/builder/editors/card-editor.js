@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778176485';
-import { createCard } from '../../data/models.js?v=1778176485';
-import { showConfirmModal } from '../components/modal.js?v=1778176485';
+import { store } from '../../data/store.js?v=1778176996';
+import { createCard } from '../../data/models.js?v=1778176996';
+import { showConfirmModal } from '../components/modal.js?v=1778176996';
 
 export function renderCardEditor(container) {
   let cards = store.getAll('cards');
@@ -89,8 +89,15 @@ export function renderCardEditor(container) {
         </div>
 
         <div class="form-group">
-          <label>Description (Dynamic text rendering on card)</label>
-          <textarea id="card-desc" rows="3" placeholder="Deal 6 damage.">${card.description}</textarea>
+          <label>Description</label>
+          <textarea id="card-desc" rows="3" placeholder="e.g. Deal {ATTACK} damage. Gain {DEFEND} block.">${card.description}</textarea>
+          ${card.effects.length > 0 ? `
+          <div style="font-size:0.78em; color:var(--accent); margin-top:5px;">
+            Available tokens: ${[...new Set(card.effects.map(e => {
+              const v = typeof e === 'string' ? e : e.value;
+              return v.split(':')[0];
+            }).filter(Boolean))].map(t => `<code style="background:#1a1a1a;padding:1px 4px;border-radius:3px;">{${t}}</code>`).join(' ')}
+          </div>` : ''}
         </div>
 
         <div class="form-group">
@@ -156,7 +163,7 @@ export function renderCardEditor(container) {
 
             <!-- Text Description -->
             <div style="height: 100px; padding: 8px; text-align:center; font-size:12px; display:flex; align-items:center; justify-content:center;">
-               ${card.description || '<span style="color:#555">No description</span>'}
+               ${resolveDescription(card.description, card.effects) || '<span style="color:#555">No description</span>'}
             </div>
          </div>
       </div>
@@ -258,6 +265,21 @@ export function renderCardEditor(container) {
         }
      }
   }
+  // Resolves {ATTACK}, {DEFEND}, {HEAL} etc. in description using base values (no live stats in editor).
+  function resolveDescription(desc, effects) {
+    if (!desc) return desc;
+    let result = desc;
+    (effects || []).forEach(e => {
+      const effectStr = typeof e === 'string' ? e : (e.value || '');
+      const parts = effectStr.split(':');
+      if (parts.length >= 2) {
+        const token = '{' + parts[0] + '}';
+        result = result.split(token).join(parts[1]); // replace all occurrences
+      }
+    });
+    return result;
+  }
+
   function openHelpPopup() {
     document.getElementById('card-help-overlay')?.remove();
 

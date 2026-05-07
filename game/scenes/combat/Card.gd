@@ -21,13 +21,29 @@ func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 
 	name_label.text = data.get("name", "?")
 	cost_label.text = "Cost: %d" % data.get("cost", 0)
+	effects_label.text = _resolve_description(data.get("description", ""), data.get("effects", []))
 
-	var effects = card_data.get("effects", [])
-	effects_label.text = "\n".join(effects.map(func(e):
-		var txt = e.get("value", str(e)) if e is Dictionary else str(e)
-		var s = e.get("scalesWith", "none") if e is Dictionary else "none"
-		return txt + (" (+" + s + ")" if s != "none" else "")
-	)) if effects.size() > 0 else ""
+func _resolve_description(desc: String, effects: Array) -> String:
+	if desc.is_empty():
+		return desc
+	var result = desc
+	for effect in effects:
+		var effect_str: String = effect.get("value", str(effect)) if effect is Dictionary else str(effect)
+		var scales_with: String = effect.get("scalesWith", "none") if effect is Dictionary else "none"
+		var parts = effect_str.split(":")
+		if parts.size() < 2:
+			continue
+		var type = parts[0]
+		var base_value = int(parts[1])
+		# Add live stat bonus
+		var bonus = 0
+		if scales_with != "none":
+			var stat = GameState.get(scales_with)
+			if stat != null:
+				bonus = int(stat)
+		var token = "{" + type + "}"
+		result = result.replace(token, str(base_value + bonus))
+	return result
 
 func _is_targeted() -> bool:
 	# Determined by the card's explicit requiresTarget flag, not by effect name.

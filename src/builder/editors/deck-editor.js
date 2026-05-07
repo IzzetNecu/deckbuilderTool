@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778176485';
-import { createDeckTemplate } from '../../data/models.js?v=1778176485';
-import { showConfirmModal } from '../components/modal.js?v=1778176485';
+import { store } from '../../data/store.js?v=1778176996';
+import { createDeckTemplate } from '../../data/models.js?v=1778176996';
+import { showConfirmModal } from '../components/modal.js?v=1778176996';
 
 export function renderDeckEditor(container) {
   let decks = store.getAll('deckTemplates');
