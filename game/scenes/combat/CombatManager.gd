@@ -1,4 +1,5 @@
 extends Node
+class_name CombatManager
 
 enum Phase { BEGINNING, PLAY, END, WIN, LOSE }
 

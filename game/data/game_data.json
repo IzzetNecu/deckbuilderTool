@@ -84,15 +84,14 @@
       "description": "",
       "hp": 14,
       "factionId": "",
-      "deckIds": [],
-      "lootTable": [
-        {
-          "type": "item",
-          "chance": 100,
-          "id": ""
-        }
+      "deckIds": [
+        "54950b35-bea2-4e24-8e3d-2628fef84499"
       ],
-      "hand_size": 1
+      "lootTable": [],
+      "hand_size": 2,
+      "deckTemplateIds": [
+        "625126dc-b544-4f45-b867-4fe06c9e7b00"
+      ]
     }
   ],
   "events": [
@@ -186,7 +185,19 @@
       ]
     }
   ],
-  "deckTemplates": [],
+  "deckTemplates": [
+    {
+      "id": "625126dc-b544-4f45-b867-4fe06c9e7b00",
+      "name": "basic enemy deck",
+      "factionId": "",
+      "cardIds": [
+        "54950b35-bea2-4e24-8e3d-2628fef84499",
+        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
+        "54950b35-bea2-4e24-8e3d-2628fef84499",
+        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2"
+      ]
+    }
+  ],
   "maps": [
     {
       "id": "0794f723-845c-4dbf-963e-c53135168063",
@@ -240,14 +251,21 @@
           "id": "20fe3d25-879e-45ec-8cdd-9fbf0d5c03ba",
           "x": 300,
           "y": 300,
-          "label": "strange box",
-          "description": "",
+          "label": "enemy",
+          "description": "oh no a little brat attacks.",
           "options": [
             {
               "id": "47436d8c-bad2-4908-b3b6-0c0a7a6c7fc4",
               "text": "what is this?",
               "conditions": [],
-              "outcomes": [],
+              "outcomes": [
+                {
+                  "id": "2db7e111-e686-4f64-94f3-1b16903ec541",
+                  "type": "startCombat",
+                  "target": "a7bf27ff-485c-4982-b682-5edf34df4503",
+                  "value": ""
+                }
+              ],
               "lockType": "soft"
             }
           ],

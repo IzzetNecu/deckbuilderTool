@@ -8,3 +8,6 @@ res://scenes/event/EventDialog.gd
 res://scenes/world_map/MapNode.gd
 res://scenes/world_map/MapNode.tscn
 res://autoloads/SceneManager.gd
+res://scenes/combat/Card.gd
+res://scenes/combat/CombatManager.gd
+res://scenes/combat/EnemyUnit.gd
