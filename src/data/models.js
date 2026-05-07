@@ -79,6 +79,7 @@ export function createEnemy(data = {}) {
     name: data.name || '',
     description: data.description || '',
     hp: data.hp ?? 10,
+    hand_size: data.hand_size ?? 3,
     factionId: data.factionId || null,
     deckIds: data.deckIds || [],
     lootTable: data.lootTable || []

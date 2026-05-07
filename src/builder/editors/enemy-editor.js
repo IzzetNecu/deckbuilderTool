@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778133956';
-import { createEnemy } from '../../data/models.js?v=1778133956';
-import { showConfirmModal } from '../components/modal.js?v=1778133956';
+import { store } from '../../data/store.js?v=1778141595';
+import { createEnemy } from '../../data/models.js?v=1778141595';
+import { showConfirmModal } from '../components/modal.js?v=1778141595';
 
 export function renderEnemyEditor(container) {
   let enemies = store.getAll('enemies');
@@ -68,6 +68,10 @@ export function renderEnemyEditor(container) {
             <div class="form-group">
               <label>Max HP</label>
               <input type="number" id="enemy-hp" value="${enemy.hp}" min="1" />
+            </div>
+            <div class="form-group">
+              <label>Cards Drawn / Turn</label>
+              <input type="number" id="enemy-hand-size" value="${enemy.hand_size ?? 3}" min="1" max="20" />
             </div>
           </div>
 
@@ -179,6 +183,7 @@ export function renderEnemyEditor(container) {
         const e = enemies.find(x => x.id === selectedId);
         e.name = container.querySelector('#enemy-name').value;
         e.hp = parseInt(container.querySelector('#enemy-hp').value, 10);
+        e.hand_size = parseInt(container.querySelector('#enemy-hand-size').value, 10) || 3;
         e.factionId = container.querySelector('#enemy-faction').value;
         e.description = container.querySelector('#enemy-desc').value;
         
@@ -206,7 +211,7 @@ export function renderEnemyEditor(container) {
         store.save('enemies', e);
       };
 
-      ['#enemy-name', '#enemy-hp', '#enemy-desc'].forEach(id => {
+      ['#enemy-name', '#enemy-hp', '#enemy-hand-size', '#enemy-desc'].forEach(id => {
          container.querySelector(id).addEventListener('blur', () => { onChange(); render(); });
       });
       container.querySelector('#enemy-faction').addEventListener('change', () => { onChange(); render(); });
