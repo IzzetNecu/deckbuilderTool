@@ -1,6 +1,7 @@
 extends Node2D
 
 var map_data: Dictionary = {}
+var node_lookup: Dictionary = {}
 var map_node_scene = preload("res://scenes/world_map/MapNode.tscn")
 
 func _ready() -> void:
@@ -50,7 +51,7 @@ func _build_map() -> void:
 	var nodes_container = $Nodes
 	var connections_container = $Connections
 	
-	var node_lookup = {}
+	node_lookup.clear()
 	
 	# Instantiate nodes
 	var nodes_list = map_data.get("nodes", [])
