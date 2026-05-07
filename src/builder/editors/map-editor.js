@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778159200';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778159200';
-import { showConfirmModal } from '../components/modal.js?v=1778159200';
+import { store } from '../../data/store.js?v=1778159383';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778159383';
+import { showConfirmModal } from '../components/modal.js?v=1778159383';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -173,6 +173,8 @@ export function renderMapEditor(container) {
                <div style="background:#1a1a1a; border:1px solid var(--border); border-radius:4px; padding:8px; margin-bottom:8px;">
                  <div style="display:flex; gap:4px; margin-bottom:6px;">
                    <input type="text" class="node-opt-text" data-oi="${oi}" value="${opt.text}" placeholder="Option text" style="flex:1; font-size:0.85em;" />
+                   <button class="btn-move-node-opt-up" data-oi="${oi}" ${oi === 0 ? 'disabled' : ''} style="padding:2px 4px;">▲</button>
+                   <button class="btn-move-node-opt-down" data-oi="${oi}" ${oi === node.options.length - 1 ? 'disabled' : ''} style="padding:2px 4px;">▼</button>
                    <button class="danger btn-rm-node-opt" data-oi="${oi}" style="padding:2px 6px;">X</button>
                  </div>
 
@@ -870,6 +872,36 @@ export function renderMapEditor(container) {
                 store.save('maps', map);
                 render();
              });
+          });
+       });
+
+       container.querySelectorAll('.btn-move-node-opt-up').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+             const oi = parseInt(ev.currentTarget.dataset.oi);
+             if (oi > 0) {
+                 const map = maps.find(m => m.id === selectedMapId);
+                 const n = map.nodes.find(x => x.id === selectedNodeId);
+                 const temp = n.options[oi - 1];
+                 n.options[oi - 1] = n.options[oi];
+                 n.options[oi] = temp;
+                 store.save('maps', map);
+                 render();
+             }
+          });
+       });
+
+       container.querySelectorAll('.btn-move-node-opt-down').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+             const oi = parseInt(ev.currentTarget.dataset.oi);
+             const map = maps.find(m => m.id === selectedMapId);
+             const n = map.nodes.find(x => x.id === selectedNodeId);
+             if (oi < n.options.length - 1) {
+                 const temp = n.options[oi + 1];
+                 n.options[oi + 1] = n.options[oi];
+                 n.options[oi] = temp;
+                 store.save('maps', map);
+                 render();
+             }
           });
        });
 

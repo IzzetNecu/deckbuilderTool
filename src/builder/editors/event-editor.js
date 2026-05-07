@@ -1,6 +1,6 @@
-import { store } from '../../data/store.js?v=1778159200';
-import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778159200';
-import { showConfirmModal } from '../components/modal.js?v=1778159200';
+import { store } from '../../data/store.js?v=1778159383';
+import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778159383';
+import { showConfirmModal } from '../components/modal.js?v=1778159383';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
@@ -90,12 +90,16 @@ export function renderEventEditor(container) {
 
           ${event.options.map((opt, optIndex) => `
             <div style="background-color: var(--bg-surface); padding: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 24px;">
-              <div style="display:flex; gap: 16px; margin-bottom: 16px;">
+              <div style="display:flex; gap: 16px; margin-bottom: 16px; align-items:flex-end;">
                  <div style="flex:1;">
                    <label>Option Button Text</label>
                    <input type="text" class="opt-text" data-opt="${optIndex}" value="${opt.text}" placeholder="e.g. Pray to the shrine" />
                  </div>
-                 <button class="danger btn-remove-option" data-opt="${optIndex}" style="align-self:flex-end;">Delete Option</button>
+                 <div style="display:flex; gap: 4px;">
+                   <button class="btn-move-opt-up" data-opt="${optIndex}" ${optIndex === 0 ? 'disabled' : ''}>▲</button>
+                   <button class="btn-move-opt-down" data-opt="${optIndex}" ${optIndex === event.options.length - 1 ? 'disabled' : ''}>▼</button>
+                   <button class="danger btn-remove-option" data-opt="${optIndex}" style="margin-left:8px;">Delete</button>
+                 </div>
               </div>
 
               <!-- Conditions -->
@@ -313,6 +317,34 @@ export function renderEventEditor(container) {
        e.options.push(createEventOption());
        store.save('events', e);
        render();
+    });
+
+    container.querySelectorAll('.btn-move-opt-up').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+         const optInd = parseInt(ev.currentTarget.dataset.opt);
+         if (optInd > 0) {
+            const e = events.find(x => x.id === selectedId);
+            const temp = e.options[optInd - 1];
+            e.options[optInd - 1] = e.options[optInd];
+            e.options[optInd] = temp;
+            store.save('events', e);
+            render();
+         }
+      });
+    });
+
+    container.querySelectorAll('.btn-move-opt-down').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+         const optInd = parseInt(ev.currentTarget.dataset.opt);
+         const e = events.find(x => x.id === selectedId);
+         if (optInd < e.options.length - 1) {
+            const temp = e.options[optInd + 1];
+            e.options[optInd + 1] = e.options[optInd];
+            e.options[optInd] = temp;
+            store.save('events', e);
+            render();
+         }
+      });
     });
 
     container.querySelectorAll('.btn-add-condition').forEach(btn => {
