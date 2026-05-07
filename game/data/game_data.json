@@ -184,20 +184,28 @@
       "nodes": [
         {
           "id": "8d8923cd-aca2-4507-9a73-8891463580a7",
-          "x": 520,
-          "y": 374,
+          "x": 538,
+          "y": 384,
           "label": "great way",
           "description": "way to the box",
           "options": [
             {
               "id": "a05ad081-2451-41fb-9d34-fe126aadc2f5",
-              "text": "walking",
-              "conditions": [],
+              "text": "a rock on the floor",
+              "conditions": [
+                {
+                  "id": "4bfc66d1-15a5-4882-b741-5b733969bebc",
+                  "type": "checkFlag",
+                  "target": "pick_up_rock",
+                  "operator": "==",
+                  "value": "false"
+                }
+              ],
               "outcomes": [
                 {
                   "id": "90cc22ef-e6fd-4479-85b4-3c19f309cecb",
                   "type": "startEvent",
-                  "target": "e9bfc6a2-36fa-4e14-a47b-54c65df57287",
+                  "target": "bde53165-1f55-45de-9548-01d9dea870da",
                   "value": ""
                 }
               ],
@@ -209,7 +217,7 @@
         {
           "id": "82fd65d3-72fd-48c6-b23f-18777b8f01cb",
           "x": 392,
-          "y": 506,
+          "y": 486,
           "label": "start",
           "description": "",
           "options": [],
@@ -234,21 +242,21 @@
         },
         {
           "id": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
-          "x": 629,
-          "y": 323,
-          "label": "nothing",
+          "x": 636,
+          "y": 329,
+          "label": "namelss",
           "description": "",
           "options": [],
           "isStartingNode": false
         },
         {
-          "id": "5f0912cf-37bf-42cb-a977-c15936822b10",
-          "x": 709,
-          "y": 460,
-          "label": "also nothing",
+          "id": "326d5763-e466-4fb8-b624-f8cba48ceacf",
+          "x": 683,
+          "y": 436,
+          "label": "another nameless",
           "description": "",
-          "options": [],
-          "isStartingNode": false
+          "isStartingNode": false,
+          "options": []
         }
       ],
       "connections": [
@@ -267,16 +275,23 @@
           "gateType": "none"
         },
         {
-          "id": "0aa544bd-6224-4aee-9c6e-9200130af3ee",
-          "fromNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
-          "toNodeId": "5f0912cf-37bf-42cb-a977-c15936822b10",
+          "id": "5ffcfde6-ef90-4293-be5c-daed63a57f3a",
+          "fromNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
+          "toNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
           "conditions": [],
           "gateType": "none"
         },
         {
-          "id": "5ffcfde6-ef90-4293-be5c-daed63a57f3a",
-          "fromNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
-          "toNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
+          "id": "1bc8b1fc-06a8-45c9-80a5-9476ff26cbc5",
+          "fromNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
+          "toNodeId": "326d5763-e466-4fb8-b624-f8cba48ceacf",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "fd56a2ec-001a-4983-9b1e-0f971f6deec3",
+          "fromNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
+          "toNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
           "conditions": [],
           "gateType": "none"
         }

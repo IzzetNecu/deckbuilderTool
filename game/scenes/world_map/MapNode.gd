@@ -18,7 +18,15 @@ func setup(data: Dictionary) -> void:
 		modulate = Color(1, 1, 1)
 
 func _node_has_content(data: Dictionary) -> bool:
-	return data.get("options", []).size() > 0 or data.get("description", "") != ""
+	# Must have a description or at least one option visible to the player
+	if data.get("description", "") != "":
+		return true
+	for opt in data.get("options", []):
+		var conditions_pass = ConditionEvaluator.evaluate_all(opt.get("conditions", []))
+		# Soft-locked options are still visible (shown as disabled), so they count
+		if conditions_pass or opt.get("lockType", "soft") == "soft":
+			return true
+	return false
 
 func _pressed() -> void:
 	# Already on this node — open its event only if it has content
