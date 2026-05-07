@@ -4,7 +4,9 @@ var node_data: Dictionary = {}
 
 func setup(data: Dictionary) -> void:
 	node_data = data
-	$Label.text = data.get("label", "Unknown")
+	var label_text = data.get("label", "")
+	$Label.text = label_text
+	$Label.visible = label_text != ""
 	position = Vector2(data.get("x", 0), data.get("y", 0)) - custom_minimum_size / 2.0
 	
 	# Determine state based on visited status
@@ -15,9 +17,14 @@ func setup(data: Dictionary) -> void:
 	else:
 		modulate = Color(1, 1, 1)
 
+func _node_has_content(data: Dictionary) -> bool:
+	return data.get("options", []).size() > 0 or data.get("description", "") != ""
+
 func _pressed() -> void:
+	# Already on this node — open its event only if it has content
 	if GameState.current_node_id == node_data.get("id", ""):
-		SceneManager.start_event("NODE_" + GameState.current_node_id)
+		if _node_has_content(node_data):
+			SceneManager.start_event("NODE_" + GameState.current_node_id)
 		return
 		
 	# Check if this node is connected to the current node
@@ -42,6 +49,8 @@ func _pressed() -> void:
 			GameState.visited_nodes.append(GameState.current_node_id)
 		
 		GameState.map_updated.emit()
-		SceneManager.start_event("NODE_" + GameState.current_node_id)
+		# Only open the event dialog if this node has something to show
+		if _node_has_content(node_data):
+			SceneManager.start_event("NODE_" + GameState.current_node_id)
 	else:
 		print("Cannot travel: Not connected or locked.")
