@@ -15,11 +15,14 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/upload-image':
             filename = self.headers.get('X-Filename', 'upload.png')
+            subdir = self.headers.get('X-Upload-Subdir', 'maps')
             content_length = int(self.headers.get('Content-Length', 0))
             data = self.rfile.read(content_length)
-            
-            os.makedirs('game/assets/maps', exist_ok=True)
-            filepath = os.path.join('game/assets/maps', filename)
+
+            safe_subdir = os.path.basename(subdir.strip('/')) or 'maps'
+            target_dir = os.path.join('game/assets', safe_subdir)
+            os.makedirs(target_dir, exist_ok=True)
+            filepath = os.path.join(target_dir, os.path.basename(filename))
             
             with open(filepath, 'wb') as f:
                 f.write(data)

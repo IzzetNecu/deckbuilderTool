@@ -1,356 +1,499 @@
 {
+  "schemaVersion": 3,
+  "defaultPlayerId": "player_demo_hero",
+  "players": [
+    {
+      "id": "player_demo_hero",
+      "name": "Scout Adept",
+      "portraitImage": "",
+      "baseStats": {
+        "maxHealth": 28,
+        "strength": 1,
+        "dexterity": 1,
+        "insight": 2,
+        "maxEnergy": 3,
+        "handSize": 5
+      },
+      "startingDeck": [
+        "card_strike",
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard",
+        "card_guard",
+        "card_focus",
+        "card_quick_think"
+      ],
+      "startingInventory": {
+        "consumables": [
+          "consumable_potion"
+        ],
+        "equipment": [],
+        "keyItems": []
+      }
+    }
+  ],
+  "buffs": [
+    {
+      "id": "buff_block",
+      "name": "Block",
+      "kind": "buff",
+      "iconImage": "",
+      "shortLabel": "BLK",
+      "reminderText": "Prevents incoming damage until removed or spent."
+    },
+    {
+      "id": "buff_strength",
+      "name": "Strength",
+      "kind": "buff",
+      "iconImage": "",
+      "shortLabel": "STR",
+      "reminderText": "Adds to outgoing damage on scaling attacks."
+    },
+    {
+      "id": "buff_dexterity",
+      "name": "Dexterity",
+      "kind": "buff",
+      "iconImage": "",
+      "shortLabel": "DEX",
+      "reminderText": "Adds to outgoing block on scaling defenses."
+    },
+    {
+      "id": "buff_insight",
+      "name": "Insight",
+      "kind": "buff",
+      "iconImage": "",
+      "shortLabel": "INS",
+      "reminderText": "Reveals more upcoming enemy intent when higher than the enemy's insight."
+    },
+    {
+      "id": "buff_energy",
+      "name": "Energy",
+      "kind": "buff",
+      "iconImage": "",
+      "shortLabel": "ENG",
+      "reminderText": "Spent to play cards during your turn."
+    }
+  ],
   "factions": [],
   "cards": [
     {
-      "id": "54950b35-bea2-4e24-8e3d-2628fef84499",
+      "id": "card_strike",
       "name": "Strike",
-      "description": "Deal {ATTACK} Damage.",
+      "description": "Deal {damage} damage.",
       "type": "attack",
-      "factionId": "",
       "cost": 1,
       "rarity": "common",
+      "targeting": "single_enemy",
       "effects": [
         {
-          "value": "ATTACK:2",
-          "scalesWith": "strength"
+          "type": "damage",
+          "amount": 6,
+          "target": "enemy",
+          "scaling": "strength"
         }
-      ],
-      "requiresTarget": true
+      ]
     },
     {
-      "id": "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
-      "name": "Defend",
-      "description": "Gain {DEFEND} Armor.",
+      "id": "card_guard",
+      "name": "Guard",
+      "description": "Gain {block} block.",
       "type": "defend",
-      "factionId": "",
       "cost": 1,
       "rarity": "common",
+      "targeting": "self",
       "effects": [
         {
-          "value": "DEFEND:3",
-          "scalesWith": "dexterity"
+          "type": "block",
+          "amount": 5,
+          "target": "self",
+          "scaling": "dexterity"
         }
-      ],
-      "requiresTarget": false
+      ]
+    },
+    {
+      "id": "card_focus",
+      "name": "Focus Sight",
+      "description": "Gain {modify_insight} insight.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "self",
+      "effects": [
+        {
+          "type": "modify_insight",
+          "amount": 1,
+          "target": "self",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "card_quick_think",
+      "name": "Quick Think",
+      "description": "Draw {draw} card and gain {block} block.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "common",
+      "targeting": "self",
+      "effects": [
+        {
+          "type": "draw",
+          "amount": 1,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "block",
+          "amount": 3,
+          "target": "self",
+          "scaling": "dexterity"
+        }
+      ]
+    },
+    {
+      "id": "card_heavy_blow",
+      "name": "Heavy Blow",
+      "description": "Deal {damage} damage.",
+      "type": "attack",
+      "cost": 2,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 11,
+          "target": "enemy",
+          "scaling": "strength"
+        }
+      ]
+    },
+    {
+      "id": "enemy_jab",
+      "name": "Jab",
+      "description": "Deal {damage} damage.",
+      "type": "attack",
+      "cost": 1,
+      "rarity": "common",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 5,
+          "target": "enemy",
+          "scaling": "strength"
+        }
+      ]
+    },
+    {
+      "id": "enemy_brace",
+      "name": "Brace",
+      "description": "Gain {block} block.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "common",
+      "targeting": "self",
+      "effects": [
+        {
+          "type": "block",
+          "amount": 4,
+          "target": "self",
+          "scaling": "dexterity"
+        }
+      ]
+    },
+    {
+      "id": "enemy_glimpse",
+      "name": "Glimpse Theft",
+      "description": "Gain {modify_insight} insight.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "self",
+      "effects": [
+        {
+          "type": "modify_insight",
+          "amount": 1,
+          "target": "self",
+          "scaling": "none"
+        }
+      ]
     }
   ],
   "consumables": [
     {
-      "id": "cdbb3dd6-b04f-41a3-af57-0d9af9c5f04f",
+      "id": "consumable_potion",
       "name": "Health Potion",
-      "description": "",
+      "description": "A simple healing tonic.",
       "rarity": "common",
-      "value": 50,
+      "value": 25,
       "effects": [
-        "HEAL:20"
+        "HEAL:12"
       ]
     }
   ],
-  "equipment": [
-    {
-      "id": "05fbb2b9-ff10-477e-afda-27f7016b286d",
-      "name": "boots",
-      "description": "",
-      "type": "onehandedWeapon",
-      "rarity": "common",
-      "value": 10,
-      "effects": [],
-      "cardIds": [],
-      "conditions": []
-    },
-    {
-      "id": "9a00c718-2f3f-48f7-bc25-49543ca90fbb",
-      "name": "swprd",
-      "description": "",
-      "type": "onehandedWeapon",
-      "rarity": "common",
-      "value": 10,
-      "effects": [],
-      "cardIds": [],
-      "conditions": []
-    }
-  ],
-  "keyItems": [
-    {
-      "id": "614de54a-5c0e-4f55-b4e4-c00d597b48c6",
-      "name": "Boss Key",
-      "description": ""
-    }
-  ],
+  "equipment": [],
+  "keyItems": [],
   "enemies": [
     {
-      "id": "a7bf27ff-485c-4982-b682-5edf34df4503",
-      "name": "brat",
-      "description": "",
-      "hp": 14,
+      "id": "enemy_bandit",
+      "name": "Bandit Lookout",
+      "description": "A cautious raider who telegraphs poorly unless you read them.",
+      "portraitImage": "",
       "factionId": "",
-      "deckIds": [
-        "54950b35-bea2-4e24-8e3d-2628fef84499"
-      ],
-      "lootTable": [],
-      "hand_size": 2,
+      "stats": {
+        "maxHealth": 20,
+        "strength": 0,
+        "dexterity": 0,
+        "insight": 0
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 0,
       "deckTemplateIds": [
-        "625126dc-b544-4f45-b867-4fe06c9e7b00"
-      ]
-    }
-  ],
-  "events": [
-    {
-      "id": "bde53165-1f55-45de-9548-01d9dea870da",
-      "name": "a rock on the floor",
-      "description": "this is the first event, you find a rock on the floor",
-      "options": [
+        "deck_bandit"
+      ],
+      "deckIds": [],
+      "lootTable": [
         {
-          "id": "53f5aae8-ea7d-4d89-ab34-6c013f2b8082",
-          "text": "pick up the rock",
-          "conditions": [],
-          "outcomes": [
-            {
-              "id": "1b116e63-75e3-4e5a-b8eb-bcb5391d5fda",
-              "type": "setFlag",
-              "target": "pick_up_rock",
-              "value": "true"
-            },
-            {
-              "id": "718f08cc-d4ef-4733-8855-ecc8be395cc1",
-              "type": "startEvent",
-              "target": "260e9dc2-d7da-4529-a973-edb57fa69a82",
-              "value": ""
-            },
-            {
-              "id": "dea99fd4-fac4-49a3-80a0-9dc5d4cd516e",
-              "type": "addConsumable",
-              "target": "cdbb3dd6-b04f-41a3-af57-0d9af9c5f04f",
-              "value": ""
-            }
-          ],
-          "lockType": "soft"
-        },
-        {
-          "id": "724d2481-4082-45d2-8ef7-d46e38e8de39",
-          "text": "let the rock be and move on",
-          "conditions": [],
-          "outcomes": [],
-          "lockType": "soft"
+          "type": "gold",
+          "amount": 12,
+          "chance": 100
         }
       ]
     },
     {
-      "id": "260e9dc2-d7da-4529-a973-edb57fa69a82",
-      "name": "picked up rock",
-      "description": "it seems like the rock was a health potion!  are you wearing your glasses?",
-      "options": [
-        {
-          "id": "ccef68f2-1afc-4ecc-9507-eae69e36f950",
-          "text": "continue",
-          "conditions": [],
-          "outcomes": []
-        }
-      ]
-    },
-    {
-      "id": "e9bfc6a2-36fa-4e14-a47b-54c65df57287",
-      "name": "walking along",
-      "description": "you walk ",
-      "options": [
-        {
-          "id": "522a4a07-8414-4720-ba59-dea11a9bc4bc",
-          "text": "what's on the floor?",
-          "conditions": [
-            {
-              "id": "2b262c49-c430-4f2a-b684-cb9ab76ffb9f",
-              "type": "checkFlag",
-              "target": "pick_up_rock",
-              "operator": "==",
-              "value": "false"
-            }
-          ],
-          "outcomes": [
-            {
-              "id": "cc11f74d-2e7c-4ec3-9764-eed2dddac817",
-              "type": "startEvent",
-              "target": "bde53165-1f55-45de-9548-01d9dea870da",
-              "value": ""
-            }
-          ],
-          "lockType": "hard"
-        },
-        {
-          "id": "c1282b38-2029-4638-9692-a0ceb6a9dc9e",
-          "text": "moving on",
-          "conditions": [],
-          "outcomes": [],
-          "lockType": "soft"
-        }
-      ]
-    }
-  ],
-  "deckTemplates": [
-    {
-      "id": "625126dc-b544-4f45-b867-4fe06c9e7b00",
-      "name": "basic enemy deck",
+      "id": "enemy_seer",
+      "name": "Ash Seer",
+      "description": "Harder to read. Fights with insight tricks.",
+      "portraitImage": "",
       "factionId": "",
-      "cardIds": [
-        "54950b35-bea2-4e24-8e3d-2628fef84499",
-        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
-        "54950b35-bea2-4e24-8e3d-2628fef84499",
-        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2"
+      "stats": {
+        "maxHealth": 24,
+        "strength": 0,
+        "dexterity": 0,
+        "insight": 2
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 0,
+      "deckTemplateIds": [
+        "deck_seer"
+      ],
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "gold",
+          "amount": 18,
+          "chance": 100
+        }
       ]
     },
+    {
+      "id": "enemy_brute",
+      "name": "Tunnel Brute",
+      "description": "Simple, heavy hits, low insight.",
+      "portraitImage": "",
+      "factionId": "",
+      "stats": {
+        "maxHealth": 30,
+        "strength": 1,
+        "dexterity": 0,
+        "insight": 0
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 0,
+      "deckTemplateIds": [
+        "deck_brute"
+      ],
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "gold",
+          "amount": 25,
+          "chance": 100
+        }
+      ]
+    }
+  ],
+  "events": [],
+  "deckTemplates": [
     {
       "id": "starter-deck-template",
       "name": "Starter Deck",
       "factionId": "",
       "cardIds": [
-        "54950b35-bea2-4e24-8e3d-2628fef84499",
-        "54950b35-bea2-4e24-8e3d-2628fef84499",
-        "54950b35-bea2-4e24-8e3d-2628fef84499",
-        "54950b35-bea2-4e24-8e3d-2628fef84499",
-        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
-        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
-        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2",
-        "0c412a9b-fc28-4f2c-89fa-7eec5da3bec2"
+        "card_strike",
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard",
+        "card_guard",
+        "card_focus",
+        "card_quick_think"
+      ]
+    },
+    {
+      "id": "deck_bandit",
+      "name": "Bandit Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_jab",
+        "enemy_brace",
+        "enemy_jab",
+        "enemy_jab"
+      ]
+    },
+    {
+      "id": "deck_seer",
+      "name": "Seer Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_glimpse",
+        "enemy_jab",
+        "enemy_brace",
+        "enemy_jab"
+      ]
+    },
+    {
+      "id": "deck_brute",
+      "name": "Brute Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_jab",
+        "enemy_jab",
+        "card_heavy_blow",
+        "enemy_brace"
       ]
     }
   ],
   "maps": [
     {
-      "id": "0794f723-845c-4dbf-963e-c53135168063",
-      "name": "Overworld",
-      "description": "",
+      "id": "map_demo_overworld",
+      "name": "Combat Demo Route",
+      "description": "A short route with three authored combat encounters.",
+      "backgroundImage": "",
       "isOverworld": true,
       "parentMapId": null,
       "nodes": [
         {
-          "id": "8d8923cd-aca2-4507-9a73-8891463580a7",
-          "x": 538,
-          "y": 385,
-          "label": "great way",
-          "description": "way to the box",
+          "id": "node_camp",
+          "x": 220,
+          "y": 360,
+          "label": "Camp",
+          "description": "The route starts here. Test the fights in any order along the path.",
+          "isStartingNode": true,
           "options": [
             {
-              "id": "a05ad081-2451-41fb-9d34-fe126aadc2f5",
-              "text": "a rock on the floor",
-              "conditions": [
-                {
-                  "id": "4bfc66d1-15a5-4882-b741-5b733969bebc",
-                  "type": "checkFlag",
-                  "target": "pick_up_rock",
-                  "operator": "==",
-                  "value": "false"
-                }
-              ],
-              "outcomes": [
-                {
-                  "id": "90cc22ef-e6fd-4479-85b4-3c19f309cecb",
-                  "type": "startEvent",
-                  "target": "bde53165-1f55-45de-9548-01d9dea870da",
-                  "value": ""
-                }
-              ],
-              "lockType": "hard"
+              "id": "node_camp_wait",
+              "text": "Review your route",
+              "conditions": [],
+              "outcomes": []
             }
-          ],
-          "isStartingNode": false
+          ]
         },
         {
-          "id": "82fd65d3-72fd-48c6-b23f-18777b8f01cb",
-          "x": 392,
-          "y": 486,
-          "label": "start",
-          "description": "",
-          "options": [],
-          "isStartingNode": true
-        },
-        {
-          "id": "20fe3d25-879e-45ec-8cdd-9fbf0d5c03ba",
-          "x": 300,
-          "y": 300,
-          "label": "enemy",
-          "description": "oh no a little brat attacks.",
+          "id": "node_bandit",
+          "x": 470,
+          "y": 280,
+          "label": "Bandit",
+          "description": "A straightforward enemy. Your base insight should reveal both upcoming cards.",
+          "isStartingNode": false,
           "options": [
             {
-              "id": "47436d8c-bad2-4908-b3b6-0c0a7a6c7fc4",
-              "text": "what is this?",
+              "id": "node_bandit_fight",
+              "text": "Fight the Bandit Lookout",
               "conditions": [],
               "outcomes": [
                 {
-                  "id": "2db7e111-e686-4f64-94f3-1b16903ec541",
+                  "id": "outcome_bandit_fight",
                   "type": "startCombat",
-                  "target": "a7bf27ff-485c-4982-b682-5edf34df4503",
+                  "target": "enemy_bandit",
                   "value": ""
                 }
-              ],
-              "lockType": "soft"
+              ]
             }
-          ],
-          "isStartingNode": false
+          ]
         },
         {
-          "id": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
-          "x": 636,
-          "y": 329,
-          "label": "namelss",
-          "description": "",
-          "options": [],
-          "isStartingNode": false
-        },
-        {
-          "id": "326d5763-e466-4fb8-b624-f8cba48ceacf",
-          "x": 683,
-          "y": 436,
-          "label": "another nameless",
-          "description": "",
+          "id": "node_seer",
+          "x": 760,
+          "y": 420,
+          "label": "Seer",
+          "description": "An enemy with matching insight. You should lose most or all preview information until you play Focus Sight.",
           "isStartingNode": false,
-          "options": []
+          "options": [
+            {
+              "id": "node_seer_fight",
+              "text": "Fight the Ash Seer",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_seer_fight",
+                  "type": "startCombat",
+                  "target": "enemy_seer",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "node_brute",
+          "x": 1030,
+          "y": 250,
+          "label": "Brute",
+          "description": "A heavier final target with a stronger deck.",
+          "isStartingNode": false,
+          "options": [
+            {
+              "id": "node_brute_fight",
+              "text": "Fight the Tunnel Brute",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_brute_fight",
+                  "type": "startCombat",
+                  "target": "enemy_brute",
+                  "value": ""
+                }
+              ]
+            }
+          ]
         }
       ],
       "connections": [
         {
-          "id": "cc3204c7-c9df-4d19-bb28-59eeb4b0a5f0",
-          "fromNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
-          "toNodeId": "20fe3d25-879e-45ec-8cdd-9fbf0d5c03ba",
+          "id": "conn_1",
+          "fromNodeId": "node_camp",
+          "toNodeId": "node_bandit",
           "conditions": [],
           "gateType": "none"
         },
         {
-          "id": "53e964c7-8f31-418b-9467-7b9be6271e02",
-          "fromNodeId": "82fd65d3-72fd-48c6-b23f-18777b8f01cb",
-          "toNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
+          "id": "conn_2",
+          "fromNodeId": "node_bandit",
+          "toNodeId": "node_seer",
           "conditions": [],
           "gateType": "none"
         },
         {
-          "id": "5ffcfde6-ef90-4293-be5c-daed63a57f3a",
-          "fromNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
-          "toNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
+          "id": "conn_3",
+          "fromNodeId": "node_seer",
+          "toNodeId": "node_brute",
           "conditions": [],
           "gateType": "none"
         },
         {
-          "id": "1bc8b1fc-06a8-45c9-80a5-9476ff26cbc5",
-          "fromNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
-          "toNodeId": "326d5763-e466-4fb8-b624-f8cba48ceacf",
-          "conditions": [],
-          "gateType": "none"
-        },
-        {
-          "id": "fd56a2ec-001a-4983-9b1e-0f971f6deec3",
-          "fromNodeId": "64ffa650-690e-4837-a652-9fd67bc0b4e1",
-          "toNodeId": "8d8923cd-aca2-4507-9a73-8891463580a7",
+          "id": "7a8b1042-878e-4411-8b00-6964811e9353",
+          "fromNodeId": "node_camp",
+          "toNodeId": "node_seer",
           "conditions": [],
           "gateType": "none"
         }
-      ],
-      "backgroundImage": "assets/maps/Highland-Pass-battle-map-color-no-grid.jpg"
+      ]
     }
   ],
-  "flags": [
-    {
-      "id": "25a99e6e-6dc7-4019-ae6c-c8adf8d92707",
-      "name": "pick_up_rock",
-      "description": "you picked up a rock at the beginning",
-      "defaultValue": false
-    }
-  ]
+  "flags": []
 }

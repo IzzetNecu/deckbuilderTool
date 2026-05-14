@@ -1,4 +1,6 @@
 import { renderFactionEditor } from './editors/faction-editor.js?v=1778179374';
+import { renderPlayerEditor } from './editors/player-editor.js?v=1778179374';
+import { renderBuffEditor } from './editors/buff-editor.js?v=1778179374';
 import { renderCardEditor } from './editors/card-editor.js?v=1778179374';
 import { renderConsumableEditor } from './editors/consumable-editor.js?v=1778179374';
 import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1778179374';
@@ -20,6 +22,8 @@ export function initBuilder(container) {
           <div style="font-size: 0.8em; color: var(--text-secondary); margin-top: 4px;">Web Authoring Tool</div>
         </div>
         <div class="sidebar-nav">
+          <div class="nav-item" data-tab="players">Players</div>
+          <div class="nav-item" data-tab="buffs">Buffs</div>
           <div class="nav-item active" data-tab="factions">Factions</div>
           <div class="nav-item" data-tab="cards">Cards</div>
           <div class="nav-item" data-tab="consumables">Consumables</div>
@@ -55,7 +59,11 @@ export function initBuilder(container) {
 
     // Render appropriate editor
     editorContainer.innerHTML = ''; // clear
-    if (tabId === 'factions') {
+    if (tabId === 'players') {
+      renderPlayerEditor(editorContainer);
+    } else if (tabId === 'buffs') {
+      renderBuffEditor(editorContainer);
+    } else if (tabId === 'factions') {
       renderFactionEditor(editorContainer);
     } else if (tabId === 'cards') {
       renderCardEditor(editorContainer);

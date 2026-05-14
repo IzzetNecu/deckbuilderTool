@@ -1,0 +1,141 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/combat/CombatantPanel.gd" id="1_actor"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_block"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.95)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="CombatantPanel" type="Control"]
+custom_minimum_size = Vector2(300, 420)
+script = ExtResource("1_actor")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Combatant"
+
+[node name="PortraitArea" type="Control" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 160)
+
+[node name="PortraitBG" type="ColorRect" parent="VBox/PortraitArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.12, 0.11, 0.16, 0.98)
+
+[node name="PortraitTexture" type="TextureRect" parent="VBox/PortraitArea"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlaceholderLabel" type="Label" parent="VBox/PortraitArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Portrait"
+
+[node name="EnergyBadge" type="Label" parent="VBox/PortraitArea"]
+layout_mode = 1
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -28.0
+offset_right = 120.0
+offset_bottom = -6.0
+theme_override_font_sizes/font_size = 12
+modulate = Color(1, 0.92, 0.58, 1)
+text = "Energy: 0 / 0"
+
+[node name="HighlightRect" type="ColorRect" parent="VBox/PortraitArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(1, 0.8, 0, 0.25)
+
+[node name="HPBarFrame" type="Control" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 18)
+
+[node name="BlockOutline" type="Panel" parent="VBox/HPBarFrame"]
+visible = false
+layout_mode = 1
+offset_right = 120.0
+offset_bottom = 18.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_block")
+
+[node name="HPBar" type="ProgressBar" parent="VBox/HPBarFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+show_percentage = false
+
+[node name="BlockValueLabel" type="Label" parent="VBox/HPBarFrame"]
+layout_mode = 1
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 1.0
+offset_right = 70.0
+offset_bottom = -1.0
+theme_override_font_sizes/font_size = 11
+modulate = Color(1, 1, 1, 0.95)
+vertical_alignment = 1
+
+[node name="HPValueLabel" type="Label" parent="VBox/HPBarFrame"]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -92.0
+offset_top = 1.0
+offset_right = -6.0
+offset_bottom = -1.0
+theme_override_font_sizes/font_size = 11
+modulate = Color(1, 1, 1, 0.95)
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="BuffsContainer" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="IntentSection" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RevealedLabel" type="Label" parent="VBox/IntentSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+modulate = Color(1, 0.5, 0.5, 1)
+text = "Incoming cards:"
+
+[node name="RevealedCardsContainer" type="HBoxContainer" parent="VBox/IntentSection"]
+layout_mode = 2
+theme_override_constants/separation = 8

@@ -22,25 +22,38 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.07, 0.05, 0.1, 1)
 
-[node name="EnemyArea" type="VBoxContainer" parent="."]
+[node name="Battlefield" type="Control" parent="."]
 layout_mode = 1
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = 40.0
-offset_top = 20.0
-offset_right = -40.0
-offset_bottom = -20.0
-alignment = 1
+anchor_bottom = 0.72
+offset_left = 32.0
+offset_top = 32.0
+offset_right = -32.0
+offset_bottom = -24.0
+
+[node name="PlayerArea" type="Control" parent="Battlefield"]
+layout_mode = 1
+offset_right = 320.0
+offset_bottom = 420.0
+
+[node name="EnemyArea" type="Control" parent="Battlefield"]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_right = 0.0
+offset_bottom = 420.0
 
 [node name="PlayZone" type="Panel" parent="."]
 layout_mode = 1
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.75
-offset_left = 40.0
-offset_top = 10.0
-offset_right = -40.0
-offset_bottom = -10.0
+anchor_left = 0.26
+anchor_top = 0.44
+anchor_right = 0.74
+anchor_bottom = 0.68
+offset_left = -32.0
+offset_top = 6.0
+offset_right = 32.0
+offset_bottom = -6.0
 
 [node name="PlayZoneLabel" type="Label" parent="PlayZone"]
 layout_mode = 1
@@ -49,10 +62,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-text = "Play Zone — Drop cards here"
+text = "Play Zone"
 horizontal_alignment = 1
 vertical_alignment = 1
-modulate = Color(1, 1, 1, 0.2)
+modulate = Color(1, 1, 1, 0.18)
 
 [node name="HandArea" type="Panel" parent="."]
 name = "HandArea"
@@ -77,43 +90,17 @@ theme_override_constants/separation = 12
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 10
 
-[node name="PhaseLabel" type="Label" parent="HUD"]
-offset_left = 20.0
-offset_top = 10.0
-offset_right = 300.0
-offset_bottom = 40.0
+[node name="TopLeft" type="VBoxContainer" parent="HUD"]
+offset_left = 18.0
+offset_top = 14.0
+offset_right = 260.0
+offset_bottom = 52.0
+theme_override_constants/separation = 4
+
+[node name="PhaseLabel" type="Label" parent="HUD/TopLeft"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 18
-
-[node name="PlayerHPLabel" type="Label" parent="HUD"]
-offset_left = 20.0
-offset_top = 40.0
-offset_right = 200.0
-offset_bottom = 65.0
-
-[node name="PlayerBlockLabel" type="Label" parent="HUD"]
-offset_left = 20.0
-offset_top = 65.0
-offset_right = 200.0
-offset_bottom = 90.0
-
-[node name="PlayerStrLabel" type="Label" parent="HUD"]
-offset_left = 20.0
-offset_top = 90.0
-offset_right = 200.0
-offset_bottom = 115.0
-
-[node name="PlayerDexLabel" type="Label" parent="HUD"]
-offset_left = 20.0
-offset_top = 115.0
-offset_right = 200.0
-offset_bottom = 140.0
-
-[node name="EnergyLabel" type="Label" parent="HUD"]
-offset_right = 200.0
-offset_top = 10.0
-offset_bottom = 40.0
-anchor_left = 0.5
-anchor_right = 0.5
+text = "Your Turn"
 
 [node name="EndTurnButton" type="Button" parent="HUD"]
 offset_right = 160.0

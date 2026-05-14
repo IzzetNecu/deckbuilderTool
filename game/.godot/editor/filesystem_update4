@@ -14,3 +14,6 @@ res://scenes/combat/EnemyUnit.gd
 res://scenes/ui/InventoryPanel.tscn
 res://scenes/combat/CombatScene.gd
 res://scenes/ui/InventoryPanel.gd
+res://scenes/combat/EnemyUnit.tscn
+res://scenes/combat/CombatantPanel.gd
+res://scenes/combat/CombatantPanel.tscn

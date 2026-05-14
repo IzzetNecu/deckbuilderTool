@@ -4,6 +4,8 @@
 
 const STORE_PREFIX = 'gamebuilder_';
 const COLLECTIONS = [
+  'players',
+  'buffs',
   'factions',
   'cards',
   'consumables',
@@ -55,7 +57,7 @@ export const store = {
 
   /** Returns all data formatted for Godot */
   exportAll() {
-    const data = {};
+    const data = { schemaVersion: 3 };
     COLLECTIONS.forEach(col => {
       // Deep clone to ensure nested arrays (e.g. map nodes/connections) are fully included
       data[col] = JSON.parse(JSON.stringify(this.getAll(col)));

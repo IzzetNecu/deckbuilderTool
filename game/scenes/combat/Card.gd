@@ -4,7 +4,6 @@ var card_data: Dictionary = {}
 var combat_manager: Node = null
 var enemy_unit: Node = null
 
-# Drag state
 var is_dragging: bool = false
 var drag_offset: Vector2 = Vector2.ZERO
 var original_position: Vector2 = Vector2.ZERO
@@ -14,6 +13,13 @@ var original_parent: Node = null
 @onready var cost_label: Label = $VBox/CostLabel
 @onready var effects_label: Label = $VBox/EffectsLabel
 
+func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	$VBox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	effects_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 	card_data = data
 	combat_manager = mgr
@@ -21,44 +27,16 @@ func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 
 	name_label.text = data.get("name", "?")
 	cost_label.text = "Cost: %d" % data.get("cost", 0)
-	effects_label.text = _resolve_description(data.get("description", ""), data.get("effects", []))
-
-func _resolve_description(desc: String, effects: Array) -> String:
-	if desc.is_empty():
-		return desc
-	var result = desc
-	for effect in effects:
-		var effect_str: String = effect.get("value", str(effect)) if effect is Dictionary else str(effect)
-		var scales_with: String = effect.get("scalesWith", "none") if effect is Dictionary else "none"
-		var parts = effect_str.split(":")
-		if parts.size() < 2:
-			continue
-		var type = parts[0]
-		var base_value = int(parts[1])
-		# Add live stat bonus
-		var bonus = 0
-		if scales_with != "none":
-			var stat = GameState.get(scales_with)
-			if stat != null:
-				bonus = int(stat)
-		var token = "{" + type + "}"
-		result = result.replace(token, str(base_value + bonus))
-	return result
+	effects_label.text = combat_manager.get_card_text(data, "player")
 
 func _is_targeted() -> bool:
-	# Determined by the card's explicit requiresTarget flag, not by effect name.
-	# This allows AOE attacks (no target) and targeted skills.
-	return card_data.get("requiresTarget", false)
+	return str(card_data.get("targeting", "self")) == "single_enemy"
 
 func _can_afford() -> bool:
 	if not combat_manager:
 		return false
-	return combat_manager.player_energy >= card_data.get("cost", 0) \
-		and combat_manager.current_phase == CombatManager.Phase.PLAY
+	return combat_manager.player_energy >= card_data.get("cost", 0) and combat_manager.current_phase == CombatManager.Phase.PLAY
 
-# ──────────────────────────────────────────────
-#  Drag & Drop
-# ──────────────────────────────────────────────
 func _gui_input(event: InputEvent) -> void:
 	if not _can_afford():
 		return
@@ -67,12 +45,17 @@ func _gui_input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				_start_drag(event.global_position)
-			else:
-				_release_drag(event.global_position)
+				accept_event()
 
-	elif event is InputEventMouseMotion and is_dragging:
+func _input(event: InputEvent) -> void:
+	if not is_dragging:
+		return
+
+	if event is InputEventMouseMotion:
 		global_position = event.global_position + drag_offset
 		_check_hover(event.global_position)
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		_release_drag(event.global_position)
 
 func _start_drag(global_pos: Vector2) -> void:
 	is_dragging = true
@@ -80,7 +63,6 @@ func _start_drag(global_pos: Vector2) -> void:
 	original_parent = get_parent()
 	drag_offset = global_position - global_pos
 
-	# Reparent to top level so it draws on top
 	var canvas = get_tree().current_scene
 	original_parent.remove_child(self)
 	canvas.add_child(self)
@@ -92,26 +74,20 @@ func _release_drag(global_pos: Vector2) -> void:
 	is_dragging = false
 
 	var played = false
-
 	if _is_targeted():
-		# Must drop on enemy
 		if enemy_unit and _is_over_node(enemy_unit, global_pos):
 			played = combat_manager.play_card(card_data, "enemy")
 	else:
-		# Drop anywhere in play zone (not on the hand area)
 		var hand_area = get_tree().current_scene.get_node_or_null("HandArea")
 		var over_hand = hand_area and _is_over_node(hand_area, global_pos)
 		if not over_hand:
 			played = combat_manager.play_card(card_data, "self")
 
 	if played:
-		# CombatScene will rebuild hand from signal — just remove this node
 		queue_free()
 	else:
-		# Snap back to hand
 		_snap_back()
 
-	# Clear enemy highlight
 	if enemy_unit:
 		enemy_unit.set_highlight(false)
 
@@ -120,10 +96,9 @@ func _check_hover(global_pos: Vector2) -> void:
 		enemy_unit.set_highlight(_is_over_node(enemy_unit, global_pos))
 
 func _snap_back() -> void:
-	# Re-parent back to original container
 	get_parent().remove_child(self)
 	original_parent.add_child(self)
-	position = Vector2.ZERO # HBoxContainer will re-layout
+	position = Vector2.ZERO
 
 func _is_over_node(target_node: Control, global_pos: Vector2) -> bool:
 	var rect = Rect2(target_node.global_position, target_node.size)

@@ -17,6 +17,17 @@ export function createFaction(data = {}) {
   };
 }
 
+export function createBuff(data = {}) {
+  return {
+    id: data.id || uuid(),
+    name: data.name || '',
+    kind: data.kind || 'buff',
+    iconImage: data.iconImage || '',
+    shortLabel: data.shortLabel || '',
+    reminderText: data.reminderText || ''
+  };
+}
+
 export function createCard(data = {}) {
   return {
     id: data.id || uuid(),
@@ -26,11 +37,69 @@ export function createCard(data = {}) {
     factionId: data.factionId || null, 
     cost: data.cost ?? 1,
     rarity: data.rarity || 'common', // common, uncommon, rare
-    requiresTarget: data.requiresTarget ?? false, // if true, must be dragged onto an enemy
-    effects: (data.effects || []).map(e =>
-      typeof e === 'string' ? { value: e, scalesWith: 'none' } : e
-    ) // [{value: "ATTACK:6", scalesWith: "strength"|"none"|...}]
+    targeting: data.targeting || (data.requiresTarget ? 'single_enemy' : 'self'),
+    requiresTarget: data.requiresTarget ?? data.targeting === 'single_enemy', // legacy compatibility
+    effects: (data.effects || []).map(effect => normalizeCardEffect(effect))
   };
+}
+
+function normalizeCardEffect(effect) {
+  if (typeof effect === 'string') {
+    return normalizeLegacyEffect({ value: effect, scalesWith: 'none' });
+  }
+  if (effect && typeof effect === 'object' && 'type' in effect) {
+    const type = normalizeEffectType(effect.type || 'damage');
+    return {
+      type,
+      amount: readEffectAmount(effect),
+      target: effect.target || inferTargetFromType(type),
+      scaling: effect.scaling || effect.scalesWith || 'none'
+    };
+  }
+  return normalizeLegacyEffect(effect || {});
+}
+
+function normalizeLegacyEffect(effect) {
+  const value = effect.value || '';
+  const [legacyType, rawAmount] = value.split(':');
+  const normalizedType = normalizeEffectType(legacyType);
+  return {
+    type: normalizedType,
+    amount: parseInt(rawAmount ?? 0, 10) || 0,
+    target: inferTargetFromType(normalizedType),
+    scaling: effect.scalesWith || 'none',
+    value
+  };
+}
+
+function normalizeEffectType(type) {
+  const normalized = String(type || '').trim();
+  if (!normalized) return 'damage';
+  const typeMap = {
+    ATTACK: 'damage',
+    DEFEND: 'block',
+    HEAL: 'heal',
+    DRAW: 'draw',
+    DISCARD: 'discard',
+    GAIN_ENERGY: 'gain_energy',
+    INSIGHT: 'modify_insight',
+    MODIFY_INSIGHT: 'modify_insight'
+  };
+  return typeMap[normalized.toUpperCase()] || normalized.toLowerCase();
+}
+
+function readEffectAmount(effect) {
+  if (Number.isFinite(effect.amount)) return effect.amount;
+  const numericAmount = parseInt(effect.amount ?? '', 10);
+  if (Number.isFinite(numericAmount)) return numericAmount;
+  const value = String(effect.value || '');
+  const [, rawAmount = value] = value.split(':');
+  return parseInt(rawAmount ?? 0, 10) || 0;
+}
+
+function inferTargetFromType(type) {
+  if (type === 'damage') return 'enemy';
+  return 'self';
 }
 
 export function createConsumable(data = {}) {
@@ -81,12 +150,44 @@ export function createEnemy(data = {}) {
     id: data.id || uuid(),
     name: data.name || '',
     description: data.description || '',
-    hp: data.hp ?? 10,
-    hand_size: data.hand_size ?? 3,
+    portraitImage: data.portraitImage || '',
+    hp: data.hp ?? data.stats?.maxHealth ?? 10,
+    hand_size: data.hand_size ?? data.handSize ?? 3,
+    handSize: data.handSize ?? data.hand_size ?? 3,
     factionId: data.factionId || null,
+    stats: {
+      maxHealth: data.stats?.maxHealth ?? data.hp ?? 10,
+      strength: data.stats?.strength ?? 0,
+      dexterity: data.stats?.dexterity ?? 0,
+      insight: data.stats?.insight ?? 0
+    },
+    intentMode: data.intentMode || 'deck',
+    intentPreviewCount: data.intentPreviewCount ?? 0,
     deckTemplateIds: data.deckTemplateIds || [], // deck templates included in enemy's deck
     deckIds: data.deckIds || [],                 // individual extra cards
     lootTable: data.lootTable || []
+  };
+}
+
+export function createPlayer(data = {}) {
+  return {
+    id: data.id || uuid(),
+    name: data.name || 'Hero',
+    portraitImage: data.portraitImage || '',
+    baseStats: {
+      maxHealth: data.baseStats?.maxHealth ?? 20,
+      strength: data.baseStats?.strength ?? 1,
+      dexterity: data.baseStats?.dexterity ?? 1,
+      insight: data.baseStats?.insight ?? 0,
+      maxEnergy: data.baseStats?.maxEnergy ?? 3,
+      handSize: data.baseStats?.handSize ?? 5
+    },
+    startingDeck: data.startingDeck || [],
+    startingInventory: {
+      consumables: data.startingInventory?.consumables || [],
+      equipment: data.startingInventory?.equipment || [],
+      keyItems: data.startingInventory?.keyItems || []
+    }
   };
 }
 
