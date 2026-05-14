@@ -183,10 +183,21 @@ export function createPlayer(data = {}) {
       handSize: data.baseStats?.handSize ?? 5
     },
     startingDeck: data.startingDeck || [],
+    startingOwnedCards: data.startingOwnedCards || data.startingDeck || [],
     startingInventory: {
       consumables: data.startingInventory?.consumables || [],
       equipment: data.startingInventory?.equipment || [],
       keyItems: data.startingInventory?.keyItems || []
+    },
+    startingEquipped: {
+      weapon_main: data.startingEquipped?.weapon_main || '',
+      off_hand: data.startingEquipped?.off_hand || '',
+      head: data.startingEquipped?.head || '',
+      armor: data.startingEquipped?.armor || '',
+      legs: data.startingEquipped?.legs || '',
+      amulet: data.startingEquipped?.amulet || '',
+      ring_left: data.startingEquipped?.ring_left || '',
+      ring_right: data.startingEquipped?.ring_right || ''
     }
   };
 }

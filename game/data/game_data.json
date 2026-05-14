@@ -24,12 +24,36 @@
         "card_focus",
         "card_quick_think"
       ],
+      "startingOwnedCards": [
+        "card_strike",
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard",
+        "card_guard",
+        "card_focus",
+        "card_quick_think",
+        "card_heavy_blow"
+      ],
       "startingInventory": {
         "consumables": [
           "consumable_potion"
         ],
-        "equipment": [],
+        "equipment": [
+          "equip_scout_blade",
+          "equip_cinder_buckler"
+        ],
         "keyItems": []
+      },
+      "startingEquipped": {
+        "weapon_main": "equip_scout_blade",
+        "off_hand": "",
+        "head": "",
+        "armor": "",
+        "legs": "",
+        "amulet": "",
+        "ring_left": "",
+        "ring_right": ""
       }
     }
   ],
@@ -38,41 +62,41 @@
       "id": "buff_block",
       "name": "Block",
       "kind": "buff",
-      "iconImage": "",
       "shortLabel": "BLK",
-      "reminderText": "Prevents incoming damage until removed or spent."
+      "reminderText": "Prevents incoming damage until removed or spent.",
+      "iconImage": ""
     },
     {
       "id": "buff_strength",
       "name": "Strength",
       "kind": "buff",
-      "iconImage": "",
       "shortLabel": "STR",
-      "reminderText": "Adds to outgoing damage on scaling attacks."
+      "reminderText": "Adds to outgoing damage on scaling attacks.",
+      "iconImage": ""
     },
     {
       "id": "buff_dexterity",
       "name": "Dexterity",
       "kind": "buff",
-      "iconImage": "",
       "shortLabel": "DEX",
-      "reminderText": "Adds to outgoing block on scaling defenses."
+      "reminderText": "Adds to outgoing block on scaling defenses.",
+      "iconImage": ""
     },
     {
       "id": "buff_insight",
       "name": "Insight",
       "kind": "buff",
-      "iconImage": "",
       "shortLabel": "INS",
-      "reminderText": "Reveals more upcoming enemy intent when higher than the enemy's insight."
+      "reminderText": "Reveals more upcoming enemy intent when higher than the enemy insight.",
+      "iconImage": ""
     },
     {
       "id": "buff_energy",
       "name": "Energy",
       "kind": "buff",
-      "iconImage": "",
       "shortLabel": "ENG",
-      "reminderText": "Spent to play cards during your turn."
+      "reminderText": "Spent to play cards during your turn.",
+      "iconImage": ""
     }
   ],
   "factions": [],
@@ -169,6 +193,40 @@
       ]
     },
     {
+      "id": "card_scout_slash",
+      "name": "Scout Slash",
+      "description": "Deal {damage} damage.",
+      "type": "attack",
+      "cost": 1,
+      "rarity": "common",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 7,
+          "target": "enemy",
+          "scaling": "strength"
+        }
+      ]
+    },
+    {
+      "id": "card_ward_plate",
+      "name": "Ward Plate",
+      "description": "Gain {block} block.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "common",
+      "targeting": "self",
+      "effects": [
+        {
+          "type": "block",
+          "amount": 6,
+          "target": "self",
+          "scaling": "dexterity"
+        }
+      ]
+    },
+    {
       "id": "enemy_jab",
       "name": "Jab",
       "description": "Deal {damage} damage.",
@@ -232,17 +290,43 @@
       ]
     }
   ],
-  "equipment": [],
+  "equipment": [
+    {
+      "id": "equip_scout_blade",
+      "name": "Scout Blade",
+      "description": "A light blade that adds a precise opening attack while equipped.",
+      "type": "onehandedWeapon",
+      "rarity": "common",
+      "value": 35,
+      "effects": [],
+      "cardIds": [
+        "card_scout_slash"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_cinder_buckler",
+      "name": "Cinder Buckler",
+      "description": "A compact shield that grants a stronger guard option while equipped.",
+      "type": "offHand",
+      "rarity": "common",
+      "value": 30,
+      "effects": [],
+      "cardIds": [
+        "card_ward_plate"
+      ],
+      "conditions": []
+    }
+  ],
   "keyItems": [],
   "enemies": [
     {
       "id": "enemy_bandit",
       "name": "Bandit Lookout",
       "description": "A cautious raider who telegraphs poorly unless you read them.",
-      "portraitImage": "",
       "factionId": "",
       "stats": {
-        "maxHealth": 20,
+        "maxHealth": 30,
         "strength": 0,
         "dexterity": 0,
         "insight": 0
@@ -257,16 +341,18 @@
       "lootTable": [
         {
           "type": "gold",
-          "amount": 12,
-          "chance": 100
+          "chance": 100,
+          "amount": 12
         }
-      ]
+      ],
+      "portraitImage": "",
+      "hand_size": 2,
+      "hp": 30
     },
     {
       "id": "enemy_seer",
       "name": "Ash Seer",
       "description": "Harder to read. Fights with insight tricks.",
-      "portraitImage": "",
       "factionId": "",
       "stats": {
         "maxHealth": 24,
@@ -293,7 +379,6 @@
       "id": "enemy_brute",
       "name": "Tunnel Brute",
       "description": "Simple, heavy hits, low insight.",
-      "portraitImage": "",
       "factionId": "",
       "stats": {
         "maxHealth": 30,
@@ -373,14 +458,14 @@
       "id": "map_demo_overworld",
       "name": "Combat Demo Route",
       "description": "A short route with three authored combat encounters.",
-      "backgroundImage": "",
+      "backgroundImage": "assets/maps/Highland-Pass-battle-map-color-no-grid.jpg",
       "isOverworld": true,
       "parentMapId": null,
       "nodes": [
         {
           "id": "node_camp",
-          "x": 220,
-          "y": 360,
+          "x": 370.8560879543047,
+          "y": 508.87113942859014,
           "label": "Camp",
           "description": "The route starts here. Test the fights in any order along the path.",
           "isStartingNode": true,
@@ -395,8 +480,8 @@
         },
         {
           "id": "node_bandit",
-          "x": 470,
-          "y": 280,
+          "x": 255.62555922283013,
+          "y": 351.45814692572327,
           "label": "Bandit",
           "description": "A straightforward enemy. Your base insight should reveal both upcoming cards.",
           "isStartingNode": false,
@@ -418,8 +503,8 @@
         },
         {
           "id": "node_seer",
-          "x": 760,
-          "y": 420,
+          "x": 587.3094782628355,
+          "y": 368.39133833142205,
           "label": "Seer",
           "description": "An enemy with matching insight. You should lose most or all preview information until you play Focus Sight.",
           "isStartingNode": false,
@@ -441,8 +526,8 @@
         },
         {
           "id": "node_brute",
-          "x": 1030,
-          "y": 250,
+          "x": 503.988640685648,
+          "y": 136.8579340342715,
           "label": "Brute",
           "description": "A heavier final target with a stronger deck.",
           "isStartingNode": false,
@@ -489,6 +574,13 @@
           "id": "7a8b1042-878e-4411-8b00-6964811e9353",
           "fromNodeId": "node_camp",
           "toNodeId": "node_seer",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "7e7d43fb-a15c-49d0-ba4c-dd21722156b5",
+          "fromNodeId": "node_brute",
+          "toNodeId": "node_bandit",
           "conditions": [],
           "gateType": "none"
         }

@@ -27,7 +27,7 @@ func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 
 	name_label.text = data.get("name", "?")
 	cost_label.text = "Cost: %d" % data.get("cost", 0)
-	effects_label.text = combat_manager.get_card_text(data, "player")
+	effects_label.text = combat_manager.get_card_text(data, "player") if combat_manager else GameState.get_preview_card_text(data)
 
 func _is_targeted() -> bool:
 	return str(card_data.get("targeting", "self")) == "single_enemy"

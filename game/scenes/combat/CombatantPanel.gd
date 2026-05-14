@@ -16,6 +16,7 @@ var panel_side: String = "player"
 @onready var buffs_container: HBoxContainer = $VBox/BuffsContainer
 @onready var intent_section: VBoxContainer = $VBox/IntentSection
 @onready var intent_cards_container: HBoxContainer = $VBox/IntentSection/RevealedCardsContainer
+@onready var action_slot: HBoxContainer = $VBox/IntentSection/ActionSlot
 
 func _ready() -> void:
 	hp_bar.show_percentage = false
@@ -29,8 +30,12 @@ func configure(side: String, show_intents: bool) -> void:
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT if align_right else HORIZONTAL_ALIGNMENT_LEFT
 	buffs_container.alignment = BoxContainer.ALIGNMENT_END if align_right else BoxContainer.ALIGNMENT_BEGIN
 	intent_cards_container.alignment = BoxContainer.ALIGNMENT_END if align_right else BoxContainer.ALIGNMENT_BEGIN
+	action_slot.alignment = BoxContainer.ALIGNMENT_END if align_right else BoxContainer.ALIGNMENT_BEGIN
 	hp_bar.custom_minimum_size = Vector2(180, 14) if align_right else Vector2(250, 18)
 	energy_badge.visible = panel_side == "player"
+
+func get_action_slot() -> HBoxContainer:
+	return action_slot
 
 func update_actor(actor_name: String, portrait_path: String, hp: int, max_hp: int, block: int, energy_text: String, buff_values: Array) -> void:
 	name_label.text = actor_name

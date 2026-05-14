@@ -104,6 +104,11 @@ export function renderPlayerEditor(container) {
           </div>
         </div>
 
+        <div class="form-group">
+          <label>Starting Owned Cards</label>
+          <input type="text" id="player-owned-cards" value="${(player.startingOwnedCards || player.startingDeck || []).join(', ')}" placeholder="${cards.map(card => card.id).join(', ')}" />
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label>Starting Consumables</label>
@@ -116,6 +121,22 @@ export function renderPlayerEditor(container) {
           <div class="form-group">
             <label>Starting Key Items</label>
             <input type="text" id="player-key-items" value="${(player.startingInventory.keyItems || []).join(', ')}" placeholder="${keyItems.map(item => item.id).join(', ')}" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Starting Equipped Slots</label>
+          <div class="form-row">
+            ${renderEquippedSlotInput('weapon_main', 'Weapon', player.startingEquipped)}
+            ${renderEquippedSlotInput('off_hand', 'Off-Hand', player.startingEquipped)}
+            ${renderEquippedSlotInput('head', 'Head', player.startingEquipped)}
+            ${renderEquippedSlotInput('armor', 'Armor', player.startingEquipped)}
+          </div>
+          <div class="form-row">
+            ${renderEquippedSlotInput('legs', 'Legs', player.startingEquipped)}
+            ${renderEquippedSlotInput('amulet', 'Amulet', player.startingEquipped)}
+            ${renderEquippedSlotInput('ring_left', 'Ring Left', player.startingEquipped)}
+            ${renderEquippedSlotInput('ring_right', 'Ring Right', player.startingEquipped)}
           </div>
         </div>
 
@@ -158,10 +179,21 @@ export function renderPlayerEditor(container) {
         handSize: parseInt(container.querySelector('#player-hand-size').value, 10) || 5
       };
       player.startingDeck = Array.from(container.querySelectorAll('.player-deck-card')).map(select => select.value).filter(Boolean);
+      player.startingOwnedCards = parseCsv(container.querySelector('#player-owned-cards').value);
       player.startingInventory = {
         consumables: parseCsv(container.querySelector('#player-consumables').value),
         equipment: parseCsv(container.querySelector('#player-equipment').value),
         keyItems: parseCsv(container.querySelector('#player-key-items').value)
+      };
+      player.startingEquipped = {
+        weapon_main: container.querySelector('#player-equip-weapon_main').value.trim(),
+        off_hand: container.querySelector('#player-equip-off_hand').value.trim(),
+        head: container.querySelector('#player-equip-head').value.trim(),
+        armor: container.querySelector('#player-equip-armor').value.trim(),
+        legs: container.querySelector('#player-equip-legs').value.trim(),
+        amulet: container.querySelector('#player-equip-amulet').value.trim(),
+        ring_left: container.querySelector('#player-equip-ring_left').value.trim(),
+        ring_right: container.querySelector('#player-equip-ring_right').value.trim()
       };
       store.save('players', player);
     };
@@ -220,6 +252,15 @@ export function renderPlayerEditor(container) {
 
   function parseCsv(value) {
     return value.split(',').map(entry => entry.trim()).filter(Boolean);
+  }
+
+  function renderEquippedSlotInput(slotId, label, startingEquipped = {}) {
+    return `
+      <div class="form-group">
+        <label>${label}</label>
+        <input type="text" id="player-equip-${slotId}" value="${startingEquipped?.[slotId] || ''}" placeholder="${equipment.map(item => item.id).join(', ')}" />
+      </div>
+    `;
   }
 
   render();

@@ -172,6 +172,12 @@ func _normalize_player(item: Dictionary) -> Dictionary:
 		"keyItems": inventory.get("keyItems", []).duplicate()
 	}
 	player["startingDeck"] = player.get("startingDeck", []).duplicate()
+	player["startingOwnedCards"] = player.get("startingOwnedCards", player["startingDeck"]).duplicate()
+	var starting_equipped = player.get("startingEquipped", {})
+	var normalized_slots := {}
+	for slot_id in ["weapon_main", "off_hand", "head", "armor", "legs", "amulet", "ring_left", "ring_right"]:
+		normalized_slots[slot_id] = str(starting_equipped.get(slot_id, ""))
+	player["startingEquipped"] = normalized_slots
 	return player
 
 func _normalize_buff(item: Dictionary) -> Dictionary:

@@ -60,7 +60,7 @@ func start_combat(enemy_id: String) -> void:
 		}
 	}
 
-	draw_pile = GameState.deck.duplicate()
+	draw_pile = GameState.get_effective_deck().duplicate()
 	draw_pile.shuffle()
 	discard_pile = []
 	exhaust_pile = []

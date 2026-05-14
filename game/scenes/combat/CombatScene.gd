@@ -33,8 +33,18 @@ func _ready() -> void:
 	enemy_area.add_child(enemy_panel_instance)
 	enemy_panel_instance.combat_manager = combat_manager
 	enemy_panel_instance.configure("enemy", true)
+	_move_end_turn_button_to_enemy_panel()
 
 	combat_manager.start_combat(SceneManager.current_enemy_id)
+
+func _move_end_turn_button_to_enemy_panel() -> void:
+	if not enemy_panel_instance:
+		return
+	var enemy_action_slot: Node = enemy_panel_instance.call("get_action_slot")
+	if enemy_action_slot == null or end_turn_btn.get_parent() == enemy_action_slot:
+		return
+	end_turn_btn.get_parent().remove_child(end_turn_btn)
+	enemy_action_slot.add_child(end_turn_btn)
 
 func _on_phase_changed(phase: CombatManager.Phase) -> void:
 	match phase:

@@ -139,3 +139,8 @@ text = "Incoming cards:"
 [node name="RevealedCardsContainer" type="HBoxContainer" parent="VBox/IntentSection"]
 layout_mode = 2
 theme_override_constants/separation = 8
+
+[node name="ActionSlot" type="HBoxContainer" parent="VBox/IntentSection"]
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 2

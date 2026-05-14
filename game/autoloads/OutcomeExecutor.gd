@@ -37,11 +37,9 @@ func execute_one(out: Dictionary) -> void:
 		"removeConsumable":
 			GameState.remove_consumable(target, max(1, int(value)))
 		"addCard":
-			GameState.deck.append(target)
+			GameState.add_owned_card(target, true)
 		"removeCard":
-			var idx = GameState.deck.find(target)
-			if idx != -1:
-				GameState.deck.remove_at(idx)
+			GameState.remove_owned_card(target)
 		"travelToMap":
 			SceneManager.load_map(target)
 		"startCombat":
