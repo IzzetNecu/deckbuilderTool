@@ -78,6 +78,9 @@ func _on_enemy_intent_updated(intent_slots: Array) -> void:
 		enemy_panel_instance.update_intent_slots(intent_slots)
 
 func _on_stats_updated() -> void:
+	for child in hand_container.get_children():
+		if child.has_method("refresh_display"):
+			child.refresh_display()
 	if player_panel_instance:
 		player_panel_instance.update_actor(
 			combat_manager.get_player_name(),
@@ -100,18 +103,10 @@ func _on_stats_updated() -> void:
 		)
 
 func _build_player_buffs() -> Array:
-	return [
-		{"id": "buff_strength", "value": combat_manager.get_player_strength()},
-		{"id": "buff_dexterity", "value": combat_manager.get_player_dexterity()},
-		{"id": "buff_insight", "value": combat_manager.get_player_insight()}
-	]
+	return combat_manager.get_display_buffs("player")
 
 func _build_enemy_buffs() -> Array:
-	return [
-		{"id": "buff_strength", "value": combat_manager.get_enemy_strength()},
-		{"id": "buff_dexterity", "value": combat_manager.get_enemy_dexterity()},
-		{"id": "buff_insight", "value": combat_manager.get_enemy_insight()}
-	]
+	return combat_manager.get_display_buffs("enemy")
 
 func _on_end_turn_pressed() -> void:
 	combat_manager.end_turn()

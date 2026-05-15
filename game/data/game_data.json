@@ -33,7 +33,13 @@
         "card_guard",
         "card_focus",
         "card_quick_think",
-        "card_heavy_blow"
+        "card_heavy_blow",
+        "card_ember_link",
+        "card_tidal_guard",
+        "card_root_exchange",
+        "card_gale_shuffle",
+        "card_frost_shell",
+        "card_storm_mark"
       ],
       "startingInventory": {
         "consumables": [
@@ -41,7 +47,13 @@
         ],
         "equipment": [
           "equip_scout_blade",
-          "equip_cinder_buckler"
+          "equip_cinder_buckler",
+          "equip_fire_sigils",
+          "equip_water_sigils",
+          "equip_earth_sigils",
+          "equip_wind_sigils",
+          "equip_ice_sigils",
+          "equip_storm_sigils"
         ],
         "keyItems": []
       },
@@ -96,6 +108,102 @@
       "kind": "buff",
       "shortLabel": "ENG",
       "reminderText": "Spent to play cards during your turn.",
+      "iconImage": ""
+    },
+    {
+      "id": "buff_heat",
+      "name": "Heat",
+      "kind": "buff",
+      "shortLabel": "HEAT",
+      "reminderText": "Your next damage effect gains X damage, then Heat loses half its stacks rounded down.",
+      "iconImage": ""
+    },
+    {
+      "id": "debuff_burning",
+      "name": "Burning",
+      "kind": "debuff",
+      "shortLabel": "BURN",
+      "reminderText": "Your next damage effect loses X damage, minimum 0, then Burning loses half its stacks rounded down.",
+      "iconImage": ""
+    },
+    {
+      "id": "buff_flow",
+      "name": "Flow",
+      "kind": "buff",
+      "shortLabel": "FLOW",
+      "reminderText": "Your next block effect gains X block, then Flow loses half its stacks rounded down.",
+      "iconImage": ""
+    },
+    {
+      "id": "debuff_slippery",
+      "name": "Slippery",
+      "kind": "debuff",
+      "shortLabel": "SLIP",
+      "reminderText": "Your next block effect loses X block, minimum 0, then Slippery loses half its stacks rounded down.",
+      "iconImage": ""
+    },
+    {
+      "id": "buff_regen",
+      "name": "Regen",
+      "kind": "buff",
+      "shortLabel": "RGN",
+      "reminderText": "At end of turn, heal X and lose 1 stack.",
+      "iconImage": ""
+    },
+    {
+      "id": "debuff_poison",
+      "name": "Poison",
+      "kind": "debuff",
+      "shortLabel": "PSN",
+      "reminderText": "At start of turn, lose X HP and lose 1 stack.",
+      "iconImage": ""
+    },
+    {
+      "id": "buff_haste",
+      "name": "Haste",
+      "kind": "buff",
+      "shortLabel": "HST",
+      "reminderText": "At start of turn, draw X extra cards, then lose 1 stack.",
+      "iconImage": ""
+    },
+    {
+      "id": "debuff_slowed",
+      "name": "Slowed",
+      "kind": "debuff",
+      "shortLabel": "SLOW",
+      "reminderText": "At start of turn, draw X fewer cards, minimum 0, then lose 1 stack.",
+      "iconImage": ""
+    },
+    {
+      "id": "buff_scaled",
+      "name": "Scaled",
+      "kind": "buff",
+      "shortLabel": "SCL",
+      "reminderText": "At end of turn, gain X block and lose 1 stack.",
+      "iconImage": ""
+    },
+    {
+      "id": "debuff_chill",
+      "name": "Chill",
+      "kind": "debuff",
+      "shortLabel": "CHILL",
+      "reminderText": "At end of turn, lose X block, minimum 0, and lose 1 stack.",
+      "iconImage": ""
+    },
+    {
+      "id": "buff_energized",
+      "name": "Energized",
+      "kind": "buff",
+      "shortLabel": "AMP",
+      "reminderText": "Your next played card resolves its full effect list twice, then lose 1 stack.",
+      "iconImage": ""
+    },
+    {
+      "id": "debuff_jolted",
+      "name": "Jolted",
+      "kind": "debuff",
+      "shortLabel": "JOLT",
+      "reminderText": "After your next played card resolves, lose 1 energy and lose 1 stack.",
       "iconImage": ""
     }
   ],
@@ -227,6 +335,156 @@
       ]
     },
     {
+      "id": "card_ember_link",
+      "name": "Ember Link",
+      "description": "Gain 2 Heat. Apply 2 Burning.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_heat",
+          "amount": 2,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_burning",
+          "amount": 2,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "card_tidal_guard",
+      "name": "Tidal Guard",
+      "description": "Gain 2 Flow. Apply 2 Slippery.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_flow",
+          "amount": 2,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_slippery",
+          "amount": 2,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "card_root_exchange",
+      "name": "Root Exchange",
+      "description": "Gain 2 Regen. Apply 2 Poison.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_regen",
+          "amount": 2,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_poison",
+          "amount": 2,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "card_gale_shuffle",
+      "name": "Gale Shuffle",
+      "description": "Gain 1 Haste. Apply 1 Slowed.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_haste",
+          "amount": 1,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_slowed",
+          "amount": 1,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "card_frost_shell",
+      "name": "Frost Shell",
+      "description": "Gain 3 Scaled. Apply 3 Chill.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_scaled",
+          "amount": 3,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_chill",
+          "amount": 3,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "card_storm_mark",
+      "name": "Storm Mark",
+      "description": "Gain 1 Energized. Apply 1 Jolted.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "rare",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_energized",
+          "amount": 1,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_jolted",
+          "amount": 1,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
       "id": "enemy_jab",
       "name": "Jab",
       "description": "Deal {damage} damage.",
@@ -276,6 +534,156 @@
           "scaling": "none"
         }
       ]
+    },
+    {
+      "id": "enemy_cinder_hex",
+      "name": "Cinder Hex",
+      "description": "Gain 2 Heat. Apply 2 Burning.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_heat",
+          "amount": 2,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_burning",
+          "amount": 2,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "enemy_riptide_trick",
+      "name": "Riptide Trick",
+      "description": "Gain 2 Flow. Apply 2 Slippery.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_flow",
+          "amount": 2,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_slippery",
+          "amount": 2,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "enemy_thorn_dose",
+      "name": "Thorn Dose",
+      "description": "Gain 2 Regen. Apply 2 Poison.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_regen",
+          "amount": 2,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_poison",
+          "amount": 2,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "enemy_gust_snare",
+      "name": "Gust Snare",
+      "description": "Gain 1 Haste. Apply 1 Slowed.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_haste",
+          "amount": 1,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_slowed",
+          "amount": 1,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "enemy_rime_cover",
+      "name": "Rime Cover",
+      "description": "Gain 3 Scaled. Apply 3 Chill.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "uncommon",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_scaled",
+          "amount": 3,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_chill",
+          "amount": 3,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
+    },
+    {
+      "id": "enemy_static_brand",
+      "name": "Static Brand",
+      "description": "Gain 1 Energized. Apply 1 Jolted.",
+      "type": "skill",
+      "cost": 1,
+      "rarity": "rare",
+      "targeting": "single_enemy",
+      "effects": [
+        {
+          "type": "apply_status",
+          "statusId": "buff_energized",
+          "amount": 1,
+          "target": "self",
+          "scaling": "none"
+        },
+        {
+          "type": "apply_status",
+          "statusId": "debuff_jolted",
+          "amount": 1,
+          "target": "enemy",
+          "scaling": "none"
+        }
+      ]
     }
   ],
   "consumables": [
@@ -314,6 +722,84 @@
       "effects": [],
       "cardIds": [
         "card_ward_plate"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_fire_sigils",
+      "name": "Fire Sigils",
+      "description": "Training sigils that add Ember Link to the deck while equipped.",
+      "type": "ring",
+      "rarity": "common",
+      "value": 20,
+      "effects": [],
+      "cardIds": [
+        "card_ember_link"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_water_sigils",
+      "name": "Water Sigils",
+      "description": "Training sigils that add Tidal Guard to the deck while equipped.",
+      "type": "ring",
+      "rarity": "common",
+      "value": 20,
+      "effects": [],
+      "cardIds": [
+        "card_tidal_guard"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_earth_sigils",
+      "name": "Earth Sigils",
+      "description": "Training sigils that add Root Exchange to the deck while equipped.",
+      "type": "amulet",
+      "rarity": "common",
+      "value": 20,
+      "effects": [],
+      "cardIds": [
+        "card_root_exchange"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_wind_sigils",
+      "name": "Wind Sigils",
+      "description": "Training sigils that add Gale Shuffle to the deck while equipped.",
+      "type": "amulet",
+      "rarity": "common",
+      "value": 20,
+      "effects": [],
+      "cardIds": [
+        "card_gale_shuffle"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_ice_sigils",
+      "name": "Ice Sigils",
+      "description": "Training sigils that add Frost Shell to the deck while equipped.",
+      "type": "amulet",
+      "rarity": "common",
+      "value": 20,
+      "effects": [],
+      "cardIds": [
+        "card_frost_shell"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_storm_sigils",
+      "name": "Storm Sigils",
+      "description": "Training sigils that add Storm Mark to the deck while equipped.",
+      "type": "amulet",
+      "rarity": "common",
+      "value": 20,
+      "effects": [],
+      "cardIds": [
+        "card_storm_mark"
       ],
       "conditions": []
     }
@@ -400,6 +886,162 @@
           "chance": 100
         }
       ]
+    },
+    {
+      "id": "enemy_pyre_apprentice",
+      "name": "Pyre Apprentice",
+      "description": "A fire adept that pressures the next attack window.",
+      "factionId": "",
+      "stats": {
+        "maxHealth": 26,
+        "strength": 0,
+        "dexterity": 0,
+        "insight": 1
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 1,
+      "deckTemplateIds": [
+        "deck_pyre"
+      ],
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "gold",
+          "amount": 14,
+          "chance": 100
+        }
+      ]
+    },
+    {
+      "id": "enemy_tide_keeper",
+      "name": "Tide Keeper",
+      "description": "Uses Flow and Slippery to test block timing.",
+      "factionId": "",
+      "stats": {
+        "maxHealth": 28,
+        "strength": 0,
+        "dexterity": 0,
+        "insight": 1
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 1,
+      "deckTemplateIds": [
+        "deck_tide"
+      ],
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "gold",
+          "amount": 14,
+          "chance": 100
+        }
+      ]
+    },
+    {
+      "id": "enemy_moss_tender",
+      "name": "Moss Tender",
+      "description": "Layers Regen and Poison to stress turn hooks.",
+      "factionId": "",
+      "stats": {
+        "maxHealth": 30,
+        "strength": 0,
+        "dexterity": 0,
+        "insight": 0
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 1,
+      "deckTemplateIds": [
+        "deck_moss"
+      ],
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "gold",
+          "amount": 15,
+          "chance": 100
+        }
+      ]
+    },
+    {
+      "id": "enemy_gale_runner",
+      "name": "Gale Runner",
+      "description": "Uses Haste and Slowed to test start-of-turn sequencing.",
+      "factionId": "",
+      "stats": {
+        "maxHealth": 24,
+        "strength": 0,
+        "dexterity": 0,
+        "insight": 2
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 1,
+      "deckTemplateIds": [
+        "deck_gale"
+      ],
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "gold",
+          "amount": 16,
+          "chance": 100
+        }
+      ]
+    },
+    {
+      "id": "enemy_rime_guard",
+      "name": "Rime Guard",
+      "description": "Builds and strips block to test end-of-turn ice effects.",
+      "factionId": "",
+      "stats": {
+        "maxHealth": 32,
+        "strength": 0,
+        "dexterity": 1,
+        "insight": 0
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 1,
+      "deckTemplateIds": [
+        "deck_rime"
+      ],
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "gold",
+          "amount": 18,
+          "chance": 100
+        }
+      ]
+    },
+    {
+      "id": "enemy_static_magus",
+      "name": "Static Magus",
+      "description": "Tests doubled card resolution and Jolted cleanup.",
+      "factionId": "",
+      "stats": {
+        "maxHealth": 27,
+        "strength": 0,
+        "dexterity": 0,
+        "insight": 2
+      },
+      "handSize": 2,
+      "intentMode": "deck",
+      "intentPreviewCount": 1,
+      "deckTemplateIds": [
+        "deck_static"
+      ],
+      "deckIds": [],
+      "lootTable": [
+        {
+          "type": "gold",
+          "amount": 20,
+          "chance": 100
+        }
+      ]
     }
   ],
   "events": [],
@@ -451,6 +1093,72 @@
         "card_heavy_blow",
         "enemy_brace"
       ]
+    },
+    {
+      "id": "deck_pyre",
+      "name": "Pyre Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_cinder_hex",
+        "enemy_jab",
+        "enemy_cinder_hex",
+        "enemy_jab"
+      ]
+    },
+    {
+      "id": "deck_tide",
+      "name": "Tide Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_riptide_trick",
+        "enemy_brace",
+        "enemy_jab",
+        "enemy_riptide_trick"
+      ]
+    },
+    {
+      "id": "deck_moss",
+      "name": "Moss Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_thorn_dose",
+        "enemy_jab",
+        "enemy_brace",
+        "enemy_thorn_dose"
+      ]
+    },
+    {
+      "id": "deck_gale",
+      "name": "Gale Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_gust_snare",
+        "enemy_jab",
+        "enemy_gust_snare",
+        "enemy_brace"
+      ]
+    },
+    {
+      "id": "deck_rime",
+      "name": "Rime Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_rime_cover",
+        "enemy_brace",
+        "enemy_jab",
+        "enemy_rime_cover"
+      ]
+    },
+    {
+      "id": "deck_static",
+      "name": "Static Pattern",
+      "factionId": "",
+      "cardIds": [
+        "enemy_static_brand",
+        "enemy_jab",
+        "enemy_static_brand",
+        "card_heavy_blow"
+      ]
     }
   ],
   "maps": [
@@ -475,6 +1183,19 @@
               "text": "Review your route",
               "conditions": [],
               "outcomes": []
+            },
+            {
+              "id": "node_camp_elemental",
+              "text": "Travel to the Elemental Proving Grounds",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_camp_elemental",
+                  "type": "travelToMap",
+                  "target": "map_elemental_proving_grounds",
+                  "value": ""
+                }
+              ]
             }
           ]
         },
@@ -581,6 +1302,221 @@
           "id": "7e7d43fb-a15c-49d0-ba4c-dd21722156b5",
           "fromNodeId": "node_brute",
           "toNodeId": "node_bandit",
+          "conditions": [],
+          "gateType": "none"
+        }
+      ]
+    },
+    {
+      "id": "map_elemental_proving_grounds",
+      "name": "Elemental Proving Grounds",
+      "description": "A hub map with one encounter for each elemental pair.",
+      "backgroundImage": "assets/maps/DesertOasis_digital_grid.webp",
+      "isOverworld": true,
+      "parentMapId": null,
+      "nodes": [
+        {
+          "id": "node_elemental_hub",
+          "x": 391.0,
+          "y": 490.0,
+          "label": "Hub",
+          "description": "Use the extra elemental cards and equipment to test each status pair.",
+          "isStartingNode": true,
+          "options": [
+            {
+              "id": "node_elemental_return",
+              "text": "Return to the Combat Demo Route",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_elemental_return",
+                  "type": "travelToMap",
+                  "target": "map_demo_overworld",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "node_fire_trial",
+          "x": 175.0,
+          "y": 330.0,
+          "label": "Fire Trial",
+          "description": "Tests Heat and Burning on attack effects.",
+          "isStartingNode": false,
+          "options": [
+            {
+              "id": "node_fire_fight",
+              "text": "Fight the Pyre Apprentice",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_fire_fight",
+                  "type": "startCombat",
+                  "target": "enemy_pyre_apprentice",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "node_water_trial",
+          "x": 324.0,
+          "y": 220.0,
+          "label": "Water Trial",
+          "description": "Tests Flow and Slippery on block effects.",
+          "isStartingNode": false,
+          "options": [
+            {
+              "id": "node_water_fight",
+              "text": "Fight the Tide Keeper",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_water_fight",
+                  "type": "startCombat",
+                  "target": "enemy_tide_keeper",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "node_earth_trial",
+          "x": 517.0,
+          "y": 215.0,
+          "label": "Earth Trial",
+          "description": "Tests Regen and Poison on turn boundaries.",
+          "isStartingNode": false,
+          "options": [
+            {
+              "id": "node_earth_fight",
+              "text": "Fight the Moss Tender",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_earth_fight",
+                  "type": "startCombat",
+                  "target": "enemy_moss_tender",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "node_wind_trial",
+          "x": 645.0,
+          "y": 332.0,
+          "label": "Wind Trial",
+          "description": "Tests Haste and Slowed timing around the draw step.",
+          "isStartingNode": false,
+          "options": [
+            {
+              "id": "node_wind_fight",
+              "text": "Fight the Gale Runner",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_wind_fight",
+                  "type": "startCombat",
+                  "target": "enemy_gale_runner",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "node_ice_trial",
+          "x": 566.0,
+          "y": 540.0,
+          "label": "Ice Trial",
+          "description": "Tests Scaled and Chill at end of turn.",
+          "isStartingNode": false,
+          "options": [
+            {
+              "id": "node_ice_fight",
+              "text": "Fight the Rime Guard",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_ice_fight",
+                  "type": "startCombat",
+                  "target": "enemy_rime_guard",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "node_lightning_trial",
+          "x": 292.0,
+          "y": 559.0,
+          "label": "Lightning Trial",
+          "description": "Tests Energized and Jolted on the shared play-card wrapper.",
+          "isStartingNode": false,
+          "options": [
+            {
+              "id": "node_lightning_fight",
+              "text": "Fight the Static Magus",
+              "conditions": [],
+              "outcomes": [
+                {
+                  "id": "outcome_lightning_fight",
+                  "type": "startCombat",
+                  "target": "enemy_static_magus",
+                  "value": ""
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "id": "conn_elemental_fire",
+          "fromNodeId": "node_elemental_hub",
+          "toNodeId": "node_fire_trial",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "conn_elemental_water",
+          "fromNodeId": "node_elemental_hub",
+          "toNodeId": "node_water_trial",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "conn_elemental_earth",
+          "fromNodeId": "node_elemental_hub",
+          "toNodeId": "node_earth_trial",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "conn_elemental_wind",
+          "fromNodeId": "node_elemental_hub",
+          "toNodeId": "node_wind_trial",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "conn_elemental_ice",
+          "fromNodeId": "node_elemental_hub",
+          "toNodeId": "node_ice_trial",
+          "conditions": [],
+          "gateType": "none"
+        },
+        {
+          "id": "conn_elemental_lightning",
+          "fromNodeId": "node_elemental_hub",
+          "toNodeId": "node_lightning_trial",
           "conditions": [],
           "gateType": "none"
         }

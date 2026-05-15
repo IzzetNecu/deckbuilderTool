@@ -49,12 +49,18 @@ function normalizeCardEffect(effect) {
   }
   if (effect && typeof effect === 'object' && 'type' in effect) {
     const type = normalizeEffectType(effect.type || 'damage');
-    return {
+    const normalized = {
+      ...effect,
       type,
       amount: readEffectAmount(effect),
       target: effect.target || inferTargetFromType(type),
       scaling: effect.scaling || effect.scalesWith || 'none'
     };
+    if (type === 'apply_status') {
+      normalized.statusId = String(effect.statusId || '');
+      if (!normalized.statusId) normalized.amount = 0;
+    }
+    return normalized;
   }
   return normalizeLegacyEffect(effect || {});
 }
@@ -83,7 +89,8 @@ function normalizeEffectType(type) {
     DISCARD: 'discard',
     GAIN_ENERGY: 'gain_energy',
     INSIGHT: 'modify_insight',
-    MODIFY_INSIGHT: 'modify_insight'
+    MODIFY_INSIGHT: 'modify_insight',
+    APPLY_STATUS: 'apply_status'
   };
   return typeMap[normalized.toUpperCase()] || normalized.toLowerCase();
 }

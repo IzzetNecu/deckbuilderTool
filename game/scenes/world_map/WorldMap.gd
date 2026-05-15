@@ -29,12 +29,7 @@ func _ready() -> void:
 		else:
 			print("Could not load background image: ", bg_path)
 			
-	# If current node is not set, try to find the starting node
-	if GameState.current_node_id == "":
-		for n in map_data.get("nodes", []):
-			if n.get("isStartingNode", false):
-				GameState.current_node_id = n.id
-				break
+	_ensure_valid_current_node()
 				
 	GameState.map_updated.connect(_on_map_updated)
 	_build_map()
@@ -81,6 +76,24 @@ func _build_map() -> void:
 	# Ensure lines are drawn behind nodes
 	move_child($Connections, 1)
 	move_child($Nodes, 2)
+
+func _ensure_valid_current_node() -> void:
+	var nodes_list = map_data.get("nodes", [])
+	var node_ids := {}
+	var starting_node_id := ""
+	for n in nodes_list:
+		var node_id = str(n.get("id", ""))
+		if node_id.is_empty():
+			continue
+		node_ids[node_id] = true
+		if starting_node_id.is_empty() and bool(n.get("isStartingNode", false)):
+			starting_node_id = node_id
+
+	if not node_ids.has(GameState.current_node_id):
+		GameState.current_node_id = starting_node_id
+
+	if not GameState.current_node_id.is_empty() and not GameState.visited_nodes.has(GameState.current_node_id):
+		GameState.visited_nodes.append(GameState.current_node_id)
 
 func _draw_connections() -> void:
 	var connections_container = $Connections

@@ -1,6 +1,7 @@
 import { store } from '../../data/store.js?v=1778179374';
 import { createCard } from '../../data/models.js?v=1778179374';
 import { showConfirmModal } from '../components/modal.js?v=1778179374';
+import { PREDEFINED_BUFFS } from './buff-editor.js?v=1778179374';
 
 const EFFECT_TYPES = [
   ['damage', 'Damage'],
@@ -9,7 +10,8 @@ const EFFECT_TYPES = [
   ['draw', 'Draw'],
   ['discard', 'Discard'],
   ['gain_energy', 'Gain Energy'],
-  ['modify_insight', 'Modify Insight']
+  ['modify_insight', 'Modify Insight'],
+  ['apply_status', 'Apply Status']
 ];
 
 const TARGETING_OPTIONS = [
@@ -27,6 +29,8 @@ const EFFECT_TARGETS = [
 ];
 
 const SCALING_OPTIONS = ['none', 'strength', 'dexterity', 'insight'];
+const NON_ELEMENTAL_STATUS_IDS = new Set(['buff_block', 'buff_strength', 'buff_dexterity', 'buff_insight', 'buff_energy']);
+const APPLY_STATUS_OPTIONS = PREDEFINED_BUFFS.filter(buff => !NON_ELEMENTAL_STATUS_IDS.has(buff.id));
 
 export function renderCardEditor(container) {
   let cards = store.getAll('cards');
@@ -139,7 +143,7 @@ export function renderCardEditor(container) {
           <label>Combat Effects</label>
           <div class="dynamic-list" id="effects-list">
             ${normalizedEffects.map((effect, index) => `
-              <div class="dynamic-item" style="display:grid; grid-template-columns: 1.1fr 0.7fr 0.7fr 0.7fr auto; gap:6px; align-items:center;">
+              <div class="dynamic-item" style="display:grid; grid-template-columns: 1fr 0.65fr 0.75fr 0.75fr 1fr auto; gap:6px; align-items:center;">
                 <select class="effect-type" data-index="${index}">
                   ${EFFECT_TYPES.map(([value, label]) => `<option value="${value}" ${effect.type === value ? 'selected' : ''}>${label}</option>`).join('')}
                 </select>
@@ -149,6 +153,9 @@ export function renderCardEditor(container) {
                 </select>
                 <select class="effect-scaling" data-index="${index}">
                   ${SCALING_OPTIONS.map(value => `<option value="${value}" ${effect.scaling === value ? 'selected' : ''}>${value === 'none' ? 'No Scaling' : value}</option>`).join('')}
+                </select>
+                <select class="effect-status-id" data-index="${index}" ${effect.type === 'apply_status' ? '' : 'disabled'} style="${effect.type === 'apply_status' ? '' : 'opacity:0.55;'}">
+                  ${APPLY_STATUS_OPTIONS.map(buff => `<option value="${buff.id}" ${effect.statusId === buff.id ? 'selected' : ''}>${buff.name}</option>`).join('')}
                 </select>
                 <button class="danger btn-remove-effect" data-index="${index}">X</button>
               </div>
@@ -228,7 +235,10 @@ export function renderCardEditor(container) {
         type: field.value,
         amount: parseInt(container.querySelector(`.effect-amount[data-index="${index}"]`).value, 10) || 0,
         target: container.querySelector(`.effect-target[data-index="${index}"]`).value,
-        scaling: container.querySelector(`.effect-scaling[data-index="${index}"]`).value
+        scaling: container.querySelector(`.effect-scaling[data-index="${index}"]`).value,
+        statusId: field.value === 'apply_status'
+          ? container.querySelector(`.effect-status-id[data-index="${index}"]`).value
+          : ''
       }));
       store.save('cards', card);
     };
@@ -293,7 +303,8 @@ export function renderCardEditor(container) {
           type,
           amount: readEffectAmount(effect),
           target: effect.target || inferTarget(type),
-          scaling: effect.scaling || effect.scalesWith || 'none'
+          scaling: effect.scaling || effect.scalesWith || 'none',
+          statusId: type === 'apply_status' ? String(effect.statusId || APPLY_STATUS_OPTIONS[0]?.id || '') : ''
         };
       }
       return legacyToStructured(effect);
@@ -307,7 +318,8 @@ export function renderCardEditor(container) {
       type,
       amount: parseInt(rawAmount ?? 0, 10) || 0,
       target: inferTarget(type),
-      scaling: effect.scalesWith || 'none'
+      scaling: effect.scalesWith || 'none',
+      statusId: ''
     };
   }
 
@@ -322,7 +334,8 @@ export function renderCardEditor(container) {
       DISCARD: 'discard',
       GAIN_ENERGY: 'gain_energy',
       INSIGHT: 'modify_insight',
-      MODIFY_INSIGHT: 'modify_insight'
+      MODIFY_INSIGHT: 'modify_insight',
+      APPLY_STATUS: 'apply_status'
     };
     return legacyMap[normalized.toUpperCase()] || normalized.toLowerCase();
   }

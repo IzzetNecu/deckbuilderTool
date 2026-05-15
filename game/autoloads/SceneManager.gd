@@ -4,7 +4,10 @@ extends Node
 
 func load_map(map_id: String) -> void:
 	print("SceneManager: Loading Map ID: ", map_id)
+	var is_new_map = GameState.current_map_id != map_id
 	GameState.current_map_id = map_id
+	if is_new_map:
+		GameState.current_node_id = ""
 	var err = get_tree().change_scene_to_file("res://scenes/world_map/WorldMap.tscn")
 	if err != OK:
 		push_error("Failed to load WorldMap scene.")

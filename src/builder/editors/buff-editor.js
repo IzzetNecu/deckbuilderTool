@@ -1,6 +1,6 @@
 import { store } from '../../data/store.js?v=1778179374';
 
-const PREDEFINED_BUFFS = [
+export const PREDEFINED_BUFFS = [
   {
     id: 'buff_block',
     name: 'Block',
@@ -35,6 +35,90 @@ const PREDEFINED_BUFFS = [
     kind: 'buff',
     shortLabel: 'ENG',
     reminderText: 'Spent to play cards during your turn.'
+  },
+  {
+    id: 'buff_heat',
+    name: 'Heat',
+    kind: 'buff',
+    shortLabel: 'HEAT',
+    reminderText: 'Your next damage effect gains X damage, then Heat loses half its stacks rounded down.'
+  },
+  {
+    id: 'debuff_burning',
+    name: 'Burning',
+    kind: 'debuff',
+    shortLabel: 'BURN',
+    reminderText: 'Your next damage effect loses X damage, minimum 0, then Burning loses half its stacks rounded down.'
+  },
+  {
+    id: 'buff_flow',
+    name: 'Flow',
+    kind: 'buff',
+    shortLabel: 'FLOW',
+    reminderText: 'Your next block effect gains X block, then Flow loses half its stacks rounded down.'
+  },
+  {
+    id: 'debuff_slippery',
+    name: 'Slippery',
+    kind: 'debuff',
+    shortLabel: 'SLIP',
+    reminderText: 'Your next block effect loses X block, minimum 0, then Slippery loses half its stacks rounded down.'
+  },
+  {
+    id: 'buff_regen',
+    name: 'Regen',
+    kind: 'buff',
+    shortLabel: 'RGN',
+    reminderText: 'At end of turn, heal X and lose 1 stack.'
+  },
+  {
+    id: 'debuff_poison',
+    name: 'Poison',
+    kind: 'debuff',
+    shortLabel: 'PSN',
+    reminderText: 'At start of turn, lose X HP and lose 1 stack.'
+  },
+  {
+    id: 'buff_haste',
+    name: 'Haste',
+    kind: 'buff',
+    shortLabel: 'HST',
+    reminderText: 'At start of turn, draw X extra cards, then lose 1 stack.'
+  },
+  {
+    id: 'debuff_slowed',
+    name: 'Slowed',
+    kind: 'debuff',
+    shortLabel: 'SLOW',
+    reminderText: 'At start of turn, draw X fewer cards, minimum 0, then lose 1 stack.'
+  },
+  {
+    id: 'buff_scaled',
+    name: 'Scaled',
+    kind: 'buff',
+    shortLabel: 'SCL',
+    reminderText: 'At end of turn, gain X block and lose 1 stack.'
+  },
+  {
+    id: 'debuff_chill',
+    name: 'Chill',
+    kind: 'debuff',
+    shortLabel: 'CHILL',
+    reminderText: 'At end of turn, lose X block, minimum 0, and lose 1 stack.'
+  },
+  {
+    id: 'buff_energized',
+    name: 'Energized',
+    kind: 'buff',
+    shortLabel: 'AMP',
+    reminderText: 'Your next played card resolves its full effect list twice, then lose 1 stack.'
+  },
+  {
+    id: 'debuff_jolted',
+    name: 'Jolted',
+    kind: 'debuff',
+    shortLabel: 'JOLT',
+    reminderText: 'After your next played card resolves, lose 1 energy and lose 1 stack.'
   }
 ];
 

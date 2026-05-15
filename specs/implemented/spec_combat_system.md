@@ -26,6 +26,7 @@ The original draft assumed the repo still needed the first major combat-system p
 - Redundant top-HUD player summary text was removed from the live combat scene; HP/block are now shown in-panel.
 - The builder now supports player and enemy portrait image fields.
 - Buff/debuff authoring now exists as a fixed predefined catalog where the user supplies icons while effect/reminder behavior stays predefined in code/data.
+- Loss flow currently exits combat back to the map immediately after a short delay; there is not yet a dedicated defeat screen or a post-defeat HP floor.
 
 This means the remaining spec work is not a greenfield combat redesign. It is now mainly about:
 
@@ -107,6 +108,7 @@ These pieces should be preserved and refactored forward rather than replaced out
 - Player energy is displayed as a dedicated element near the portrait, not as a buff chip.
 - Strength, dexterity, and insight are represented as buff icons under the HP bar.
 - Enemy unrevealed upcoming cards show as hidden placeholders during intent preview.
+- On defeat, combat currently returns to the map rather than showing a dedicated defeat overlay first.
 
 ### Builder / Authored Data
 
@@ -351,6 +353,8 @@ Behavior notes:
 2. Card authoring will shift from freeform effect strings toward structured combat effect entries.
 3. Enemy authoring will support intent behavior more explicitly.
 4. Combat UI will likely show enemy intent preview rather than raw upcoming cards.
+5. Defeat flow should show a dedicated defeated screen before returning the player to the map.
+6. Leaving combat after defeat should clamp persistent player HP to a minimum of 1 instead of allowing overworld state to stay at 0.
 
 ### Unchanged
 
@@ -371,6 +375,9 @@ Behavior notes:
 - [x] Enemy intent visibility is driven by `insight`: for each point the player's `insight` exceeds the enemy's `insight`, reveal one of the enemy cards drawn for that turn
 - [x] Revealed intent is shown as full card faces, with hidden placeholders for unrevealed upcoming cards
 - [x] Combat UI shows portraits, HP, block, buffs, and energy in the newer panel-based layout
+- [ ] If the enemy is defeated by a status effect instead of direct card damage, the normal victory/loot flow still appears
+- [ ] On combat defeat, the player sees a dedicated defeated screen before the scene returns to the map
+- [ ] After a combat defeat, persistent player HP is clamped to at least 1 before returning to the map
 
 ## Decision Points
 

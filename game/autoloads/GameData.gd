@@ -78,12 +78,16 @@ func _normalize_card(item: Dictionary) -> Dictionary:
 func _normalize_effect(effect) -> Dictionary:
 	if typeof(effect) == TYPE_DICTIONARY and effect.has("type"):
 		var effect_type = _normalize_effect_type(str(effect.get("type", "damage")))
-		return {
-			"type": effect_type,
-			"amount": _extract_effect_amount(effect),
-			"target": str(effect.get("target", _infer_target_from_effect_type(effect_type))),
-			"scaling": str(effect.get("scaling", effect.get("scalesWith", "none")))
-		}
+		var normalized = effect.duplicate(true)
+		normalized["type"] = effect_type
+		normalized["amount"] = _extract_effect_amount(effect)
+		normalized["target"] = str(effect.get("target", _infer_target_from_effect_type(effect_type)))
+		normalized["scaling"] = str(effect.get("scaling", effect.get("scalesWith", "none")))
+		if effect_type == "apply_status":
+			normalized["statusId"] = str(effect.get("statusId", ""))
+			if normalized["statusId"].is_empty():
+				normalized["amount"] = 0
+		return normalized
 
 	var value_str := ""
 	var scales_with := "none"
@@ -116,7 +120,8 @@ func _normalize_effect_type(effect_type: String) -> String:
 		"DISCARD": "discard",
 		"GAIN_ENERGY": "gain_energy",
 		"INSIGHT": "modify_insight",
-		"MODIFY_INSIGHT": "modify_insight"
+		"MODIFY_INSIGHT": "modify_insight",
+		"APPLY_STATUS": "apply_status"
 	}
 	return str(type_map.get(normalized.to_upper(), normalized.to_lower()))
 
