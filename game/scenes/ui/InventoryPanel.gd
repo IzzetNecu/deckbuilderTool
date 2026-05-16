@@ -11,6 +11,17 @@ const SLOT_LABELS := {
 	"ring_right": "Ring Right"
 }
 
+const CARD_TYPE_ORDER := {
+	"attack": 0,
+	"defend": 1,
+	"skill": 2,
+	"power": 3,
+	"status": 4
+}
+
+var inventory_card_tile_scene = preload("res://scenes/ui/InventoryCardTile.tscn")
+var inventory_drop_zone_script = preload("res://scenes/ui/InventoryDropZone.gd")
+
 @onready var close_button: Button = $Window/VBox/Header/CloseButton
 @onready var background: ColorRect = $Background
 @onready var deck_tab: Button = $Window/VBox/Tabs/DeckTab
@@ -27,7 +38,6 @@ func _ready() -> void:
 	deck_tab.pressed.connect(func(): _switch_tab("deck"))
 	items_tab.pressed.connect(func(): _switch_tab("items"))
 	compendium_tab.pressed.connect(func(): _switch_tab("compendium"))
-
 	_switch_tab("deck")
 	_update_stats()
 
@@ -36,6 +46,7 @@ func _update_stats() -> void:
 	stats.get_node("HP").text = "HP: %d/%d" % [GameState.health, GameState.max_health]
 	stats.get_node("Str").text = "STR: %d" % GameState.strength
 	stats.get_node("Dex").text = "DEX: %d" % GameState.dexterity
+	stats.get_node("Ins").text = "INS: %d" % GameState.insight
 	stats.get_node("Gold").text = "Gold: %d" % GameState.gold
 
 func _on_close_pressed() -> void:
@@ -69,70 +80,53 @@ func _refresh_content() -> void:
 
 func _show_deck() -> void:
 	content_grid.columns = 1
-	var granted_entries = GameState.get_granted_card_entries()
-	content_grid.add_child(_make_note_panel(
-		"Deck Builder",
-		"Selected cards: %d  |  Granted by gear: %d  |  Effective combat deck: %d" % [
-			GameState.deck.size(),
-			granted_entries.size(),
-			GameState.get_effective_deck().size()
-		]
+
+	var reserve_entries = _build_reserve_entries()
+	var selected_entries = _build_selected_entries()
+	var granted_entries = _build_granted_entries()
+
+	var workspace = HBoxContainer.new()
+	workspace.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	workspace.add_theme_constant_override("separation", 10)
+
+	var left_column = VBoxContainer.new()
+	left_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_column.size_flags_stretch_ratio = 1.1
+	left_column.add_theme_constant_override("separation", 8)
+	workspace.add_child(left_column)
+
+	var center_column = VBoxContainer.new()
+	center_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center_column.size_flags_stretch_ratio = 1.0
+	center_column.add_theme_constant_override("separation", 8)
+	workspace.add_child(center_column)
+
+	left_column.add_child(_make_note_panel("Deck Builder", _get_deck_summary_text()))
+	left_column.add_child(_make_card_stack_section(
+		"Card Catalog",
+		"Drag reserve stacks into the current deck.",
+		"reserve",
+		reserve_entries,
+		"No reserve cards. Your selected deck already uses every owned copy."
 	))
 
-	var selected_section = _make_section_panel("Selected Deck", "Cards you chose manually. Remove cards here to move them into the reserve pool.")
-	var selected_body: VBoxContainer = selected_section.get_meta("body")
-	if GameState.deck.is_empty():
-		selected_body.add_child(_make_empty_label("No cards selected."))
-	else:
-		for card_id in GameState.deck:
-			var selected_card_id = card_id
-			var card_data = GameData.get_card(card_id)
-			if card_data.is_empty():
-				continue
-			selected_body.add_child(_make_card_row(
-				card_data,
-				"Selected card",
-				"Remove",
-				func(): _remove_selected_card(selected_card_id)
-			))
-	content_grid.add_child(selected_section)
+	center_column.add_child(_make_card_stack_section(
+		"Current Deck",
+		"Drag selected stacks back to reserve to remove one copy.",
+		"selected",
+		selected_entries,
+		"No selected cards."
+	))
+	center_column.add_child(_make_card_stack_section(
+		"Granted by Equipment",
+		"Locked stacks from equipped items.",
+		"granted",
+		granted_entries,
+		"No equipped gear is granting cards right now."
+	))
 
-	var granted_section = _make_section_panel("Equipment Granted", "These cards are added automatically at combat start and cannot be removed from the deck tab.")
-	var granted_body: VBoxContainer = granted_section.get_meta("body")
-	if granted_entries.is_empty():
-		granted_body.add_child(_make_empty_label("No equipped gear is granting cards right now."))
-	else:
-		for entry in granted_entries:
-			var card_data = GameData.get_card(str(entry.get("card_id", "")))
-			if card_data.is_empty():
-				continue
-			var source_text = "Granted by %s (%s)" % [
-				str(entry.get("equipment_name", entry.get("equipment_id", ""))),
-				_slot_label(str(entry.get("slot", "")))
-			]
-			granted_body.add_child(_make_card_row(card_data, source_text, "Locked"))
-	content_grid.add_child(granted_section)
-
-	var reserve_section = _make_section_panel("Reserve Pool", "Owned cards not currently selected. Add them back into the active deck from here.")
-	var reserve_body: VBoxContainer = reserve_section.get_meta("body")
-	var reserve_counts = _build_reserve_counts()
-	if reserve_counts.is_empty():
-		reserve_body.add_child(_make_empty_label("No reserve cards. Remove a selected card to move it here."))
-	else:
-		for card_id in reserve_counts.keys():
-			var reserve_card_id = str(card_id)
-			var count = int(reserve_counts[card_id])
-			var card_data = GameData.get_card(reserve_card_id)
-			if card_data.is_empty():
-				continue
-			var reserve_note = "Reserve copies: %d" % count
-			reserve_body.add_child(_make_card_row(
-				card_data,
-				reserve_note,
-				"Add",
-				func(): _add_reserved_card(reserve_card_id)
-			))
-	content_grid.add_child(reserve_section)
+	content_grid.add_child(workspace)
 
 func _show_items() -> void:
 	content_grid.columns = 1
@@ -254,6 +248,7 @@ func _make_note_panel(title: String, body_text: String) -> PanelContainer:
 func _make_section_panel(title: String, subtitle: String) -> PanelContainer:
 	var panel = PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 12)
@@ -278,14 +273,18 @@ func _make_section_panel(title: String, subtitle: String) -> PanelContainer:
 	vbox.add_child(subtitle_label)
 
 	var body = VBoxContainer.new()
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_theme_constant_override("separation", 8)
 	vbox.add_child(body)
 	panel.set_meta("body", body)
 	return panel
 
-func _make_card_row(card_data: Dictionary, subtitle: String, action_text: String = "", on_press: Callable = Callable()) -> PanelContainer:
-	var panel = PanelContainer.new()
+func _make_card_stack_section(title: String, subtitle: String, section_id: String, entries: Array, empty_text: String) -> PanelContainer:
+	var panel: InventoryDropZone = inventory_drop_zone_script.new()
+	panel.configure(section_id, section_id != "granted")
+	panel.card_dropped.connect(_on_drop_zone_card_dropped)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
@@ -294,41 +293,107 @@ func _make_card_row(card_data: Dictionary, subtitle: String, action_text: String
 	margin.add_theme_constant_override("margin_bottom", 10)
 	panel.add_child(margin)
 
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
-	margin.add_child(hbox)
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	margin.add_child(vbox)
 
-	var text_box = VBoxContainer.new()
-	text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_box.add_theme_constant_override("separation", 4)
-	hbox.add_child(text_box)
-
-	var name_label = Label.new()
-	name_label.text = str(card_data.get("name", "Unknown Card"))
-	name_label.add_theme_font_size_override("font_size", 16)
-	text_box.add_child(name_label)
+	var title_label = Label.new()
+	title_label.text = title
+	title_label.add_theme_font_size_override("font_size", 15)
+	vbox.add_child(title_label)
 
 	var subtitle_label = Label.new()
 	subtitle_label.text = subtitle
-	subtitle_label.modulate = Color(0.72, 0.72, 0.72)
-	text_box.add_child(subtitle_label)
+	subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	subtitle_label.modulate = Color(0.7, 0.7, 0.7)
+	subtitle_label.add_theme_font_size_override("font_size", 10)
+	vbox.add_child(subtitle_label)
 
-	var desc_label = Label.new()
-	desc_label.text = GameState.get_preview_card_text(card_data)
-	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_label.add_theme_font_size_override("font_size", 10)
-	text_box.add_child(desc_label)
+	var flow = HFlowContainer.new()
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", 8)
+	flow.add_theme_constant_override("v_separation", 6)
+	vbox.add_child(flow)
 
-	if not action_text.is_empty():
-		var action_button = Button.new()
-		action_button.text = action_text
-		action_button.custom_minimum_size = Vector2(90, 32)
-		if on_press.is_valid():
-			action_button.pressed.connect(on_press)
-		else:
-			action_button.disabled = true
-		hbox.add_child(action_button)
+	if entries.is_empty():
+		flow.add_child(_make_empty_label(empty_text))
+		return panel
 
+	for entry in entries:
+		flow.add_child(_make_card_tile(entry))
+	return panel
+
+func _make_card_tile(entry: Dictionary) -> Control:
+	var tile: InventoryCardTile = inventory_card_tile_scene.instantiate()
+	var action_text = ""
+	var section = str(entry.get("section", ""))
+	if str(entry.get("section", "")) == "reserve":
+		action_text = "Add"
+	elif str(entry.get("section", "")) == "selected":
+		action_text = "Remove"
+
+	tile.setup(entry.get("card_data", {}), {
+		"compact": true,
+		"locked": bool(entry.get("locked", false)),
+		"draggable": str(entry.get("section", "")) != "granted",
+		"drag_section": str(entry.get("section", "")),
+		"count_text": "" if section == "reserve" or section == "selected" else str(entry.get("count_text", "")),
+		"rules_text": str(entry.get("rules_text", "")),
+		"tooltip_text": str(entry.get("tooltip_text", "")),
+		"action_text": action_text,
+		"action_enabled": bool(entry.get("action_enabled", false)),
+		"stack_count": int(entry.get("copies", 1))
+	})
+	tile.action_pressed.connect(_on_deck_tile_action.bind(entry))
+
+	if section != "reserve" and section != "selected":
+		return tile
+
+	var wrapper = VBoxContainer.new()
+	wrapper.custom_minimum_size = Vector2(150, 0)
+	wrapper.add_theme_constant_override("separation", 4)
+	wrapper.mouse_filter = Control.MOUSE_FILTER_PASS
+	wrapper.add_child(tile)
+
+	var state_label = Label.new()
+	state_label.text = str(entry.get("count_text", ""))
+	state_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	state_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	state_label.add_theme_font_size_override("font_size", 11)
+	state_label.modulate = Color(0.84, 0.84, 0.84)
+	state_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrapper.add_child(state_label)
+	return wrapper
+
+func _make_keyword_panel(keyword_entry: Dictionary) -> PanelContainer:
+	var panel = PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	panel.add_child(margin)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 3)
+	margin.add_child(vbox)
+
+	var name_label = Label.new()
+	var short_label = str(keyword_entry.get("shortLabel", ""))
+	name_label.text = str(keyword_entry.get("name", "")) if short_label.is_empty() else "%s (%s)" % [
+		str(keyword_entry.get("name", "")),
+		short_label
+	]
+	name_label.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(name_label)
+
+	var reminder_label = Label.new()
+	reminder_label.text = str(keyword_entry.get("reminderText", ""))
+	reminder_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	reminder_label.modulate = Color(0.84, 0.84, 0.84)
+	vbox.add_child(reminder_label)
 	return panel
 
 func _make_item_row(title: String, subtitle: String, description: String) -> PanelContainer:
@@ -490,6 +555,7 @@ func _make_equipment_row(equipment_id: String, equip_data: Dictionary) -> PanelC
 func _make_empty_label(text: String) -> Label:
 	var label = Label.new()
 	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.modulate = Color(0.72, 0.72, 0.72)
 	return label
 
@@ -500,18 +566,150 @@ func _make_inline_note(text: String) -> Label:
 	label.modulate = Color(0.72, 0.72, 0.72)
 	return label
 
-func _unique_ids(items: Array) -> Array:
-	var unique: Array = []
+func _build_selected_entries() -> Array:
+	var selected_counts = _count_ids(GameState.deck)
+	var granted_counts = _count_granted_cards_by_id()
+	var entries: Array = []
+	for card_id in selected_counts.keys():
+		var card_data = GameData.get_card(str(card_id))
+		if card_data.is_empty():
+			continue
+		var selected_count = int(selected_counts[card_id])
+		var reserve_count = max(GameState.get_owned_card_count(str(card_id)) - selected_count, 0)
+		entries.append(_build_card_entry(
+			"selected",
+			str(card_id),
+			card_data,
+			selected_count,
+			"Selected x%d" % selected_count,
+			"Reserve copies: %d  |  Effective combat copies: %d" % [
+				reserve_count,
+				selected_count + int(granted_counts.get(card_id, 0))
+			],
+			"Selected deck stack. Drag it to reserve to remove one copy if the deck stays above minimum size.",
+			GameState.can_remove_card_from_deck(str(card_id)),
+			false
+		))
+	entries.sort_custom(Callable(self, "_sort_card_entries"))
+	return entries
+
+func _build_reserve_entries() -> Array:
+	var entries: Array = []
+	var reserve_counts = _build_reserve_counts()
+	for card_id in reserve_counts.keys():
+		var card_data = GameData.get_card(str(card_id))
+		if card_data.is_empty():
+			continue
+		var reserve_count = int(reserve_counts[card_id])
+		entries.append(_build_card_entry(
+			"reserve",
+			str(card_id),
+			card_data,
+			reserve_count,
+			"Reserve x%d" % reserve_count,
+			"Owned copies not currently selected.",
+			"Reserve stack. Drag it into the current deck to add one copy.",
+			GameState.can_add_card_to_deck(str(card_id)),
+			false
+		))
+	entries.sort_custom(Callable(self, "_sort_card_entries"))
+	return entries
+
+func _build_granted_entries() -> Array:
+	var grouped := {}
+	for entry in GameState.get_granted_card_entries():
+		var card_id = str(entry.get("card_id", ""))
+		if card_id.is_empty():
+			continue
+		if not grouped.has(card_id):
+			grouped[card_id] = {
+				"count": 0,
+				"sources": []
+			}
+		grouped[card_id]["count"] = int(grouped[card_id]["count"]) + 1
+		grouped[card_id]["sources"].append("%s (%s)" % [
+			str(entry.get("equipment_name", entry.get("equipment_id", ""))),
+			_slot_label(str(entry.get("slot", "")))
+		])
+
+	var entries: Array = []
+	for card_id in grouped.keys():
+		var card_data = GameData.get_card(str(card_id))
+		if card_data.is_empty():
+			continue
+		var source_list = _unique_strings(grouped[card_id]["sources"])
+		var source_text = ", ".join(source_list)
+		entries.append(_build_card_entry(
+			"granted",
+			str(card_id),
+			card_data,
+			int(grouped[card_id]["count"]),
+			"Granted x%d" % int(grouped[card_id]["count"]),
+			source_text,
+			"Granted by equipped items. These copies are locked and only appear in combat while the source gear stays equipped.",
+			false,
+			true,
+			"Granted by: %s" % source_text
+		))
+	entries.sort_custom(Callable(self, "_sort_card_entries"))
+	return entries
+
+func _build_card_entry(section: String, card_id: String, card_data: Dictionary, copies: int, count_text: String, footer_text: String, detail_context: String, action_enabled: bool, locked: bool, tooltip_text: String = "") -> Dictionary:
+	return {
+		"section": section,
+		"detail_key": "%s:%s" % [section, card_id],
+		"card_id": card_id,
+		"card_data": card_data,
+		"count_text": count_text,
+		"footer_text": footer_text,
+		"detail_context": detail_context,
+		"rules_text": GameState.get_preview_card_text(card_data),
+		"keyword_entries": GameState.get_card_keyword_entries(card_data),
+		"locked": locked,
+		"tooltip_text": tooltip_text,
+		"action_enabled": action_enabled,
+		"copies": copies
+	}
+
+func _get_deck_summary_text() -> String:
+	var selected_size = GameState.deck.size()
+	var reserve_size = _count_total(_build_reserve_counts())
+	var granted_size = GameState.get_granted_card_entries().size()
+	var effective_size = GameState.get_effective_deck().size()
+	var minimum_size = GameState.get_minimum_deck_size()
+	return "Selected deck: %d cards  |  Reserve copies: %d  |  Granted by gear: %d  |  Effective combat deck: %d  |  Minimum progress: %d / %d" % [
+		selected_size,
+		reserve_size,
+		granted_size,
+		effective_size,
+		min(selected_size, minimum_size),
+		minimum_size
+	]
+
+func _count_ids(items: Array) -> Dictionary:
+	var counts := {}
 	for item_id in items:
-		if not unique.has(item_id):
-			unique.append(item_id)
-	return unique
+		counts[item_id] = int(counts.get(item_id, 0)) + 1
+	return counts
+
+func _count_total(counts: Dictionary) -> int:
+	var total := 0
+	for value in counts.values():
+		total += int(value)
+	return total
+
+func _count_granted_cards_by_id() -> Dictionary:
+	var counts := {}
+	for entry in GameState.get_granted_card_entries():
+		var card_id = str(entry.get("card_id", ""))
+		if card_id.is_empty():
+			continue
+		counts[card_id] = int(counts.get(card_id, 0)) + 1
+	return counts
 
 func _build_reserve_counts() -> Dictionary:
 	var reserve_counts := {}
-	var selected_counts := {}
-	for card_id in GameState.deck:
-		selected_counts[card_id] = int(selected_counts.get(card_id, 0)) + 1
+	var selected_counts := _count_ids(GameState.deck)
 	for card_id in GameState.owned_cards:
 		var selected_count = int(selected_counts.get(card_id, 0))
 		if selected_count > 0:
@@ -520,20 +718,74 @@ func _build_reserve_counts() -> Dictionary:
 		reserve_counts[card_id] = int(reserve_counts.get(card_id, 0)) + 1
 	return reserve_counts
 
+func _sort_card_entries(a: Dictionary, b: Dictionary) -> bool:
+	var a_card = a.get("card_data", {})
+	var b_card = b.get("card_data", {})
+	var a_type = int(CARD_TYPE_ORDER.get(str(a_card.get("type", "")), 999))
+	var b_type = int(CARD_TYPE_ORDER.get(str(b_card.get("type", "")), 999))
+	if a_type != b_type:
+		return a_type < b_type
+	var a_cost = int(a_card.get("cost", 0))
+	var b_cost = int(b_card.get("cost", 0))
+	if a_cost != b_cost:
+		return a_cost < b_cost
+	return str(a_card.get("name", "")).naturalnocasecmp_to(str(b_card.get("name", ""))) < 0
+
+func _on_deck_tile_action(_card_data: Dictionary, entry: Dictionary) -> void:
+	var section = str(entry.get("section", ""))
+	var card_id = str(entry.get("card_id", ""))
+	match section:
+		"reserve":
+			_add_reserved_card(card_id)
+		"selected":
+			_remove_selected_card(card_id)
+
+func _on_drop_zone_card_dropped(target_section: String, drag_data: Dictionary) -> void:
+	var from_section = str(drag_data.get("from_section", ""))
+	var card_id = str(drag_data.get("card_id", ""))
+	if card_id.is_empty() or from_section == target_section:
+		return
+
+	match [from_section, target_section]:
+		["reserve", "selected"]:
+			_add_reserved_card(card_id)
+		["selected", "reserve"]:
+			_remove_selected_card(card_id)
+
+func _unique_ids(items: Array) -> Array:
+	var unique: Array = []
+	for item_id in items:
+		if not unique.has(item_id):
+			unique.append(item_id)
+	return unique
+
+func _unique_strings(items: Array) -> Array:
+	var unique: Array = []
+	for item_text in items:
+		var text_value = str(item_text)
+		if not unique.has(text_value):
+			unique.append(text_value)
+	return unique
+
 func _add_reserved_card(card_id: String) -> void:
+	var card_name = str(GameData.get_card(card_id).get("name", card_id))
 	if GameState.add_card_to_deck(card_id):
-		status_message = "Added %s to the selected deck." % card_id
+		status_message = "Added %s to the selected deck." % card_name
 		GameState.save()
 	else:
-		status_message = "No extra owned copy is available to add."
+		status_message = "No extra owned copy of %s is available to add." % card_name
 	_refresh_content()
 
 func _remove_selected_card(card_id: String) -> void:
+	var card_name = str(GameData.get_card(card_id).get("name", card_id))
 	if GameState.remove_card_from_deck(card_id):
-		status_message = "Removed %s from the selected deck." % card_id
+		status_message = "Removed %s from the selected deck." % card_name
 		GameState.save()
 	else:
-		status_message = "That card was not in the selected deck."
+		status_message = "Cannot remove %s below the minimum deck size of %d." % [
+			card_name,
+			GameState.get_minimum_deck_size()
+		]
 	_refresh_content()
 
 func _equip_item(equipment_id: String, slot_id: String) -> void:

@@ -18,3 +18,5 @@ res://scenes/combat/EnemyUnit.tscn
 res://scenes/combat/CombatantPanel.gd
 res://scenes/combat/CombatantPanel.tscn
 res://scenes/combat/Card.tscn
+res://scenes/ui/InventoryCardTile.gd
+res://scenes/ui/InventoryCardTile.tscn

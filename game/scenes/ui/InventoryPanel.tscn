@@ -21,17 +21,17 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.784314)
 
 [node name="Window" type="Panel" parent="."]
-custom_minimum_size = Vector2(800, 500)
+custom_minimum_size = Vector2(1220, 720)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -250.0
-offset_right = 400.0
-offset_bottom = 250.0
+offset_left = -610.0
+offset_top = -360.0
+offset_right = 610.0
+offset_bottom = 360.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -72,6 +72,10 @@ text = "STR: 1"
 [node name="Dex" type="Label" parent="Window/VBox/Header/Stats"]
 layout_mode = 2
 text = "DEX: 1"
+
+[node name="Ins" type="Label" parent="Window/VBox/Header/Stats"]
+layout_mode = 2
+text = "INS: 0"
 
 [node name="Gold" type="Label" parent="Window/VBox/Header/Stats"]
 layout_mode = 2

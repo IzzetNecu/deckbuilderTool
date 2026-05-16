@@ -13,6 +13,8 @@ const SLOT_ORDER := [
 	"ring_right"
 ]
 
+const BASE_MINIMUM_DECK_SIZE := 15
+
 var player_id: String = ""
 
 # Persistent player data
@@ -131,6 +133,12 @@ func has_key_item(id: String) -> bool:
 func can_add_card_to_deck(card_id: String) -> bool:
 	return get_selected_card_count(card_id) < get_owned_card_count(card_id)
 
+func get_minimum_deck_size() -> int:
+	return BASE_MINIMUM_DECK_SIZE
+
+func can_remove_card_from_deck(card_id: String) -> bool:
+	return get_selected_card_count(card_id) > 0 and deck.size() > get_minimum_deck_size()
+
 func add_card_to_deck(card_id: String) -> bool:
 	if not can_add_card_to_deck(card_id):
 		return false
@@ -138,6 +146,8 @@ func add_card_to_deck(card_id: String) -> bool:
 	return true
 
 func remove_card_from_deck(card_id: String) -> bool:
+	if not can_remove_card_from_deck(card_id):
+		return false
 	var idx = deck.find(card_id)
 	if idx == -1:
 		return false
@@ -380,6 +390,39 @@ func get_preview_card_text(card_data: Dictionary) -> String:
 		description = description.replace("{" + _legacy_token_for_effect(effect_type) + "}", str(amount))
 	return description
 
+func get_card_keyword_entries(card_data: Dictionary) -> Array:
+	var keyword_entries: Array = []
+	var seen_ids := {}
+
+	for effect in card_data.get("effects", []):
+		var effect_type = str(effect.get("type", ""))
+		match effect_type:
+			"apply_status":
+				_append_keyword_entry(keyword_entries, seen_ids, str(effect.get("statusId", "")))
+			"modify_insight":
+				_append_keyword_entry(keyword_entries, seen_ids, "buff_insight")
+			"gain_energy":
+				_append_keyword_entry(keyword_entries, seen_ids, "buff_energy")
+
+		match str(effect.get("scaling", "none")):
+			"strength":
+				_append_keyword_entry(keyword_entries, seen_ids, "buff_strength")
+			"dexterity":
+				_append_keyword_entry(keyword_entries, seen_ids, "buff_dexterity")
+			"insight":
+				_append_keyword_entry(keyword_entries, seen_ids, "buff_insight")
+
+	var lower_description = get_preview_card_text(card_data).to_lower()
+	for buff_id in GameData.buffs.keys():
+		var buff_data = GameData.get_buff(str(buff_id))
+		var buff_name = str(buff_data.get("name", "")).to_lower()
+		var short_label = str(buff_data.get("shortLabel", "")).to_lower()
+		if (not buff_name.is_empty() and lower_description.find(buff_name) != -1) \
+		or (not short_label.is_empty() and lower_description.find(short_label) != -1):
+			_append_keyword_entry(keyword_entries, seen_ids, str(buff_id))
+
+	return keyword_entries
+
 func _empty_equipped_slots() -> Dictionary:
 	var slots := {}
 	for slot_id in SLOT_ORDER:
@@ -515,3 +558,17 @@ func _legacy_token_for_effect(effect_type: String) -> String:
 		"modify_insight":
 			return "INSIGHT"
 	return effect_type.to_upper()
+
+func _append_keyword_entry(target: Array, seen_ids: Dictionary, buff_id: String) -> void:
+	if buff_id.is_empty() or seen_ids.has(buff_id):
+		return
+	var buff_data = GameData.get_buff(buff_id)
+	if buff_data.is_empty():
+		return
+	target.append({
+		"id": buff_id,
+		"name": str(buff_data.get("name", buff_id)),
+		"shortLabel": str(buff_data.get("shortLabel", "")),
+		"reminderText": str(buff_data.get("reminderText", ""))
+	})
+	seen_ids[buff_id] = true

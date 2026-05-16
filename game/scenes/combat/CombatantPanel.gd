@@ -1,5 +1,7 @@
 extends Control
 
+const NORMAL_CARD_SIZE := Vector2(150, 225)
+
 var combat_manager: Node = null
 var panel_side: String = "player"
 var card_scene = preload("res://scenes/combat/Card.tscn")
@@ -198,7 +200,8 @@ func _make_card_preview(card_data: Dictionary, slot_index: int) -> CombatCard:
 	var preview_data = card_data.duplicate(true)
 	preview_data["preview_key"] = _build_intent_preview_key(slot_index, preview_data)
 	preview_data["preview_source_side"] = "enemy"
-	preview_card.custom_minimum_size = Vector2(82, 96)
+	preview_card.custom_minimum_size = NORMAL_CARD_SIZE
+	preview_card.size = NORMAL_CARD_SIZE
 	preview_card.setup(preview_data, combat_manager, self, "enemy", false)
 	preview_card.preview_requested.connect(_forward_preview_request)
 	return preview_card
@@ -218,7 +221,8 @@ func _make_hidden_card_preview(slot_index: int) -> CombatCard:
 		"preview_key": "__enemy_hidden_%d" % slot_index,
 		"preview_source_side": "enemy"
 	}
-	preview_card.custom_minimum_size = Vector2(82, 96)
+	preview_card.custom_minimum_size = NORMAL_CARD_SIZE
+	preview_card.size = NORMAL_CARD_SIZE
 	preview_card.setup(preview_data, combat_manager, self, "enemy", false)
 	preview_card.preview_requested.connect(_forward_preview_request)
 	return preview_card
