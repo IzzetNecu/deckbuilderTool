@@ -1,6 +1,5 @@
 {
   "schemaVersion": 3,
-  "defaultPlayerId": "player_demo_hero",
   "players": [
     {
       "id": "player_demo_hero",
@@ -345,19 +344,22 @@
       "effects": [
         {
           "type": "apply_status",
-          "statusId": "buff_heat",
           "amount": 2,
           "target": "self",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "buff_heat"
         },
         {
           "type": "apply_status",
-          "statusId": "debuff_burning",
           "amount": 2,
           "target": "enemy",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "debuff_burning"
         }
-      ]
+      ],
+      "factionId": "",
+      "cardImage": "assets/cards/fire.png",
+      "requiresTarget": true
     },
     {
       "id": "card_tidal_guard",
@@ -1317,8 +1319,8 @@
       "nodes": [
         {
           "id": "node_elemental_hub",
-          "x": 391.0,
-          "y": 490.0,
+          "x": 391,
+          "y": 490,
           "label": "Hub",
           "description": "Use the extra elemental cards and equipment to test each status pair.",
           "isStartingNode": true,
@@ -1340,8 +1342,8 @@
         },
         {
           "id": "node_fire_trial",
-          "x": 175.0,
-          "y": 330.0,
+          "x": 175,
+          "y": 330,
           "label": "Fire Trial",
           "description": "Tests Heat and Burning on attack effects.",
           "isStartingNode": false,
@@ -1363,8 +1365,8 @@
         },
         {
           "id": "node_water_trial",
-          "x": 324.0,
-          "y": 220.0,
+          "x": 324,
+          "y": 220,
           "label": "Water Trial",
           "description": "Tests Flow and Slippery on block effects.",
           "isStartingNode": false,
@@ -1386,8 +1388,8 @@
         },
         {
           "id": "node_earth_trial",
-          "x": 517.0,
-          "y": 215.0,
+          "x": 517,
+          "y": 215,
           "label": "Earth Trial",
           "description": "Tests Regen and Poison on turn boundaries.",
           "isStartingNode": false,
@@ -1409,8 +1411,8 @@
         },
         {
           "id": "node_wind_trial",
-          "x": 645.0,
-          "y": 332.0,
+          "x": 645,
+          "y": 332,
           "label": "Wind Trial",
           "description": "Tests Haste and Slowed timing around the draw step.",
           "isStartingNode": false,
@@ -1432,8 +1434,8 @@
         },
         {
           "id": "node_ice_trial",
-          "x": 566.0,
-          "y": 540.0,
+          "x": 566,
+          "y": 540,
           "label": "Ice Trial",
           "description": "Tests Scaled and Chill at end of turn.",
           "isStartingNode": false,
@@ -1455,8 +1457,8 @@
         },
         {
           "id": "node_lightning_trial",
-          "x": 292.0,
-          "y": 559.0,
+          "x": 292,
+          "y": 559,
           "label": "Lightning Trial",
           "description": "Tests Energized and Jolted on the shared play-card wrapper.",
           "isStartingNode": false,
