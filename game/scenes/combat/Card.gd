@@ -1,6 +1,7 @@
 extends Panel
+class_name CombatCard
 
-static var active_zoomed_card = null
+signal preview_requested(card_data: Dictionary)
 
 var card_data: Dictionary = {}
 var combat_manager: Node = null
@@ -8,6 +9,7 @@ var enemy_unit: Node = null
 
 var is_dragging: bool = false
 var is_zoomed: bool = false
+var preview_only: bool = false
 var pending_click: bool = false
 var press_position: Vector2 = Vector2.ZERO
 var drag_offset: Vector2 = Vector2.ZERO
@@ -17,7 +19,6 @@ var original_index: int = -1
 var original_scale: Vector2 = Vector2.ONE
 
 const DRAG_THRESHOLD := 14.0
-const ZOOM_SCALE := Vector2(2.2, 2.2)
 
 @onready var name_label: Label = $VBox/NameLabel
 @onready var cost_label: Label = $VBox/CostLabel
@@ -29,10 +30,6 @@ func _ready() -> void:
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	effects_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-func _exit_tree() -> void:
-	if active_zoomed_card == self:
-		active_zoomed_card = null
 
 func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 	card_data = data
@@ -49,6 +46,12 @@ func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 func refresh_display() -> void:
 	effects_label.text = _get_effects_text()
 
+func set_preview_mode(enabled: bool) -> void:
+	preview_only = enabled
+	is_zoomed = enabled
+	mouse_filter = Control.MOUSE_FILTER_IGNORE if enabled else Control.MOUSE_FILTER_STOP
+	refresh_display()
+
 func _get_effects_text() -> String:
 	if combat_manager:
 		return combat_manager.get_card_text(card_data, "player", is_zoomed)
@@ -63,6 +66,8 @@ func _can_afford() -> bool:
 	return combat_manager.player_energy >= card_data.get("cost", 0) and combat_manager.current_phase == CombatManager.Phase.PLAY
 
 func _gui_input(event: InputEvent) -> void:
+	if preview_only:
+		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
@@ -74,16 +79,17 @@ func _gui_input(event: InputEvent) -> void:
 					_release_drag(event.global_position)
 				elif pending_click:
 					pending_click = false
-					_toggle_zoom()
+					preview_requested.emit(card_data)
 					accept_event()
 
 func _input(event: InputEvent) -> void:
+	if preview_only:
+		return
 	if event is InputEventMouseMotion:
 		if pending_click and not is_dragging and _can_afford():
 			if event.global_position.distance_to(press_position) >= DRAG_THRESHOLD:
 				pending_click = false
-				if is_zoomed:
-					_collapse_zoom()
+				_dismiss_preview()
 				_start_drag(press_position)
 				global_position = event.global_position + drag_offset
 				_check_hover(event.global_position)
@@ -121,6 +127,7 @@ func _release_drag(global_pos: Vector2) -> void:
 			played = combat_manager.play_card(card_data, "self")
 
 	if played:
+		_dismiss_preview()
 		queue_free()
 	else:
 		_snap_back()
@@ -141,53 +148,10 @@ func _snap_back() -> void:
 	position = Vector2.ZERO
 	refresh_display()
 
-func _toggle_zoom() -> void:
-	if is_dragging:
-		return
-	if is_zoomed:
-		_collapse_zoom()
-	else:
-		_expand_zoom()
-
-func _expand_zoom() -> void:
-	if is_zoomed:
-		return
-	if is_instance_valid(active_zoomed_card) and active_zoomed_card != self:
-		active_zoomed_card._collapse_zoom()
-	is_zoomed = true
-	active_zoomed_card = self
-	original_parent = get_parent()
-	original_index = get_index()
-	original_position = global_position
-	original_scale = scale
-	var canvas = get_tree().current_scene
-	original_parent.remove_child(self)
-	canvas.add_child(self)
-	scale = ZOOM_SCALE
-	z_index = 200
-	global_position = _get_zoom_position()
-	refresh_display()
-
-func _collapse_zoom() -> void:
-	if not is_zoomed:
-		return
-	is_zoomed = false
-	if active_zoomed_card == self:
-		active_zoomed_card = null
-	if get_parent():
-		get_parent().remove_child(self)
-	original_parent.add_child(self)
-	if original_index >= 0:
-		original_parent.move_child(self, mini(original_index, original_parent.get_child_count() - 1))
-	scale = original_scale
-	z_index = 0
-	position = Vector2.ZERO
-	refresh_display()
-
-func _get_zoom_position() -> Vector2:
-	var viewport_rect = get_viewport_rect()
-	var scaled_size = size * ZOOM_SCALE
-	return (viewport_rect.size - scaled_size) * 0.5
+func _dismiss_preview() -> void:
+	var scene = get_tree().current_scene
+	if scene and scene.has_method("hide_card_preview"):
+		scene.hide_card_preview()
 
 func _is_over_node(target_node: Control, global_pos: Vector2) -> bool:
 	var rect = Rect2(target_node.global_position, target_node.size)

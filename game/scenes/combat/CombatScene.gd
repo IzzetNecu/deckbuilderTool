@@ -6,12 +6,18 @@ extends Control
 @onready var enemy_area: Control = $Battlefield/EnemyArea
 @onready var end_turn_btn: Button = $HUD/EndTurnButton
 @onready var phase_label: Label = $HUD/TopLeft/PhaseLabel
+@onready var hud_layer: CanvasLayer = $HUD
 
 var card_scene = preload("res://scenes/combat/Card.tscn")
 var combatant_panel_scene = preload("res://scenes/combat/CombatantPanel.tscn")
 var player_panel_instance: Control = null
 var enemy_panel_instance: Control = null
 var current_player_data: Dictionary = {}
+var preview_overlay: Control = null
+var preview_card_holder: Control = null
+var preview_card_node: CombatCard = null
+var preview_card_id: String = ""
+const PREVIEW_SCALE := Vector2(2.2, 2.2)
 
 func _ready() -> void:
 	combat_manager.phase_changed.connect(_on_phase_changed)
@@ -21,6 +27,7 @@ func _ready() -> void:
 	combat_manager.combat_ended.connect(_on_combat_ended)
 
 	end_turn_btn.pressed.connect(_on_end_turn_pressed)
+	_setup_preview_overlay()
 
 	current_player_data = GameData.get_player(GameState.player_id)
 
@@ -65,6 +72,7 @@ func _on_phase_changed(phase: CombatManager.Phase) -> void:
 			end_turn_btn.disabled = true
 
 func _on_hand_updated(hand: Array) -> void:
+	hide_card_preview()
 	for child in hand_container.get_children():
 		child.queue_free()
 
@@ -72,6 +80,7 @@ func _on_hand_updated(hand: Array) -> void:
 		var card_node = card_scene.instantiate()
 		hand_container.add_child(card_node)
 		card_node.setup(card_data, combat_manager, enemy_panel_instance)
+		card_node.preview_requested.connect(_on_card_preview_requested)
 
 func _on_enemy_intent_updated(intent_slots: Array) -> void:
 	if enemy_panel_instance:
@@ -109,6 +118,7 @@ func _build_enemy_buffs() -> Array:
 	return combat_manager.get_display_buffs("enemy")
 
 func _on_end_turn_pressed() -> void:
+	hide_card_preview()
 	combat_manager.end_turn()
 
 func _on_combat_ended(victory: bool) -> void:
@@ -127,3 +137,54 @@ func _show_loot() -> void:
 	canvas_layer.add_child(loot_scene)
 	add_child(canvas_layer)
 	loot_scene.setup(combat_manager.enemy_data.get("lootTable", []))
+
+func hide_card_preview() -> void:
+	if is_instance_valid(preview_card_node):
+		preview_card_node.queue_free()
+	preview_card_node = null
+	preview_card_id = ""
+	if preview_overlay:
+		preview_overlay.visible = false
+
+func _on_card_preview_requested(card_data: Dictionary) -> void:
+	var requested_card_id = str(card_data.get("id", ""))
+	if preview_overlay and preview_overlay.visible and requested_card_id == preview_card_id:
+		hide_card_preview()
+		return
+
+	hide_card_preview()
+	preview_card_id = requested_card_id
+	preview_overlay.visible = true
+
+	var preview_card = card_scene.instantiate()
+	preview_card_holder.add_child(preview_card)
+	preview_card.setup(card_data, combat_manager, enemy_panel_instance)
+	preview_card.set_preview_mode(true)
+	preview_card.scale = PREVIEW_SCALE
+	var preview_size = preview_card.custom_minimum_size * PREVIEW_SCALE
+	preview_card.position = (preview_overlay.get_viewport_rect().size - preview_size) * 0.5
+	preview_card_node = preview_card
+
+func _setup_preview_overlay() -> void:
+	preview_overlay = Control.new()
+	preview_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	preview_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	preview_overlay.visible = false
+
+	var backdrop = ColorRect.new()
+	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backdrop.color = Color(0, 0, 0, 0.55)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	backdrop.gui_input.connect(_on_preview_backdrop_input)
+	preview_overlay.add_child(backdrop)
+
+	preview_card_holder = Control.new()
+	preview_card_holder.set_anchors_preset(Control.PRESET_FULL_RECT)
+	preview_card_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview_overlay.add_child(preview_card_holder)
+
+	hud_layer.add_child(preview_overlay)
+
+func _on_preview_backdrop_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		hide_card_preview()
