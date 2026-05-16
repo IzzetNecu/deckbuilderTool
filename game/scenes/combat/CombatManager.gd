@@ -2,6 +2,8 @@ extends Node
 class_name CombatManager
 
 enum Phase { BEGINNING, PLAY, END, WIN, LOSE }
+const MAX_HAND_CARDS := 10
+const ENEMY_CARD_RESOLVE_DELAY := 1.5
 
 const STATUS_DISPLAY_ORDER := [
 	"buff_heat",
@@ -55,6 +57,7 @@ signal player_hand_updated(hand: Array)
 signal enemy_intent_updated(intent_slots: Array)
 signal stats_updated()
 signal combat_ended(victory: bool)
+signal hand_full(message: String)
 
 var _warned_status_ids: Dictionary = {}
 
@@ -138,6 +141,9 @@ func _begin_phase() -> void:
 
 func _draw_player_cards(count: int) -> void:
 	for i in range(count):
+		if player_hand.size() >= MAX_HAND_CARDS:
+			hand_full.emit("hand is full")
+			break
 		if draw_pile.is_empty():
 			if discard_pile.is_empty():
 				break
@@ -149,6 +155,36 @@ func _draw_player_cards(count: int) -> void:
 		if not card_data.is_empty():
 			player_hand.append(card_data)
 	player_hand_updated.emit(player_hand)
+
+func can_use_consumable(consumable_id: String) -> bool:
+	if current_phase != Phase.PLAY:
+		return false
+	if GameState.get_consumable_count(consumable_id) <= 0:
+		return false
+	return not GameData.get_consumable(consumable_id).get("effects", []).is_empty()
+
+func use_consumable(consumable_id: String) -> bool:
+	if not can_use_consumable(consumable_id):
+		return false
+	var consumable = GameData.get_consumable(consumable_id)
+	if consumable.is_empty():
+		return false
+	GameState.remove_consumable(consumable_id, 1)
+	if _resolve_played_card(consumable, "player", "enemy"):
+		GameState.save()
+		stats_updated.emit()
+		return true
+	GameState.save()
+	stats_updated.emit()
+	return true
+
+func discard_consumable(consumable_id: String) -> bool:
+	if GameState.get_consumable_count(consumable_id) <= 0:
+		return false
+	GameState.remove_consumable(consumable_id, 1)
+	GameState.save()
+	stats_updated.emit()
+	return true
 
 func _prepare_enemy_intent() -> void:
 	var draw_count = int(enemy_actor["stats"].get("hand_size", 2)) + _consume_haste_for_draw(enemy_actor) - _get_slowed_draw_penalty(enemy_actor)
@@ -169,9 +205,7 @@ func _prepare_enemy_intent() -> void:
 	_refresh_enemy_reveal()
 
 func _refresh_enemy_reveal() -> void:
-	var insight_advantage = max(get_player_insight() - get_enemy_insight(), 0)
-	var base_preview = int(enemy_data.get("intentPreviewCount", 0))
-	var reveal_count = min(enemy_pending_cards.size(), base_preview + insight_advantage)
+	var reveal_count = enemy_pending_cards.size() if current_phase == Phase.END else _get_enemy_reveal_count()
 	enemy_intent_slots = []
 	for index in range(enemy_pending_cards.size()):
 		var is_revealed = index < reveal_count
@@ -234,9 +268,17 @@ func _end_phase() -> void:
 		stats_updated.emit()
 		return
 	stats_updated.emit()
+	_refresh_enemy_reveal()
 
 	var delayed_cards = _get_enemy_jolted_delay_count()
 	while enemy_pending_cards.size() > delayed_cards:
+		await get_tree().create_timer(ENEMY_CARD_RESOLVE_DELAY).timeout
+		if current_phase != Phase.END:
+			return
+		if _check_win_lose():
+			return
+		if enemy_pending_cards.size() <= delayed_cards:
+			break
 		var card = enemy_pending_cards.pop_at(delayed_cards)
 		_refresh_enemy_reveal()
 		if _resolve_played_card(card, "enemy", "enemy"):
@@ -247,6 +289,7 @@ func _end_phase() -> void:
 			stats_updated.emit()
 			return
 		enemy_discard_pile.append(card.get("id", ""))
+		stats_updated.emit()
 	enemy_intent_slots = []
 	enemy_intent_updated.emit(enemy_intent_slots)
 
@@ -260,6 +303,11 @@ func _end_phase() -> void:
 
 	await get_tree().create_timer(0.8).timeout
 	_begin_phase()
+
+func _get_enemy_reveal_count() -> int:
+	var insight_advantage = max(get_player_insight() - get_enemy_insight(), 0)
+	var base_preview = int(enemy_data.get("intentPreviewCount", 0))
+	return min(enemy_pending_cards.size(), base_preview + insight_advantage)
 
 func _apply_effect(effect: Dictionary, source_side: String, target_hint: String = "", resolution_context: Dictionary = {}) -> void:
 	var effect_target = str(effect.get("target", target_hint if not target_hint.is_empty() else "self"))
@@ -597,6 +645,18 @@ func get_player_max_energy() -> int:
 func get_player_hand_size() -> int:
 	return int(player_actor.get("stats", {}).get("hand_size", 5))
 
+func get_hand_cap() -> int:
+	return MAX_HAND_CARDS
+
+func get_draw_pile_cards() -> Array:
+	return _resolve_card_list(draw_pile)
+
+func get_discard_pile_cards() -> Array:
+	return _resolve_card_list(discard_pile)
+
+func get_exhaust_pile_cards() -> Array:
+	return _resolve_card_list(exhaust_pile)
+
 func get_enemy_current_hp() -> int:
 	return int(enemy_actor.get("current_hp", 0))
 
@@ -760,3 +820,14 @@ func _legacy_token_for_effect(effect_type: String) -> String:
 		"modify_insight":
 			return "INSIGHT"
 	return effect_type.to_upper()
+
+func _resolve_card_list(card_entries: Array) -> Array:
+	var resolved: Array = []
+	for entry in card_entries:
+		if typeof(entry) == TYPE_DICTIONARY:
+			resolved.append(entry)
+			continue
+		var card = GameData.get_card(str(entry))
+		if not card.is_empty():
+			resolved.append(card)
+	return resolved

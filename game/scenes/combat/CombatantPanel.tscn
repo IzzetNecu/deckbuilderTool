@@ -15,7 +15,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [node name="CombatantPanel" type="Control"]
-custom_minimum_size = Vector2(300, 420)
+custom_minimum_size = Vector2(280, 390)
 script = ExtResource("1_actor")
 
 [node name="VBox" type="VBoxContainer" parent="."]
@@ -32,7 +32,7 @@ text = "Combatant"
 
 [node name="PortraitArea" type="Control" parent="VBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(240, 160)
+custom_minimum_size = Vector2(240, 220)
 
 [node name="PortraitBG" type="ColorRect" parent="VBox/PortraitArea"]
 layout_mode = 1
@@ -122,7 +122,13 @@ modulate = Color(1, 1, 1, 0.95)
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="BuffsContainer" type="HBoxContainer" parent="VBox"]
+[node name="BuffScroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 64)
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="BuffsContainer" type="HBoxContainer" parent="VBox/BuffScroll"]
 layout_mode = 2
 theme_override_constants/separation = 8
 

@@ -20,62 +20,103 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.07, 0.05, 0.1, 1)
+color = Color(0.0627, 0.0588, 0.0863, 1)
 
-[node name="Battlefield" type="Control" parent="."]
+[node name="MainLayout" type="MarginContainer" parent="."]
 layout_mode = 1
-anchor_right = 1.0
-anchor_bottom = 0.72
-offset_left = 32.0
-offset_top = 32.0
-offset_right = -32.0
-offset_bottom = -24.0
-
-[node name="PlayerArea" type="Control" parent="Battlefield"]
-layout_mode = 1
-offset_right = 320.0
-offset_bottom = 420.0
-
-[node name="EnemyArea" type="Control" parent="Battlefield"]
-layout_mode = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -320.0
-offset_right = 0.0
-offset_bottom = 420.0
-
-[node name="PlayZone" type="Panel" parent="."]
-layout_mode = 1
-anchor_left = 0.26
-anchor_top = 0.44
-anchor_right = 0.74
-anchor_bottom = 0.68
-offset_left = -32.0
-offset_top = 6.0
-offset_right = 32.0
-offset_bottom = -6.0
-
-[node name="PlayZoneLabel" type="Label" parent="PlayZone"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-text = "Play Zone"
-horizontal_alignment = 1
-vertical_alignment = 1
-modulate = Color(1, 1, 1, 0.18)
-
-[node name="HandArea" type="Panel" parent="."]
-name = "HandArea"
-layout_mode = 1
-anchor_top = 0.75
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 5.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
 
-[node name="HandContainer" type="HBoxContainer" parent="HandArea"]
+[node name="Rows" type="VBoxContainer" parent="MainLayout"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Battlefield" type="HBoxContainer" parent="MainLayout/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="PlayerCluster" type="VBoxContainer" parent="MainLayout/Rows/Battlefield"]
+layout_mode = 2
+custom_minimum_size = Vector2(290, 0)
+
+[node name="PlayerArea" type="Control" parent="MainLayout/Rows/Battlefield/PlayerCluster"]
+layout_mode = 2
+custom_minimum_size = Vector2(290, 390)
+
+[node name="CenterCluster" type="VBoxContainer" parent="MainLayout/Rows/Battlefield"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="IntentLabel" type="Label" parent="MainLayout/Rows/Battlefield/CenterCluster"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Upcoming Enemy Cards"
+horizontal_alignment = 1
+
+[node name="IntentPanel" type="PanelContainer" parent="MainLayout/Rows/Battlefield/CenterCluster"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 300)
+
+[node name="IntentMargin" type="MarginContainer" parent="MainLayout/Rows/Battlefield/CenterCluster/IntentPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="IntentCardsContainer" type="HBoxContainer" parent="MainLayout/Rows/Battlefield/CenterCluster/IntentPanel/IntentMargin"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 14
+
+[node name="EnemyCluster" type="VBoxContainer" parent="MainLayout/Rows/Battlefield"]
+layout_mode = 2
+custom_minimum_size = Vector2(290, 0)
+
+[node name="EnemyArea" type="Control" parent="MainLayout/Rows/Battlefield/EnemyCluster"]
+layout_mode = 2
+custom_minimum_size = Vector2(290, 390)
+
+[node name="BottomRow" type="HBoxContainer" parent="MainLayout/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 270)
+theme_override_constants/separation = 16
+
+[node name="LeftControls" type="VBoxContainer" parent="MainLayout/Rows/BottomRow"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="InventoryButton" type="Button" parent="MainLayout/Rows/BottomRow/LeftControls"]
+layout_mode = 2
+custom_minimum_size = Vector2(132, 52)
+text = "Inventory"
+
+[node name="DeckButton" type="Button" parent="MainLayout/Rows/BottomRow/LeftControls"]
+layout_mode = 2
+custom_minimum_size = Vector2(132, 52)
+text = "Deck"
+
+[node name="DiscardButton" type="Button" parent="MainLayout/Rows/BottomRow/LeftControls"]
+layout_mode = 2
+custom_minimum_size = Vector2(132, 52)
+text = "Discard"
+
+[node name="HandArea" type="PanelContainer" parent="MainLayout/Rows/BottomRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 270)
+
+[node name="HandClip" type="Control" parent="MainLayout/Rows/BottomRow/HandArea"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -84,8 +125,22 @@ offset_left = 10.0
 offset_top = 10.0
 offset_right = -10.0
 offset_bottom = -10.0
+
+[node name="HandContainer" type="Control" parent="MainLayout/Rows/BottomRow/HandArea/HandClip"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="RightControls" type="VBoxContainer" parent="MainLayout/Rows/BottomRow"]
+layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
+
+[node name="EndTurnButton" type="Button" parent="MainLayout/Rows/BottomRow/RightControls"]
+layout_mode = 2
+custom_minimum_size = Vector2(132, 104)
+text = "End Turn"
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 10
@@ -93,20 +148,13 @@ layer = 10
 [node name="TopLeft" type="VBoxContainer" parent="HUD"]
 offset_left = 18.0
 offset_top = 14.0
-offset_right = 260.0
-offset_bottom = 52.0
+offset_right = 280.0
+offset_bottom = 54.0
 theme_override_constants/separation = 4
 
-[node name="PhaseLabel" type="Label" parent="HUD/TopLeft"]
+[node name="HandFullLabel" type="Label" parent="HUD/TopLeft"]
+visible = false
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Your Turn"
-
-[node name="EndTurnButton" type="Button" parent="HUD"]
-offset_right = 160.0
-offset_top = 10.0
-offset_bottom = 50.0
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -180.0
-text = "End Turn"
+theme_override_font_sizes/font_size = 14
+modulate = Color(1, 0.79, 0.45, 1)
+text = "hand is full"

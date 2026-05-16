@@ -33,6 +33,7 @@ export function createCard(data = {}) {
     id: data.id || uuid(),
     name: data.name || '',
     description: data.description || '',
+    cardImage: data.cardImage || '',
     type: data.type || 'attack', // attack, defend, skill, power
     factionId: data.factionId || null, 
     cost: data.cost ?? 1,

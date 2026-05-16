@@ -72,6 +72,7 @@ export function renderCardEditor(container) {
     `;
 
     attachEvents();
+    bindPreviewImageFallbacks();
     requestAnimationFrame(() => {
       const nextPane = container.querySelector('.pane-form');
       if (nextPane) nextPane.scrollTop = scrollTop;
@@ -140,6 +141,11 @@ export function renderCardEditor(container) {
         </div>
 
         <div class="form-group">
+          <label>Card Image Path (Optional)</label>
+          <input type="text" id="card-image" value="${card.cardImage || ''}" placeholder="e.g. assets/cards/strike.png" />
+        </div>
+
+        <div class="form-group">
           <label>Combat Effects</label>
           <div class="dynamic-list" id="effects-list">
             ${normalizedEffects.map((effect, index) => `
@@ -176,6 +182,7 @@ export function renderCardEditor(container) {
   function renderPreview(card) {
     const factionColor = card.factionId ? (factions.find(faction => faction.id === card.factionId)?.color || '#555') : '#555';
     const rareColor = card.rarity === 'rare' ? '#ffd700' : (card.rarity === 'uncommon' ? '#87ceeb' : '#fff');
+    const hasCardImage = Boolean(String(card.cardImage || '').trim());
     return `
       <div style="width:250px; background-color:var(--bg-surface); padding:16px; border-radius:8px; border-top:4px solid ${factionColor}; border-bottom:2px solid ${rareColor};">
         <h4 style="color:var(--text-secondary); margin-bottom:16px;">Live Preview</h4>
@@ -186,8 +193,29 @@ export function renderCardEditor(container) {
               ${card.cost}
             </div>
           </div>
-          <div style="flex:1; display:flex; align-items:center; justify-content:center; border-bottom:1px solid #444; color:#666; font-size:12px;">
-            [Art Placeholder]
+          <div style="flex:1; position:relative; display:flex; align-items:center; justify-content:center; border-bottom:1px solid #444; overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.22));">
+            ${hasCardImage ? `
+              <img
+                src="/game/${card.cardImage}"
+                alt="${card.name || 'Card'} artwork"
+                data-card-preview-image
+                style="width:100%; height:100%; object-fit:cover; display:block;"
+              />
+            ` : ''}
+            <div
+              data-card-preview-fallback
+              style="
+                position:absolute; inset:0;
+                display:${hasCardImage ? 'none' : 'flex'};
+                flex-direction:column; align-items:center; justify-content:center; gap:6px;
+                padding:12px; text-align:center;
+                background:#111; color:${hasCardImage ? '#f3b3b3' : '#999'};
+                font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+              "
+            >
+              <strong style="font-size:12px; color:${hasCardImage ? '#ff9b9b' : '#d7d7d7'};">Missing Image</strong>
+              <span>${hasCardImage ? (card.cardImage || '') : 'No image path set'}</span>
+            </div>
           </div>
           <div style="text-align:center; padding:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px; background:#1a1a1a;">
             ${card.type} • ${getTargeting(card)}
@@ -229,6 +257,7 @@ export function renderCardEditor(container) {
       card.rarity = container.querySelector('#card-rarity').value;
       card.factionId = container.querySelector('#card-faction').value;
       card.description = container.querySelector('#card-desc').value;
+      card.cardImage = container.querySelector('#card-image').value.trim();
       card.targeting = container.querySelector('#card-targeting').value;
       card.requiresTarget = card.targeting === 'single_enemy';
       card.effects = Array.from(container.querySelectorAll('.effect-type')).map((field, index) => ({
@@ -289,7 +318,26 @@ export function renderCardEditor(container) {
     const card = cards.find(entry => entry.id === selectedId);
     if (!card) return;
     const previewContainer = container.querySelector('.pane-form')?.children?.[1];
-    if (previewContainer) previewContainer.outerHTML = renderPreview(card);
+    if (previewContainer) {
+      previewContainer.outerHTML = renderPreview(card);
+      bindPreviewImageFallbacks();
+    }
+  }
+
+  function bindPreviewImageFallbacks() {
+    container.querySelectorAll('[data-card-preview-image]').forEach(image => {
+      const fallback = image.parentElement?.querySelector('[data-card-preview-fallback]');
+      if (!fallback || image.dataset.fallbackBound === 'true') return;
+      image.dataset.fallbackBound = 'true';
+      image.addEventListener('error', () => {
+        image.style.display = 'none';
+        fallback.style.display = 'flex';
+      });
+      image.addEventListener('load', () => {
+        image.style.display = 'block';
+        fallback.style.display = 'none';
+      });
+    });
   }
 
   function normalizeEffects(effects) {

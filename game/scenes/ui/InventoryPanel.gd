@@ -12,6 +12,7 @@ const SLOT_LABELS := {
 }
 
 @onready var close_button: Button = $Window/VBox/Header/CloseButton
+@onready var background: ColorRect = $Background
 @onready var deck_tab: Button = $Window/VBox/Tabs/DeckTab
 @onready var items_tab: Button = $Window/VBox/Tabs/ItemsTab
 @onready var compendium_tab: Button = $Window/VBox/Tabs/CompendiumTab
@@ -22,6 +23,7 @@ var status_message: String = ""
 
 func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
+	background.gui_input.connect(_on_background_input)
 	deck_tab.pressed.connect(func(): _switch_tab("deck"))
 	items_tab.pressed.connect(func(): _switch_tab("items"))
 	compendium_tab.pressed.connect(func(): _switch_tab("compendium"))
@@ -41,6 +43,10 @@ func _on_close_pressed() -> void:
 		get_parent().queue_free()
 	else:
 		queue_free()
+
+func _on_background_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		_on_close_pressed()
 
 func _switch_tab(tab_name: String) -> void:
 	current_tab = tab_name

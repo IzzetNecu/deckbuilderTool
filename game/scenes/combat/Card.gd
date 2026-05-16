@@ -2,7 +2,6 @@ extends Panel
 class_name CombatCard
 
 signal preview_requested(card_data: Dictionary)
-
 var card_data: Dictionary = {}
 var combat_manager: Node = null
 var enemy_unit: Node = null
@@ -21,17 +20,31 @@ var original_index: int = -1
 var original_scale: Vector2 = Vector2.ONE
 
 const DRAG_THRESHOLD := 14.0
+const NAME_FONT_SIZE_MAX := 15
+const NAME_FONT_SIZE_MIN := 9
 
-@onready var name_label: Label = $VBox/NameLabel
-@onready var cost_label: Label = $VBox/CostLabel
-@onready var effects_label: Label = $VBox/EffectsLabel
+@onready var name_label: Label = $Margin/VBox/Header/NameLabel
+@onready var cost_label: Label = $Margin/VBox/Header/CostBadge/CostLabel
+@onready var art_texture: TextureRect = $Margin/VBox/ArtFrame/ArtTexture
+@onready var art_fallback: Label = $Margin/VBox/ArtFrame/ArtFallback
+@onready var type_label: Label = $Margin/VBox/TypeBadge/TypeLabel
+@onready var effects_label: Label = $Margin/VBox/EffectsLabel
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	$VBox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin/VBox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin/VBox/Header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin/VBox/Header/CostBadge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin/VBox/ArtFrame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin/VBox/TypeBadge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	effects_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art_fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	resized.connect(_fit_name_to_single_line)
 	_apply_card_content()
 
 func setup(data: Dictionary, mgr: Node, enemy: Node, card_source_side: String = "player", can_drag_play: bool = true) -> void:
@@ -56,6 +69,12 @@ func _apply_card_content() -> void:
 	if not is_node_ready():
 		return
 	name_label.text = str(card_data.get("name", "?"))
+	type_label.text = "%s • %s" % [
+		str(card_data.get("type", "card")).to_upper(),
+		str(card_data.get("targeting", "self")).replace("_", " ").to_upper()
+	]
+	call_deferred("_fit_name_to_single_line")
+	_apply_art()
 	refresh_display()
 
 func set_preview_mode(enabled: bool) -> void:
@@ -78,7 +97,36 @@ func _get_cost_text() -> String:
 		return str(card_data.get("preview_cost_text", ""))
 	if not is_zoomed and card_data.has("compact_cost_text"):
 		return str(card_data.get("compact_cost_text", ""))
-	return "Cost: %d" % card_data.get("cost", 0)
+	return str(int(card_data.get("cost", 0)))
+
+func _fit_name_to_single_line() -> void:
+	var font: Font = name_label.get_theme_font("font")
+	if font == null:
+		name_label.add_theme_font_size_override("font_size", NAME_FONT_SIZE_MAX)
+		return
+
+	var available_width = name_label.size.x
+	if available_width <= 0.0:
+		available_width = max(size.x - 56.0, 40.0)
+
+	var font_size = NAME_FONT_SIZE_MAX
+	while font_size > NAME_FONT_SIZE_MIN:
+		var text_width = font.get_string_size(name_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
+		if text_width <= available_width:
+			break
+		font_size -= 1
+	name_label.add_theme_font_size_override("font_size", font_size)
+
+func _apply_art() -> void:
+	var image_path = str(card_data.get("cardImage", ""))
+	var full_path = image_path
+	if not full_path.is_empty() and not full_path.begins_with("res://"):
+		full_path = "res://" + full_path
+	var texture = load(full_path) if not full_path.is_empty() else null
+	art_texture.texture = texture
+	art_texture.visible = texture != null
+	art_fallback.visible = texture == null
+	art_fallback.text = "missing image" if image_path.is_empty() or texture == null else ""
 
 func _is_targeted() -> bool:
 	return str(card_data.get("targeting", "self")) == "single_enemy"
@@ -108,7 +156,13 @@ func _gui_input(event: InputEvent) -> void:
 func _input(event: InputEvent) -> void:
 	if preview_only:
 		return
-	if event is InputEventMouseMotion:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		if is_dragging:
+			_release_drag(event.global_position)
+			get_viewport().set_input_as_handled()
+		elif pending_click and not _is_point_inside_card(event.global_position):
+			pending_click = false
+	elif event is InputEventMouseMotion:
 		if pending_click and not is_dragging and allow_drag_play and _can_afford():
 			if event.global_position.distance_to(press_position) >= DRAG_THRESHOLD:
 				pending_click = false
@@ -129,6 +183,8 @@ func _start_drag(global_pos: Vector2) -> void:
 	drag_offset = global_position - global_pos
 
 	var canvas = get_tree().current_scene
+	if canvas and canvas.has_method("clear_hand_hover"):
+		canvas.clear_hand_hover()
 	original_parent.remove_child(self)
 	canvas.add_child(self)
 	global_position = original_position
@@ -144,8 +200,8 @@ func _release_drag(global_pos: Vector2) -> void:
 		if enemy_unit and _is_over_node(enemy_unit, global_pos):
 			played = combat_manager.play_card(card_data, "enemy")
 	else:
-		var hand_area = get_tree().current_scene.get_node_or_null("HandArea")
-		var over_hand = hand_area and _is_over_node(hand_area, global_pos)
+		var scene = get_tree().current_scene
+		var over_hand = scene and scene.has_method("is_point_over_hand_area") and scene.is_point_over_hand_area(global_pos)
 		if not over_hand:
 			played = combat_manager.play_card(card_data, "self")
 
@@ -170,6 +226,9 @@ func _snap_back() -> void:
 	scale = original_scale
 	position = Vector2.ZERO
 	refresh_display()
+	var scene = get_tree().current_scene
+	if scene and scene.has_method("refresh_hand_layout"):
+		scene.call_deferred("refresh_hand_layout")
 
 func _dismiss_preview() -> void:
 	var scene = get_tree().current_scene
@@ -179,3 +238,7 @@ func _dismiss_preview() -> void:
 func _is_over_node(target_node: Control, global_pos: Vector2) -> bool:
 	var rect = Rect2(target_node.global_position, target_node.size)
 	return rect.has_point(global_pos)
+
+func _is_point_inside_card(global_pos: Vector2) -> bool:
+	var local_point = get_global_transform().affine_inverse() * global_pos
+	return Rect2(Vector2.ZERO, size).has_point(local_point)

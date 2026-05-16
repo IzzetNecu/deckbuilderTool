@@ -43,7 +43,7 @@ func load_data(path: String) -> void:
 	_index_collection(data.get("buffs", []), buffs, Callable(self, "_normalize_buff"))
 	_index_collection(data.get("factions", []), factions)
 	_index_collection(data.get("cards", []), cards, Callable(self, "_normalize_card"))
-	_index_collection(data.get("consumables", []), consumables)
+	_index_collection(data.get("consumables", []), consumables, Callable(self, "_normalize_consumable"))
 	_index_collection(data.get("equipment", []), equipment)
 	_index_collection(data.get("keyItems", []), key_items)
 	_index_collection(data.get("enemies", []), enemies, Callable(self, "_normalize_enemy"))
@@ -69,6 +69,7 @@ func _normalize_card(item: Dictionary) -> Dictionary:
 	var card = item.duplicate(true)
 	card["targeting"] = card.get("targeting", "single_enemy" if card.get("requiresTarget", false) else "self")
 	card["requiresTarget"] = card["targeting"] == "single_enemy"
+	card["cardImage"] = str(card.get("cardImage", ""))
 	var effects: Array = []
 	for effect in card.get("effects", []):
 		effects.append(_normalize_effect(effect))
@@ -193,6 +194,14 @@ func _normalize_buff(item: Dictionary) -> Dictionary:
 	buff["shortLabel"] = str(buff.get("shortLabel", ""))
 	buff["reminderText"] = str(buff.get("reminderText", ""))
 	return buff
+
+func _normalize_consumable(item: Dictionary) -> Dictionary:
+	var consumable = item.duplicate(true)
+	var effects: Array = []
+	for effect in consumable.get("effects", []):
+		effects.append(_normalize_effect(effect))
+	consumable["effects"] = effects
+	return consumable
 
 func get_default_player() -> Dictionary:
 	if players.has(default_player_id):
