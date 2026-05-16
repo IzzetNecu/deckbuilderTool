@@ -152,9 +152,9 @@ Element pairs:
 | Fire | `heat`: the next attack deals `X` more damage, then lose half the stacks rounded down | `burning`: the next attack deals `X` less damage, minimum 0, then lose half the stacks rounded down |
 | Water | `flow`: the next block gain gives `X` more block, then lose half the stacks rounded down | `slippery`: the next block gain gives `X` less block, minimum 0, then lose half the stacks rounded down |
 | Earth | `regen`: heal `X` at end of turn, then lose 1 stack | `poison`: lose `X` HP at start of turn, then lose 1 stack |
-| Wind | `haste`: draw `X` extra cards at start of turn, then lose 1 stack | `slowed`: discard `X` cards at start of turn, then lose 1 stack |
+| Wind | `haste`: draw `X` extra cards at start of turn, then lose 1 stack | `slowed`: draw `X` fewer cards at start of turn, minimum 0, then lose 1 stack |
 | Ice | `scaled`: gain `X` block at end of turn, then lose 1 stack | `chill`: lose `X` block at end of turn, minimum 0, then lose 1 stack |
-| Lightning | `energized`: the next played card resolves its full effect list twice, then lose one stack | `jolted`: player cards lose 1 energy after the next played card resolves; enemy cards delay their first `X` pending cards to the next enemy turn, then lose all stacks at the end of that turn |
+| Lightning | `energized`: the next played card resolves its full effect list twice, then lose one stack | `jolted`: after the next played card fully resolves, lose 1 energy and one stack |
 
 
 Phase-1 authored content additions:
@@ -187,8 +187,7 @@ Phase-1 authored content additions:
   - `poison`, `haste` and `slowed` trigger at the start of that actor’s turn.
   - `regen`, `scaled`, and `chill` trigger at the end of that actor’s turn.
   - `energized` triggers when the actor plays their next card.
-  - Player `jolted` triggers after the actor finishes playing their next card.
-  - Enemy `jolted` triggers when the enemy turn begins by delaying the first `X` pending cards from that turn's queue to the next enemy turn, then clearing all remaining `jolted` stacks at the end of that enemy turn.
+  - `jolted` triggers after the actor finishes playing their next card.
 - Limits / caps:
   - Minimum stack count is 0.
   - No hard stack cap in phase 1.
@@ -210,15 +209,11 @@ Phase-1 authored content additions:
     7. Refresh enemy intent preview if insight-like status changes ever affect it later.
   - Start of enemy turn:
     1. Enemy block clears.
-    2. Determine how many pending enemy cards are already being held from prior turn delays.
-    3. Determine the current `haste` bonus card count, if any.
-    4. Draw or prepare the enemy's normal hand plus the current `haste` bonus, appending new cards behind any already-delayed pending cards.
-    5. If `haste` was active for that draw, lose 1 `haste` stack.
-    6. Resolve remaining start-of-turn statuses in the same order.
-    7. Determine the current enemy `jolted` stack count and skip that many cards from the front of the pending queue for this turn only.
-    8. Execute the remaining pending enemy cards in order.
-    9. Leave the skipped front cards in the pending queue for the next enemy turn.
-    10. At the end of the enemy turn, remove all enemy `jolted` stacks.
+    2. Determine the current `haste` bonus card count, if any.
+    3. Draw or prepare the enemy's normal hand plus the current `haste` bonus.
+    4. If `haste` was active for that draw, lose 1 `haste` stack.
+    5. Resolve remaining start-of-turn statuses in the same order.
+    6. Enemy pending cards execute.
   - When resolving a `damage` effect:
     1. Compute base/scaling amount.
     2. Apply `heat` or `burning` once to that effect.
@@ -243,7 +238,7 @@ Phase-1 authored content additions:
     3. Check `energized` before the card effect loop begins.
     4. If `energized` is active, resolve the full card effect list twice for that one played card, then spend 1 `energized` stack.
     5. If `energized` is not active, resolve the full card effect list once.
-    6. After a player-played card fully resolves, apply `jolted`: lose 1 energy with a minimum of 0, then spend 1 `jolted` stack.
+    6. After the played card fully resolves, apply `jolted`: lose 1 energy with a minimum of 0, then spend 1 `jolted` stack.
     7. Re-check win/lose state after each full card resolution pass and after post-play status effects.
 - Edge cases:
   - If both opposite statuses somehow exist at once due to bad data, cancel them before any trigger resolution.
@@ -255,11 +250,9 @@ Phase-1 authored content additions:
   - If an elemental status defeats the enemy, use the standard combat victory flow: stop later combat actions and show the normal victory/loot screen.
   - If an elemental status defeats the player, use the standard combat defeat flow: show the defeated screen, then return to the map with persistent HP clamped to at least 1.
   - `energized` means "this card resolves twice", not "run the full play pipeline twice": do not pay cost twice, revalidate target twice, remove the card from hand twice, or discard/exhaust it twice.
-  - If both player `energized` and player `jolted` are active, resolve the doubled card first, then apply the single `jolted` post-play penalty once.
-  - If player `jolted` triggers while the actor has 0 energy, energy stays at 0 and the stack is still spent.
-  - If enemy `jolted` is greater than or equal to the number of pending enemy cards, the enemy plays no cards that turn and keeps all pending cards for the next turn.
-  - Enemy `jolted` only delays the front `X` cards once for that enemy turn; any remaining enemy `jolted` stacks are removed at end of turn instead of carrying forward.
-  - Enemy delayed cards stay at the front of the queue and newly drawn enemy cards are appended behind them on the next turn.
+  - If both `energized` and `jolted` are active, resolve the doubled card first, then apply the single `jolted` post-play penalty once.
+  - If `jolted` triggers while the actor has 0 energy, energy stays at 0 and the stack is still spent.
+  - Enemy `jolted` should still spend a stack after the next played card even if enemy energy is not modeled separately in phase 1.
   - `flow` and `slippery` only modify the next structured `block` effect in phase 1; they do not modify `scaled` or other status-driven block changes unless a later spec explicitly expands them.
 - Failure cases:
   - Unknown `statusId` in authored data should be ignored with a logged warning instead of crashing combat.
