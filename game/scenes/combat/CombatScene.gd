@@ -147,8 +147,8 @@ func hide_card_preview() -> void:
 		preview_overlay.visible = false
 
 func _on_card_preview_requested(card_data: Dictionary) -> void:
-	var requested_card_id = str(card_data.get("id", ""))
-	if preview_overlay and preview_overlay.visible and requested_card_id == preview_card_id:
+	var requested_card_id = str(card_data.get("preview_key", card_data.get("id", "")))
+	if preview_overlay and preview_overlay.visible and not requested_card_id.is_empty() and requested_card_id == preview_card_id:
 		hide_card_preview()
 		return
 
@@ -158,7 +158,7 @@ func _on_card_preview_requested(card_data: Dictionary) -> void:
 
 	var preview_card = card_scene.instantiate()
 	preview_card_holder.add_child(preview_card)
-	preview_card.setup(card_data, combat_manager, enemy_panel_instance)
+	preview_card.setup(card_data, combat_manager, enemy_panel_instance, str(card_data.get("preview_source_side", "player")), false)
 	preview_card.set_preview_mode(true)
 	preview_card.scale = PREVIEW_SCALE
 	var preview_size = preview_card.custom_minimum_size * PREVIEW_SCALE

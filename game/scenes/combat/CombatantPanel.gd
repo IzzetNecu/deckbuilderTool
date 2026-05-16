@@ -2,6 +2,7 @@ extends Control
 
 var combat_manager: Node = null
 var panel_side: String = "player"
+var card_scene = preload("res://scenes/combat/Card.tscn")
 
 @onready var name_label: Label = $VBox/NameLabel
 @onready var portrait_texture: TextureRect = $VBox/PortraitArea/PortraitTexture
@@ -33,6 +34,7 @@ func configure(side: String, show_intents: bool) -> void:
 	action_slot.alignment = BoxContainer.ALIGNMENT_END if align_right else BoxContainer.ALIGNMENT_BEGIN
 	hp_bar.custom_minimum_size = Vector2(180, 14) if align_right else Vector2(250, 18)
 	energy_badge.visible = panel_side == "player"
+	_apply_hp_bar_layout()
 
 func get_action_slot() -> HBoxContainer:
 	return action_slot
@@ -52,11 +54,12 @@ func update_intent_slots(intent_slots: Array) -> void:
 	for child in intent_cards_container.get_children():
 		child.queue_free()
 
-	for intent_slot in intent_slots:
+	for index in range(intent_slots.size()):
+		var intent_slot = intent_slots[index]
 		if bool(intent_slot.get("is_hidden", false)):
-			intent_cards_container.add_child(_make_hidden_card_preview())
+			intent_cards_container.add_child(_make_hidden_card_preview(index))
 			continue
-		intent_cards_container.add_child(_make_card_preview(intent_slot.get("card", {})))
+		intent_cards_container.add_child(_make_card_preview(intent_slot.get("card", {}), index))
 
 func set_highlight(active: bool) -> void:
 	highlight_rect.visible = active
@@ -82,6 +85,36 @@ func _update_block_outline(block: int, max_hp: int) -> void:
 	block_outline.visible = block > 0
 	block_outline.size = Vector2(hp_bar_frame.size.x * clamped_ratio, hp_bar_frame.size.y)
 	block_outline.position = Vector2.ZERO if panel_side != "enemy" else Vector2(hp_bar_frame.size.x - block_outline.size.x, 0.0)
+
+func _apply_hp_bar_layout() -> void:
+	var is_enemy = panel_side == "enemy"
+	hp_bar.fill_mode = ProgressBar.FILL_END_TO_BEGIN if is_enemy else ProgressBar.FILL_BEGIN_TO_END
+
+	if is_enemy:
+		hp_value_label.anchor_left = 0.0
+		hp_value_label.anchor_right = 0.0
+		hp_value_label.offset_left = 6.0
+		hp_value_label.offset_right = 92.0
+		hp_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+		block_value_label.anchor_left = 1.0
+		block_value_label.anchor_right = 1.0
+		block_value_label.offset_left = -70.0
+		block_value_label.offset_right = -6.0
+		block_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		return
+
+	hp_value_label.anchor_left = 1.0
+	hp_value_label.anchor_right = 1.0
+	hp_value_label.offset_left = -92.0
+	hp_value_label.offset_right = -6.0
+	hp_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+	block_value_label.anchor_left = 0.0
+	block_value_label.anchor_right = 0.0
+	block_value_label.offset_left = 6.0
+	block_value_label.offset_right = 70.0
+	block_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 func _render_buffs(buff_values: Array) -> void:
 	for child in buffs_container.get_children():
@@ -160,57 +193,40 @@ func _make_buff_icon_visual(icon_path: String, short_label: String) -> Control:
 	label.add_theme_font_size_override("font_size", 10)
 	return label
 
-func _make_card_preview(card_data: Dictionary) -> PanelContainer:
-	var panel = PanelContainer.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.05, 0.05, 0.9)
-	style.set_corner_radius_all(4)
-	panel.add_theme_stylebox_override("panel", style)
-	panel.custom_minimum_size = Vector2(82, 96)
+func _make_card_preview(card_data: Dictionary, slot_index: int) -> CombatCard:
+	var preview_card: CombatCard = card_scene.instantiate()
+	var preview_data = card_data.duplicate(true)
+	preview_data["preview_key"] = _build_intent_preview_key(slot_index, preview_data)
+	preview_data["preview_source_side"] = "enemy"
+	preview_card.custom_minimum_size = Vector2(82, 96)
+	preview_card.setup(preview_data, combat_manager, self, "enemy", false)
+	preview_card.preview_requested.connect(_forward_preview_request)
+	return preview_card
 
-	var vbox = VBoxContainer.new()
-	panel.add_child(vbox)
+func _make_hidden_card_preview(slot_index: int) -> CombatCard:
+	var preview_card: CombatCard = card_scene.instantiate()
+	var preview_data := {
+		"id": "__enemy_hidden__",
+		"name": "Hidden",
+		"cost": 0,
+		"description": "?",
+		"compact_description": "?",
+		"preview_description": "This card is hidden from you. Gain more insight to reveal it.",
+		"compact_cost_text": "",
+		"preview_cost_text": "",
+		"effects": [],
+		"preview_key": "__enemy_hidden_%d" % slot_index,
+		"preview_source_side": "enemy"
+	}
+	preview_card.custom_minimum_size = Vector2(82, 96)
+	preview_card.setup(preview_data, combat_manager, self, "enemy", false)
+	preview_card.preview_requested.connect(_forward_preview_request)
+	return preview_card
 
-	var name_lbl = Label.new()
-	name_lbl.text = card_data.get("name", "?")
-	name_lbl.add_theme_font_size_override("font_size", 10)
-	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox.add_child(name_lbl)
+func _forward_preview_request(card_data: Dictionary) -> void:
+	var scene = get_tree().current_scene
+	if scene and scene.has_method("_on_card_preview_requested"):
+		scene.call("_on_card_preview_requested", card_data)
 
-	var desc_lbl = Label.new()
-	desc_lbl.text = combat_manager.get_card_text(card_data, "enemy") if combat_manager else card_data.get("description", "")
-	desc_lbl.add_theme_font_size_override("font_size", 9)
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.modulate = Color(1, 0.7, 0.7)
-	vbox.add_child(desc_lbl)
-
-	return panel
-
-func _make_hidden_card_preview() -> PanelContainer:
-	var panel = PanelContainer.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.12, 0.12, 0.92)
-	style.set_corner_radius_all(4)
-	panel.add_theme_stylebox_override("panel", style)
-	panel.custom_minimum_size = Vector2(82, 96)
-
-	var vbox = VBoxContainer.new()
-	panel.add_child(vbox)
-
-	var name_lbl = Label.new()
-	name_lbl.text = "Hidden"
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 10)
-	name_lbl.modulate = Color(0.85, 0.85, 0.85)
-	vbox.add_child(name_lbl)
-
-	var desc_lbl = Label.new()
-	desc_lbl.text = "?"
-	desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	desc_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	desc_lbl.add_theme_font_size_override("font_size", 24)
-	desc_lbl.modulate = Color(0.65, 0.65, 0.65)
-	vbox.add_child(desc_lbl)
-
-	return panel
+func _build_intent_preview_key(slot_index: int, card_data: Dictionary) -> String:
+	return "enemy_intent_%d_%s" % [slot_index, str(card_data.get("id", "unknown"))]

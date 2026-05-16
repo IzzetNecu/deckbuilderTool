@@ -6,6 +6,8 @@ signal preview_requested(card_data: Dictionary)
 var card_data: Dictionary = {}
 var combat_manager: Node = null
 var enemy_unit: Node = null
+var source_side: String = "player"
+var allow_drag_play: bool = true
 
 var is_dragging: bool = false
 var is_zoomed: bool = false
@@ -30,21 +32,31 @@ func _ready() -> void:
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	effects_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_card_content()
 
-func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
+func setup(data: Dictionary, mgr: Node, enemy: Node, card_source_side: String = "player", can_drag_play: bool = true) -> void:
 	card_data = data
 	combat_manager = mgr
 	enemy_unit = enemy
+	source_side = card_source_side
+	allow_drag_play = can_drag_play
 	var refresh_callable = Callable(self, "refresh_display")
 	if combat_manager and not combat_manager.stats_updated.is_connected(refresh_callable):
 		combat_manager.stats_updated.connect(refresh_callable)
 
-	name_label.text = data.get("name", "?")
-	cost_label.text = "Cost: %d" % data.get("cost", 0)
-	refresh_display()
+	_apply_card_content()
 
 func refresh_display() -> void:
+	if not is_node_ready():
+		return
+	cost_label.text = _get_cost_text()
 	effects_label.text = _get_effects_text()
+
+func _apply_card_content() -> void:
+	if not is_node_ready():
+		return
+	name_label.text = str(card_data.get("name", "?"))
+	refresh_display()
 
 func set_preview_mode(enabled: bool) -> void:
 	preview_only = enabled
@@ -53,9 +65,20 @@ func set_preview_mode(enabled: bool) -> void:
 	refresh_display()
 
 func _get_effects_text() -> String:
+	if is_zoomed and card_data.has("preview_description"):
+		return str(card_data.get("preview_description", ""))
+	if not is_zoomed and card_data.has("compact_description"):
+		return str(card_data.get("compact_description", ""))
 	if combat_manager:
-		return combat_manager.get_card_text(card_data, "player", is_zoomed)
+		return combat_manager.get_card_text(card_data, source_side, is_zoomed)
 	return GameState.get_preview_card_text(card_data)
+
+func _get_cost_text() -> String:
+	if is_zoomed and card_data.has("preview_cost_text"):
+		return str(card_data.get("preview_cost_text", ""))
+	if not is_zoomed and card_data.has("compact_cost_text"):
+		return str(card_data.get("compact_cost_text", ""))
+	return "Cost: %d" % card_data.get("cost", 0)
 
 func _is_targeted() -> bool:
 	return str(card_data.get("targeting", "self")) == "single_enemy"
@@ -86,7 +109,7 @@ func _input(event: InputEvent) -> void:
 	if preview_only:
 		return
 	if event is InputEventMouseMotion:
-		if pending_click and not is_dragging and _can_afford():
+		if pending_click and not is_dragging and allow_drag_play and _can_afford():
 			if event.global_position.distance_to(press_position) >= DRAG_THRESHOLD:
 				pending_click = false
 				_dismiss_preview()
