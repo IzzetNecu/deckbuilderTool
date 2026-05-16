@@ -203,7 +203,7 @@
       "name": "Jolted",
       "kind": "debuff",
       "shortLabel": "JOLT",
-      "reminderText": "After your next played card resolves, lose 1 energy and lose 1 stack.",
+      "reminderText": "Player: after your next played card resolves, lose 1 energy and 1 stack. Enemy: delay the first X pending cards to next turn, then lose all stacks at end of turn.",
       "iconImage": ""
     }
   ],

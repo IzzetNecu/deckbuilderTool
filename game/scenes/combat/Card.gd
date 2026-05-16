@@ -1,5 +1,7 @@
 extends Panel
 
+static var active_zoomed_card = null
+
 var card_data: Dictionary = {}
 var combat_manager: Node = null
 var enemy_unit: Node = null
@@ -27,6 +29,10 @@ func _ready() -> void:
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	effects_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func _exit_tree() -> void:
+	if active_zoomed_card == self:
+		active_zoomed_card = null
 
 func setup(data: Dictionary, mgr: Node, enemy: Node) -> void:
 	card_data = data
@@ -146,7 +152,10 @@ func _toggle_zoom() -> void:
 func _expand_zoom() -> void:
 	if is_zoomed:
 		return
+	if is_instance_valid(active_zoomed_card) and active_zoomed_card != self:
+		active_zoomed_card._collapse_zoom()
 	is_zoomed = true
+	active_zoomed_card = self
 	original_parent = get_parent()
 	original_index = get_index()
 	original_position = global_position
@@ -163,6 +172,8 @@ func _collapse_zoom() -> void:
 	if not is_zoomed:
 		return
 	is_zoomed = false
+	if active_zoomed_card == self:
+		active_zoomed_card = null
 	if get_parent():
 		get_parent().remove_child(self)
 	original_parent.add_child(self)

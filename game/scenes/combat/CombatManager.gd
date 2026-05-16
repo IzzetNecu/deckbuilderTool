@@ -151,7 +151,6 @@ func _draw_player_cards(count: int) -> void:
 	player_hand_updated.emit(player_hand)
 
 func _prepare_enemy_intent() -> void:
-	enemy_pending_cards = []
 	var draw_count = int(enemy_actor["stats"].get("hand_size", 2)) + _consume_haste_for_draw(enemy_actor) - _get_slowed_draw_penalty(enemy_actor)
 	draw_count = max(draw_count, 0)
 	for i in range(draw_count):
@@ -236,8 +235,9 @@ func _end_phase() -> void:
 		return
 	stats_updated.emit()
 
-	while not enemy_pending_cards.is_empty():
-		var card = enemy_pending_cards.pop_front()
+	var delayed_cards = _get_enemy_jolted_delay_count()
+	while enemy_pending_cards.size() > delayed_cards:
+		var card = enemy_pending_cards.pop_at(delayed_cards)
 		_refresh_enemy_reveal()
 		if _resolve_played_card(card, "enemy", "enemy"):
 			enemy_discard_pile.append(card.get("id", ""))
@@ -247,10 +247,10 @@ func _end_phase() -> void:
 			stats_updated.emit()
 			return
 		enemy_discard_pile.append(card.get("id", ""))
-	enemy_pending_cards = []
 	enemy_intent_slots = []
 	enemy_intent_updated.emit(enemy_intent_slots)
 
+	_clear_enemy_jolted_after_turn()
 	if _resolve_turn_end_statuses(enemy_actor):
 		stats_updated.emit()
 		return
@@ -430,8 +430,17 @@ func _resolve_jolted(actor: Dictionary, source_side: String) -> bool:
 		return false
 	if source_side == "player":
 		player_energy = max(0, player_energy - 1)
-	_remove_status_stacks(actor, "debuff_jolted", 1)
+		_remove_status_stacks(actor, "debuff_jolted", 1)
 	return _check_win_lose()
+
+func _get_enemy_jolted_delay_count() -> int:
+	_normalize_status_pairs(enemy_actor, "debuff_jolted")
+	return min(_get_status_value(enemy_actor, "debuff_jolted"), enemy_pending_cards.size())
+
+func _clear_enemy_jolted_after_turn() -> void:
+	var jolted = _get_status_value(enemy_actor, "debuff_jolted")
+	if jolted > 0:
+		_remove_status_stacks(enemy_actor, "debuff_jolted", jolted)
 
 func _apply_next_damage_modifier(actor: Dictionary, amount: int, resolution_context: Dictionary) -> int:
 	if bool(resolution_context.get("damage_status_consumed", false)):
