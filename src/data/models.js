@@ -136,13 +136,28 @@ export function createEquipment(data = {}) {
     id: data.id || uuid(),
     name: data.name || '',
     description: data.description || '',
-    type: data.type || 'onehandedWeapon', // offHand, onehandedWeapon, twohandedWeapon, head, armor, legs, ring, amulet
+    equipmentImage: data.equipmentImage || '',
+    type: normalizeEquipmentType(data.type || 'weapon'),
+    slotCost: normalizeEquipmentType(data.type || 'weapon') === 'weapon' ? clampSlotCost(data.slotCost) : 1,
     rarity: data.rarity || 'common',
     value: data.value ?? 10,
     effects: data.effects || [],
     cardIds: data.cardIds || [],
     conditions: data.conditions || []
   };
+}
+
+function normalizeEquipmentType(type) {
+  const value = String(type || '').trim();
+  if (['onehandedWeapon', 'twohandedWeapon', 'offHand', 'weapon'].includes(value)) return 'weapon';
+  if (['head', 'legs', 'armor'].includes(value)) return 'armor';
+  if (['ring', 'amulet', 'accessory'].includes(value)) return 'accessory';
+  return 'accessory';
+}
+
+function clampSlotCost(value) {
+  const parsed = parseInt(value ?? 1, 10);
+  return parsed === 2 ? 2 : 1;
 }
 
 export function createKeyItem(data = {}) {
@@ -198,14 +213,11 @@ export function createPlayer(data = {}) {
       keyItems: data.startingInventory?.keyItems || []
     },
     startingEquipped: {
-      weapon_main: data.startingEquipped?.weapon_main || '',
-      off_hand: data.startingEquipped?.off_hand || '',
-      head: data.startingEquipped?.head || '',
+      weapon_1: data.startingEquipped?.weapon_1 || data.startingEquipped?.weapon_main || '',
+      weapon_2: data.startingEquipped?.weapon_2 || data.startingEquipped?.off_hand || '',
       armor: data.startingEquipped?.armor || '',
-      legs: data.startingEquipped?.legs || '',
-      amulet: data.startingEquipped?.amulet || '',
-      ring_left: data.startingEquipped?.ring_left || '',
-      ring_right: data.startingEquipped?.ring_right || ''
+      accessory_1: data.startingEquipped?.accessory_1 || data.startingEquipped?.ring_left || data.startingEquipped?.amulet || '',
+      accessory_2: data.startingEquipped?.accessory_2 || data.startingEquipped?.ring_right || ''
     }
   };
 }

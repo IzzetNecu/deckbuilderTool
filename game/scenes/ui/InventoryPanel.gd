@@ -1,14 +1,11 @@
 extends Control
 
 const SLOT_LABELS := {
-	"weapon_main": "Weapon",
-	"off_hand": "Off-Hand",
-	"head": "Head",
+	"weapon_1": "Weapon 1",
+	"weapon_2": "Weapon 2",
 	"armor": "Armor",
-	"legs": "Legs",
-	"amulet": "Amulet",
-	"ring_left": "Ring Left",
-	"ring_right": "Ring Right"
+	"accessory_1": "Accessory 1",
+	"accessory_2": "Accessory 2"
 }
 
 const CARD_TYPE_ORDER := {
@@ -25,17 +22,20 @@ var inventory_drop_zone_script = preload("res://scenes/ui/InventoryDropZone.gd")
 @onready var close_button: Button = $Window/VBox/Header/CloseButton
 @onready var background: ColorRect = $Background
 @onready var deck_tab: Button = $Window/VBox/Tabs/DeckTab
+@onready var equipment_tab: Button = $Window/VBox/Tabs/EquipmentTab
 @onready var items_tab: Button = $Window/VBox/Tabs/ItemsTab
 @onready var compendium_tab: Button = $Window/VBox/Tabs/CompendiumTab
 @onready var content_grid: GridContainer = $Window/VBox/ContentScroll/Grid
 
 var current_tab: String = "deck"
 var status_message: String = ""
+var focused_equipment_id: String = ""
 
 func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	background.gui_input.connect(_on_background_input)
 	deck_tab.pressed.connect(func(): _switch_tab("deck"))
+	equipment_tab.pressed.connect(func(): _switch_tab("equipment"))
 	items_tab.pressed.connect(func(): _switch_tab("items"))
 	compendium_tab.pressed.connect(func(): _switch_tab("compendium"))
 	_switch_tab("deck")
@@ -62,6 +62,7 @@ func _on_background_input(event: InputEvent) -> void:
 func _switch_tab(tab_name: String) -> void:
 	current_tab = tab_name
 	deck_tab.button_pressed = tab_name == "deck"
+	equipment_tab.button_pressed = tab_name == "equipment"
 	items_tab.button_pressed = tab_name == "items"
 	compendium_tab.button_pressed = tab_name == "compendium"
 	_refresh_content()
@@ -73,6 +74,8 @@ func _refresh_content() -> void:
 	match current_tab:
 		"deck":
 			_show_deck()
+		"equipment":
+			_show_equipment()
 		"items":
 			_show_items()
 		"compendium":
@@ -128,28 +131,66 @@ func _show_deck() -> void:
 
 	content_grid.add_child(workspace)
 
-func _show_items() -> void:
+func _show_equipment() -> void:
 	content_grid.columns = 1
-	content_grid.add_child(_make_note_panel("Equipment", "Owned equipment stays in the bag. Equipped slots decide which items grant combat cards."))
 
-	var slots_section = _make_section_panel("Equipped Slots", "Explicit slot rules apply. Two-handed weapons block the off-hand slot.")
+	var workspace = HBoxContainer.new()
+	workspace.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	workspace.add_theme_constant_override("separation", 12)
+
+	var left_column = VBoxContainer.new()
+	left_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_column.size_flags_stretch_ratio = 1.2
+	left_column.add_theme_constant_override("separation", 10)
+	workspace.add_child(left_column)
+
+	var right_column = VBoxContainer.new()
+	right_column.custom_minimum_size = Vector2(340, 0)
+	right_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_column.size_flags_stretch_ratio = 0.8
+	right_column.add_theme_constant_override("separation", 10)
+	workspace.add_child(right_column)
+
+	left_column.add_child(_make_note_panel("Equipment", "Five slots: two weapon slots, one armor slot, and two accessories. Two-slot weapons occupy both weapon slots."))
+
+	var slots_section = _make_section_panel("Equipped", "Equipped gear grants locked combat cards.")
 	var slots_body: VBoxContainer = slots_section.get_meta("body")
+	var slot_grid = GridContainer.new()
+	slot_grid.columns = 5
+	slot_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot_grid.add_theme_constant_override("h_separation", 8)
+	slot_grid.add_theme_constant_override("v_separation", 8)
 	for slot_id in GameState.SLOT_ORDER:
-		slots_body.add_child(_make_slot_row(slot_id))
-	content_grid.add_child(slots_section)
+		slot_grid.add_child(_make_slot_card(slot_id))
+	slots_body.add_child(slot_grid)
+	left_column.add_child(slots_section)
 
-	var bag_section = _make_section_panel("Equipment Bag", "Choose where to equip each item. Ring items support either ring slot.")
+	var bag_section = _make_section_panel("Equipment Bag", "Hover or focus a tile for details, then equip into a valid open slot.")
 	var bag_body: VBoxContainer = bag_section.get_meta("body")
 	var equipment_ids = _unique_ids(GameState.equipment)
 	if equipment_ids.is_empty():
 		bag_body.add_child(_make_empty_label("No owned equipment."))
 	else:
+		var grid = GridContainer.new()
+		grid.columns = 4
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_theme_constant_override("h_separation", 8)
+		grid.add_theme_constant_override("v_separation", 8)
 		for equipment_id in equipment_ids:
 			var equip_data = GameData.get_equipment(equipment_id)
 			if equip_data.is_empty():
 				continue
-			bag_body.add_child(_make_equipment_row(equipment_id, equip_data))
-	content_grid.add_child(bag_section)
+			grid.add_child(_make_equipment_tile(equipment_id, equip_data))
+		bag_body.add_child(grid)
+	left_column.add_child(bag_section)
+
+	right_column.add_child(_make_equipment_detail_panel(focused_equipment_id))
+	content_grid.add_child(workspace)
+
+func _show_items() -> void:
+	content_grid.columns = 1
+	content_grid.add_child(_make_note_panel("Items", "Consumables and key items are tracked here. Equipment has its own tab."))
 
 	var consumables_section = _make_section_panel("Consumables", "Consumables are view-only in this phase.")
 	var consumables_body: VBoxContainer = consumables_section.get_meta("body")
@@ -427,131 +468,6 @@ func _make_item_row(title: String, subtitle: String, description: String) -> Pan
 	vbox.add_child(desc_label)
 	return panel
 
-func _make_slot_row(slot_id: String) -> PanelContainer:
-	var panel = PanelContainer.new()
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	panel.add_child(margin)
-
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
-	margin.add_child(hbox)
-
-	var label = Label.new()
-	label.text = _slot_label(slot_id)
-	label.custom_minimum_size = Vector2(100, 0)
-	hbox.add_child(label)
-
-	var text_box = VBoxContainer.new()
-	text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_box.add_theme_constant_override("separation", 4)
-	hbox.add_child(text_box)
-
-	var equipped_item_id = GameState.get_slot_item(slot_id)
-	var item_name = "Empty"
-	var detail = "Nothing equipped."
-	if GameState.is_slot_blocked(slot_id):
-		item_name = "Blocked"
-		detail = "A two-handed weapon is occupying your hands."
-	elif not equipped_item_id.is_empty():
-		var equip_data = GameData.get_equipment(equipped_item_id)
-		item_name = str(equip_data.get("name", equipped_item_id))
-		detail = str(equip_data.get("description", ""))
-
-	var name_label = Label.new()
-	name_label.text = item_name
-	name_label.add_theme_font_size_override("font_size", 16)
-	text_box.add_child(name_label)
-
-	var detail_label = Label.new()
-	detail_label.text = detail
-	detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail_label.add_theme_font_size_override("font_size", 10)
-	detail_label.modulate = Color(0.72, 0.72, 0.72)
-	text_box.add_child(detail_label)
-
-	if not equipped_item_id.is_empty():
-		var button = Button.new()
-		button.text = "Unequip"
-		button.custom_minimum_size = Vector2(90, 32)
-		button.pressed.connect(func(): _unequip_slot(slot_id))
-		hbox.add_child(button)
-
-	return panel
-
-func _make_equipment_row(equipment_id: String, equip_data: Dictionary) -> PanelContainer:
-	var panel = PanelContainer.new()
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	panel.add_child(margin)
-
-	var root = VBoxContainer.new()
-	root.add_theme_constant_override("separation", 8)
-	margin.add_child(root)
-
-	var top_row = HBoxContainer.new()
-	top_row.add_theme_constant_override("separation", 12)
-	root.add_child(top_row)
-
-	var text_box = VBoxContainer.new()
-	text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_box.add_theme_constant_override("separation", 4)
-	top_row.add_child(text_box)
-
-	var name_label = Label.new()
-	name_label.text = str(equip_data.get("name", equipment_id))
-	name_label.add_theme_font_size_override("font_size", 16)
-	text_box.add_child(name_label)
-
-	var counts_label = Label.new()
-	counts_label.text = "%s  |  Owned: %d  |  Equipped: %d  |  Available: %d" % [
-		str(equip_data.get("type", "")),
-		GameState.get_equipment_count(equipment_id),
-		GameState.get_equipped_item_count(equipment_id),
-		GameState.get_available_equipment_count(equipment_id)
-	]
-	counts_label.modulate = Color(0.72, 0.72, 0.72)
-	text_box.add_child(counts_label)
-
-	var desc_label = Label.new()
-	desc_label.text = str(equip_data.get("description", ""))
-	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_label.add_theme_font_size_override("font_size", 10)
-	text_box.add_child(desc_label)
-
-	var cards = equip_data.get("cardIds", [])
-	if not cards.is_empty():
-		var grants_label = Label.new()
-		grants_label.text = "Grants: %s" % _join_ids(cards)
-		grants_label.add_theme_font_size_override("font_size", 10)
-		grants_label.modulate = Color(0.85, 0.82, 0.62)
-		text_box.add_child(grants_label)
-
-	var actions = HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 8)
-	root.add_child(actions)
-
-	var valid_slots = GameState.get_valid_slots_for_equipment(equipment_id)
-	if GameState.get_available_equipment_count(equipment_id) <= 0:
-		actions.add_child(_make_inline_note("All owned copies are already equipped."))
-	else:
-		for slot_id in valid_slots:
-			var target_slot_id = str(slot_id)
-			var button = Button.new()
-			button.text = "Equip %s" % _slot_label(target_slot_id)
-			button.pressed.connect(func(): _equip_item(equipment_id, target_slot_id))
-			actions.add_child(button)
-
-	return panel
-
 func _make_empty_label(text: String) -> Label:
 	var label = Label.new()
 	label.text = text
@@ -565,6 +481,172 @@ func _make_inline_note(text: String) -> Label:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.modulate = Color(0.72, 0.72, 0.72)
 	return label
+
+func _make_slot_card(slot_id: String) -> PanelContainer:
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(150, 150)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	panel.add_child(margin)
+
+	var root = VBoxContainer.new()
+	root.add_theme_constant_override("separation", 5)
+	margin.add_child(root)
+
+	var slot_label = Label.new()
+	slot_label.text = _slot_label(slot_id)
+	slot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	slot_label.add_theme_font_size_override("font_size", 13)
+	root.add_child(slot_label)
+
+	var icon = _make_equipment_icon(GameState.get_slot_item(slot_id), GameData.get_equipment(GameState.get_slot_item(slot_id)), Vector2(52, 52))
+	root.add_child(icon)
+
+	var equipment_id = GameState.get_slot_item(slot_id)
+	var name_label = Label.new()
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.add_theme_font_size_override("font_size", 11)
+	if GameState.is_slot_blocked(slot_id):
+		name_label.text = "Two-slot weapon"
+	elif equipment_id.is_empty():
+		name_label.text = "Empty"
+	else:
+		name_label.text = str(GameData.get_equipment(equipment_id).get("name", equipment_id))
+	root.add_child(name_label)
+
+	if not equipment_id.is_empty() and not GameState.is_slot_blocked(slot_id):
+		var button = Button.new()
+		button.text = "Unequip"
+		button.custom_minimum_size = Vector2(0, 28)
+		button.pressed.connect(func(): _unequip_slot(slot_id))
+		root.add_child(button)
+
+	panel.mouse_entered.connect(func(): _focus_equipment(equipment_id))
+	return panel
+
+func _make_equipment_tile(equipment_id: String, equip_data: Dictionary) -> PanelContainer:
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(150, 170)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	panel.add_child(margin)
+
+	var root = VBoxContainer.new()
+	root.add_theme_constant_override("separation", 5)
+	margin.add_child(root)
+	root.add_child(_make_equipment_icon(equipment_id, equip_data, Vector2(64, 64)))
+
+	var name_label = Label.new()
+	name_label.text = str(equip_data.get("name", equipment_id))
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.add_theme_font_size_override("font_size", 12)
+	root.add_child(name_label)
+
+	var meta_label = Label.new()
+	meta_label.text = "%s | %s | %d/%d free" % [
+		_equipment_type_label(equip_data),
+		str(equip_data.get("rarity", "common")).capitalize(),
+		GameState.get_available_equipment_count(equipment_id),
+		GameState.get_equipment_count(equipment_id)
+	]
+	meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	meta_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	meta_label.add_theme_font_size_override("font_size", 10)
+	meta_label.modulate = Color(0.74, 0.74, 0.74)
+	root.add_child(meta_label)
+
+	var equip_button = Button.new()
+	equip_button.text = "Equip"
+	equip_button.disabled = GameState.get_available_equipment_count(equipment_id) <= 0
+	equip_button.pressed.connect(func(): _equip_item(equipment_id, ""))
+	root.add_child(equip_button)
+
+	panel.mouse_entered.connect(func(): _focus_equipment(equipment_id))
+	panel.focus_entered.connect(func(): _focus_equipment(equipment_id))
+	return panel
+
+func _make_equipment_icon(equipment_id: String, equip_data: Dictionary, icon_size: Vector2) -> Control:
+	var image_path = str(equip_data.get("equipmentImage", ""))
+	if not image_path.is_empty():
+		var texture_rect = TextureRect.new()
+		texture_rect.custom_minimum_size = icon_size
+		texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		if ResourceLoader.exists(image_path):
+			texture_rect.texture = load(image_path)
+		return texture_rect
+
+	var fallback = PanelContainer.new()
+	fallback.custom_minimum_size = icon_size
+	var label = Label.new()
+	label.text = _equipment_initials(equipment_id, equip_data)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 20)
+	fallback.add_child(label)
+	return fallback
+
+func _make_equipment_detail_panel(equipment_id: String) -> PanelContainer:
+	var selected_id = equipment_id
+	if selected_id.is_empty():
+		var equipment_ids = _unique_ids(GameState.equipment)
+		if not equipment_ids.is_empty():
+			selected_id = str(equipment_ids[0])
+
+	var panel = _make_section_panel("Details", "Hover equipment to update this panel.")
+	var body: VBoxContainer = panel.get_meta("body")
+	if selected_id.is_empty():
+		body.add_child(_make_empty_label("No equipment owned."))
+		return panel
+	var equip_data = GameData.get_equipment(selected_id)
+	if equip_data.is_empty():
+		body.add_child(_make_empty_label("Equipment data not found."))
+		return panel
+
+	body.add_child(_make_equipment_icon(selected_id, equip_data, Vector2(96, 96)))
+	var title = Label.new()
+	title.text = str(equip_data.get("name", selected_id))
+	title.add_theme_font_size_override("font_size", 20)
+	body.add_child(title)
+	body.add_child(_make_inline_note("%s | %s | Value %dg" % [
+		_equipment_type_label(equip_data),
+		str(equip_data.get("rarity", "common")).capitalize(),
+		int(equip_data.get("value", 0))
+	]))
+	body.add_child(_make_inline_note(str(equip_data.get("description", ""))))
+	body.add_child(_make_inline_note("Owned: %d | Equipped: %d | Available: %d" % [
+		GameState.get_equipment_count(selected_id),
+		GameState.get_equipped_item_count(selected_id),
+		GameState.get_available_equipment_count(selected_id)
+	]))
+
+	var cards = equip_data.get("cardIds", [])
+	body.add_child(_make_inline_note("Grants: %s" % ("None" if cards.is_empty() else _join_card_names(cards))))
+	var effects = equip_data.get("effects", [])
+	if not effects.is_empty():
+		body.add_child(_make_inline_note("Effects: %s" % _join_ids(effects)))
+
+	var actions = HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 8)
+	for slot_id in GameState.get_valid_slots_for_equipment(selected_id):
+		var target_slot_id = str(slot_id)
+		var button = Button.new()
+		button.text = "Equip %s" % _slot_label(target_slot_id)
+		button.disabled = GameState.get_available_equipment_count(selected_id) <= 0
+		button.pressed.connect(func(): _equip_item(selected_id, target_slot_id))
+		actions.add_child(button)
+	body.add_child(actions)
+	return panel
 
 func _build_selected_entries() -> Array:
 	var selected_counts = _count_ids(GameState.deck)
@@ -792,11 +874,14 @@ func _equip_item(equipment_id: String, slot_id: String) -> void:
 	var result = GameState.equip_item(equipment_id, slot_id)
 	status_message = str(result.get("message", ""))
 	if bool(result.get("ok", false)):
+		focused_equipment_id = equipment_id
 		GameState.save()
 	_refresh_content()
 
 func _unequip_slot(slot_id: String) -> void:
+	var equipment_id = GameState.get_slot_item(slot_id)
 	if GameState.unequip_slot(slot_id):
+		focused_equipment_id = equipment_id
 		status_message = "Unequipped %s." % _slot_label(slot_id)
 		GameState.save()
 	else:
@@ -811,3 +896,40 @@ func _join_ids(items: Array) -> String:
 	for item in items:
 		parts.append(str(item))
 	return ", ".join(parts)
+
+func _join_card_names(card_ids: Array) -> String:
+	var parts: Array[String] = []
+	for card_id in card_ids:
+		var card_data = GameData.get_card(str(card_id))
+		parts.append(str(card_data.get("name", card_id)))
+	return ", ".join(parts)
+
+func _focus_equipment(equipment_id: String) -> void:
+	if equipment_id.is_empty() or focused_equipment_id == equipment_id:
+		return
+	focused_equipment_id = equipment_id
+	_refresh_content()
+
+func _equipment_type_label(equip_data: Dictionary) -> String:
+	match str(equip_data.get("type", "")):
+		"weapon":
+			return "Weapon (%d slot)" % int(equip_data.get("slotCost", 1))
+		"armor":
+			return "Armor"
+		"accessory":
+			return "Accessory"
+	return "Equipment"
+
+func _equipment_initials(equipment_id: String, equip_data: Dictionary) -> String:
+	if equipment_id.is_empty():
+		return "-"
+	var name = str(equip_data.get("name", equipment_id)).strip_edges()
+	if name.is_empty():
+		return "?"
+	var parts = name.split(" ", false)
+	var initials := ""
+	for part in parts:
+		if initials.length() >= 2:
+			break
+		initials += str(part).substr(0, 1).to_upper()
+	return initials

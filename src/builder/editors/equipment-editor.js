@@ -7,7 +7,7 @@ export function renderEquipmentEditor(container) {
   let cards = store.getAll('cards');
   let selectedId = null;
 
-  const STATS = ['health', 'strength', 'dexterity', 'energy', 'handsize'];
+  const STATS = ['health', 'strength', 'dexterity', 'insight', 'energy', 'handsize'];
 
   function render() {
     const selectedItem = equipment.find(i => i.id === selectedId) || null;
@@ -27,7 +27,7 @@ export function renderEquipmentEditor(container) {
               <div class="list-item ${i.id === selectedId ? 'selected' : ''}" data-id="${i.id}">
                 <strong style="color: ${i.name ? 'inherit' : 'var(--text-secondary)'}">${i.name || 'Unnamed Equipment'}</strong>
                 <div style="font-size: 0.8em; color: var(--text-secondary); margin-top: 4px;">
-                  ${i.type} • Value: ${i.value}g
+                  ${i.type}${i.type === 'weapon' ? ` (${i.slotCost || 1} slot)` : ''} • Value: ${i.value}g
                 </div>
               </div>
             `).join('')}
@@ -79,17 +79,31 @@ export function renderEquipmentEditor(container) {
           </div>
           
           <div class="form-group">
-            <label>Equipment Slot Type</label>
+            <label>Equipment Type</label>
             <select id="item-type">
-              <option value="onehandedWeapon" ${item.type === 'onehandedWeapon' ? 'selected' : ''}>One-Handed Weapon</option>
-              <option value="twohandedWeapon" ${item.type === 'twohandedWeapon' ? 'selected' : ''}>Two-Handed Weapon</option>
-              <option value="offHand" ${item.type === 'offHand' ? 'selected' : ''}>Off-Hand (Shield/Tome)</option>
-              <option value="head" ${item.type === 'head' ? 'selected' : ''}>Head</option>
+              <option value="weapon" ${item.type === 'weapon' ? 'selected' : ''}>Weapon</option>
               <option value="armor" ${item.type === 'armor' ? 'selected' : ''}>Armor</option>
-              <option value="legs" ${item.type === 'legs' ? 'selected' : ''}>Legs</option>
-              <option value="ring" ${item.type === 'ring' ? 'selected' : ''}>Ring</option>
-              <option value="amulet" ${item.type === 'amulet' ? 'selected' : ''}>Amulet</option>
+              <option value="accessory" ${item.type === 'accessory' ? 'selected' : ''}>Accessory</option>
             </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="width:50%;">
+              <label>Weapon Slot Cost</label>
+              <select id="item-slot-cost" ${item.type !== 'weapon' ? 'disabled' : ''}>
+                <option value="1" ${parseInt(item.slotCost || 1, 10) === 1 ? 'selected' : ''}>1 slot</option>
+                <option value="2" ${parseInt(item.slotCost || 1, 10) === 2 ? 'selected' : ''}>2 slots</option>
+              </select>
+            </div>
+            <div class="form-group" style="width:50%;">
+              <label>Icon Image Path</label>
+              <input type="text" id="item-equipment-image" value="${item.equipmentImage || ''}" placeholder="res://assets/ui/equipment/sword.png" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Upload Icon</label>
+            <input type="file" id="item-equipment-upload" accept="image/*" />
           </div>
 
           <div class="form-group">
@@ -203,6 +217,8 @@ export function renderEquipmentEditor(container) {
         i.name = container.querySelector('#item-name').value;
         i.value = parseInt(container.querySelector('#item-value').value, 10);
         i.type = container.querySelector('#item-type').value;
+        i.slotCost = i.type === 'weapon' ? parseInt(container.querySelector('#item-slot-cost').value, 10) || 1 : 1;
+        i.equipmentImage = container.querySelector('#item-equipment-image').value;
         i.rarity = container.querySelector('#item-rarity').value;
         i.description = container.querySelector('#item-desc').value;
         
@@ -222,11 +238,32 @@ export function renderEquipmentEditor(container) {
         store.save('equipment', i);
       };
 
-      ['#item-name', '#item-value', '#item-desc'].forEach(id => {
+      ['#item-name', '#item-value', '#item-desc', '#item-equipment-image'].forEach(id => {
          container.querySelector(id).addEventListener('blur', () => { saveItem(); render(); });
       });
-      ['#item-type', '#item-rarity'].forEach(id => {
+      ['#item-type', '#item-rarity', '#item-slot-cost'].forEach(id => {
          container.querySelector(id).addEventListener('change', () => { saveItem(); render(); });
+      });
+
+      container.querySelector('#item-equipment-upload')?.addEventListener('change', async event => {
+        const file = event.target.files[0];
+        if (!file) return;
+        try {
+          await fetch('/upload-image', {
+            method: 'POST',
+            headers: {
+              'X-Filename': file.name,
+              'X-Upload-Subdir': 'ui/equipment'
+            },
+            body: file
+          });
+          const i = equipment.find(x => x.id === selectedId);
+          i.equipmentImage = `res://assets/ui/equipment/${file.name}`;
+          store.save('equipment', i);
+          render();
+        } catch (err) {
+          alert('Upload failed. Make sure the python server is running.');
+        }
       });
 
       container.querySelectorAll('.effect-input, .cond-val').forEach(inp => {

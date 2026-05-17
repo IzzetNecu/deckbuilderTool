@@ -44,7 +44,7 @@ func load_data(path: String) -> void:
 	_index_collection(data.get("factions", []), factions)
 	_index_collection(data.get("cards", []), cards, Callable(self, "_normalize_card"))
 	_index_collection(data.get("consumables", []), consumables, Callable(self, "_normalize_consumable"))
-	_index_collection(data.get("equipment", []), equipment)
+	_index_collection(data.get("equipment", []), equipment, Callable(self, "_normalize_equipment"))
 	_index_collection(data.get("keyItems", []), key_items)
 	_index_collection(data.get("enemies", []), enemies, Callable(self, "_normalize_enemy"))
 	_index_collection(data.get("events", []), events)
@@ -181,10 +181,51 @@ func _normalize_player(item: Dictionary) -> Dictionary:
 	player["startingOwnedCards"] = player.get("startingOwnedCards", player["startingDeck"]).duplicate()
 	var starting_equipped = player.get("startingEquipped", {})
 	var normalized_slots := {}
-	for slot_id in ["weapon_main", "off_hand", "head", "armor", "legs", "amulet", "ring_left", "ring_right"]:
-		normalized_slots[slot_id] = str(starting_equipped.get(slot_id, ""))
+	var migrated_equipped = _migrate_legacy_equipped_slots(starting_equipped)
+	for slot_id in ["weapon_1", "weapon_2", "armor", "accessory_1", "accessory_2"]:
+		normalized_slots[slot_id] = str(migrated_equipped.get(slot_id, ""))
 	player["startingEquipped"] = normalized_slots
 	return player
+
+func _normalize_equipment(item: Dictionary) -> Dictionary:
+	var equipment_item = item.duplicate(true)
+	var legacy_type = str(item.get("type", ""))
+	var default_slot_cost = 2 if legacy_type == "twohandedWeapon" else 1
+	equipment_item["type"] = _normalize_equipment_type(str(equipment_item.get("type", "accessory")))
+	equipment_item["equipmentImage"] = str(equipment_item.get("equipmentImage", ""))
+	equipment_item["slotCost"] = clampi(int(equipment_item.get("slotCost", default_slot_cost)), 1, 2)
+	if equipment_item["type"] != "weapon":
+		equipment_item["slotCost"] = 1
+	equipment_item["cardIds"] = equipment_item.get("cardIds", []).duplicate()
+	equipment_item["effects"] = equipment_item.get("effects", []).duplicate()
+	equipment_item["conditions"] = equipment_item.get("conditions", []).duplicate()
+	return equipment_item
+
+func _normalize_equipment_type(equipment_type: String) -> String:
+	match equipment_type:
+		"onehandedWeapon", "twohandedWeapon", "offHand", "weapon":
+			return "weapon"
+		"armor", "head", "legs":
+			return "armor"
+		"ring", "amulet", "accessory":
+			return "accessory"
+	return "accessory"
+
+func _migrate_legacy_equipped_slots(raw_slots: Dictionary) -> Dictionary:
+	var migrated := {}
+	for slot_id in ["weapon_1", "weapon_2", "armor", "accessory_1", "accessory_2"]:
+		migrated[slot_id] = str(raw_slots.get(slot_id, ""))
+	if migrated["weapon_1"].is_empty():
+		migrated["weapon_1"] = str(raw_slots.get("weapon_main", ""))
+	if migrated["weapon_2"].is_empty():
+		migrated["weapon_2"] = str(raw_slots.get("off_hand", ""))
+	if migrated["armor"].is_empty():
+		migrated["armor"] = str(raw_slots.get("armor", raw_slots.get("head", raw_slots.get("legs", ""))))
+	if migrated["accessory_1"].is_empty():
+		migrated["accessory_1"] = str(raw_slots.get("ring_left", raw_slots.get("amulet", "")))
+	if migrated["accessory_2"].is_empty():
+		migrated["accessory_2"] = str(raw_slots.get("ring_right", ""))
+	return migrated
 
 func _normalize_buff(item: Dictionary) -> Dictionary:
 	var buff = item.duplicate(true)

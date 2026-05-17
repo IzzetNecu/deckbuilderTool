@@ -46,25 +46,20 @@
         ],
         "equipment": [
           "equip_scout_blade",
-          "equip_cinder_buckler",
+          "equip_oath_maul",
+          "equip_cinder_coat",
+          "equip_river_mail",
           "equip_fire_sigils",
-          "equip_water_sigils",
-          "equip_earth_sigils",
-          "equip_wind_sigils",
-          "equip_ice_sigils",
-          "equip_storm_sigils"
+          "equip_water_sigils"
         ],
         "keyItems": []
       },
       "startingEquipped": {
-        "weapon_main": "equip_scout_blade",
-        "off_hand": "",
-        "head": "",
-        "armor": "",
-        "legs": "",
-        "amulet": "",
-        "ring_left": "",
-        "ring_right": ""
+        "weapon_1": "equip_scout_blade",
+        "weapon_2": "",
+        "armor": "equip_cinder_coat",
+        "accessory_1": "equip_fire_sigils",
+        "accessory_2": ""
       }
     }
   ],
@@ -705,7 +700,9 @@
       "id": "equip_scout_blade",
       "name": "Scout Blade",
       "description": "A light blade that adds a precise opening attack while equipped.",
-      "type": "onehandedWeapon",
+      "equipmentImage": "",
+      "type": "weapon",
+      "slotCost": 1,
       "rarity": "common",
       "value": 35,
       "effects": [],
@@ -715,15 +712,47 @@
       "conditions": []
     },
     {
-      "id": "equip_cinder_buckler",
-      "name": "Cinder Buckler",
-      "description": "A compact shield that grants a stronger guard option while equipped.",
-      "type": "offHand",
-      "rarity": "common",
-      "value": 30,
+      "id": "equip_oath_maul",
+      "name": "Oath Maul",
+      "description": "A heavy two-handed weapon that trades flexibility for a crushing strike.",
+      "equipmentImage": "",
+      "type": "weapon",
+      "slotCost": 2,
+      "rarity": "uncommon",
+      "value": 60,
       "effects": [],
       "cardIds": [
-        "card_ward_plate"
+        "card_heavy_blow"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_cinder_coat",
+      "name": "Cinder Coat",
+      "description": "Light armor threaded with warm sigils. It grants a fire-linked defense line.",
+      "equipmentImage": "",
+      "type": "armor",
+      "slotCost": 1,
+      "rarity": "common",
+      "value": 40,
+      "effects": [],
+      "cardIds": [
+        "card_ember_link"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "equip_river_mail",
+      "name": "River Mail",
+      "description": "Flexible armor that turns careful movement into a steadier guard.",
+      "equipmentImage": "",
+      "type": "armor",
+      "slotCost": 1,
+      "rarity": "common",
+      "value": 42,
+      "effects": [],
+      "cardIds": [
+        "card_tidal_guard"
       ],
       "conditions": []
     },
@@ -731,7 +760,9 @@
       "id": "equip_fire_sigils",
       "name": "Fire Sigils",
       "description": "Training sigils that add Ember Link to the deck while equipped.",
-      "type": "ring",
+      "equipmentImage": "",
+      "type": "accessory",
+      "slotCost": 1,
       "rarity": "common",
       "value": 20,
       "effects": [],
@@ -744,64 +775,14 @@
       "id": "equip_water_sigils",
       "name": "Water Sigils",
       "description": "Training sigils that add Tidal Guard to the deck while equipped.",
-      "type": "ring",
+      "equipmentImage": "",
+      "type": "accessory",
+      "slotCost": 1,
       "rarity": "common",
       "value": 20,
       "effects": [],
       "cardIds": [
         "card_tidal_guard"
-      ],
-      "conditions": []
-    },
-    {
-      "id": "equip_earth_sigils",
-      "name": "Earth Sigils",
-      "description": "Training sigils that add Root Exchange to the deck while equipped.",
-      "type": "amulet",
-      "rarity": "common",
-      "value": 20,
-      "effects": [],
-      "cardIds": [
-        "card_root_exchange"
-      ],
-      "conditions": []
-    },
-    {
-      "id": "equip_wind_sigils",
-      "name": "Wind Sigils",
-      "description": "Training sigils that add Gale Shuffle to the deck while equipped.",
-      "type": "amulet",
-      "rarity": "common",
-      "value": 20,
-      "effects": [],
-      "cardIds": [
-        "card_gale_shuffle"
-      ],
-      "conditions": []
-    },
-    {
-      "id": "equip_ice_sigils",
-      "name": "Ice Sigils",
-      "description": "Training sigils that add Frost Shell to the deck while equipped.",
-      "type": "amulet",
-      "rarity": "common",
-      "value": 20,
-      "effects": [],
-      "cardIds": [
-        "card_frost_shell"
-      ],
-      "conditions": []
-    },
-    {
-      "id": "equip_storm_sigils",
-      "name": "Storm Sigils",
-      "description": "Training sigils that add Storm Mark to the deck while equipped.",
-      "type": "amulet",
-      "rarity": "common",
-      "value": 20,
-      "effects": [],
-      "cardIds": [
-        "card_storm_mark"
       ],
       "conditions": []
     }

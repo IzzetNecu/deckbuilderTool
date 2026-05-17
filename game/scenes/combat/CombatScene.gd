@@ -5,14 +5,11 @@ const HAND_CARD_SIZE := Vector2(150, 225)
 const INTENT_CARD_SIZE := HAND_CARD_SIZE
 const INSPECTOR_CARD_SIZE := Vector2(156, 234)
 const SLOT_LABELS := {
-	"weapon_main": "Weapon",
-	"off_hand": "Off-Hand",
-	"head": "Head",
+	"weapon_1": "Weapon 1",
+	"weapon_2": "Weapon 2",
 	"armor": "Armor",
-	"legs": "Legs",
-	"amulet": "Amulet",
-	"ring_left": "Ring Left",
-	"ring_right": "Ring Right"
+	"accessory_1": "Accessory 1",
+	"accessory_2": "Accessory 2"
 }
 
 @onready var combat_manager: Node = $CombatManager

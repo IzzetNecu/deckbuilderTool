@@ -3,15 +3,15 @@ extends Node
 signal map_updated
 
 const SLOT_ORDER := [
-	"weapon_main",
-	"off_hand",
-	"head",
+	"weapon_1",
+	"weapon_2",
 	"armor",
-	"legs",
-	"amulet",
-	"ring_left",
-	"ring_right"
+	"accessory_1",
+	"accessory_2"
 ]
+
+const WEAPON_SLOTS := ["weapon_1", "weapon_2"]
+const ACCESSORY_SLOTS := ["accessory_1", "accessory_2"]
 
 const BASE_MINIMUM_DECK_SIZE := 15
 
@@ -113,8 +113,13 @@ func get_selected_card_count(card_id: String) -> int:
 
 func get_equipped_item_count(id: String) -> int:
 	var count := 0
+	var counted_two_slot_weapon := false
 	for slot_id in SLOT_ORDER:
 		if str(equipped_slots.get(slot_id, "")) == id:
+			if _is_two_slot_weapon_id(id):
+				if counted_two_slot_weapon:
+					continue
+				counted_two_slot_weapon = true
 			count += 1
 	return count
 
@@ -177,11 +182,18 @@ func get_effective_deck() -> Array:
 
 func get_granted_card_entries() -> Array:
 	var entries: Array = []
+	var counted_two_slot_weapons := {}
 	for slot_id in SLOT_ORDER:
 		var equipment_id = str(equipped_slots.get(slot_id, ""))
 		if equipment_id.is_empty():
 			continue
 		var equip_data = GameData.get_equipment(equipment_id)
+		if equip_data.is_empty():
+			continue
+		if _equipment_slot_cost(equip_data) > 1:
+			if counted_two_slot_weapons.has(equipment_id):
+				continue
+			counted_two_slot_weapons[equipment_id] = true
 		for card_id in equip_data.get("cardIds", []):
 			entries.append({
 				"card_id": card_id,
@@ -198,13 +210,11 @@ func get_slot_item(slot_id: String) -> String:
 	return str(equipped_slots.get(slot_id, ""))
 
 func is_slot_blocked(slot_id: String) -> bool:
-	if slot_id != "off_hand":
+	if not WEAPON_SLOTS.has(slot_id):
 		return false
-	var main_item_id = get_slot_item("weapon_main")
-	if main_item_id.is_empty():
-		return false
-	var main_item = GameData.get_equipment(main_item_id)
-	return str(main_item.get("type", "")) == "twohandedWeapon"
+	var weapon_1_item = get_slot_item("weapon_1")
+	var weapon_2_item = get_slot_item("weapon_2")
+	return not weapon_1_item.is_empty() and weapon_1_item == weapon_2_item and slot_id == "weapon_2"
 
 func get_valid_slots_for_equipment(id: String) -> Array:
 	return _valid_slots_for_equipment_data(GameData.get_equipment(id))
@@ -228,23 +238,18 @@ func equip_item(id: String, preferred_slot: String = "") -> Dictionary:
 	if not valid_slots.has(slot_id):
 		return {"ok": false, "message": "Invalid slot."}
 	if is_slot_blocked(slot_id):
-		return {"ok": false, "message": "That slot is blocked by a two-handed weapon."}
+		if str(equip_data.get("type", "")) != "weapon" or _equipment_slot_cost(equip_data) > 1:
+			return {"ok": false, "message": "That slot is occupied by a two-slot weapon."}
 
 	var equip_type = str(equip_data.get("type", ""))
 	match equip_type:
-		"twohandedWeapon":
-			equipped_slots["weapon_main"] = ""
-			equipped_slots["off_hand"] = ""
-			equipped_slots["weapon_main"] = id
-		"onehandedWeapon":
-			var current_weapon = GameData.get_equipment(get_slot_item("weapon_main"))
-			if str(current_weapon.get("type", "")) == "twohandedWeapon":
-				equipped_slots["weapon_main"] = ""
-			equipped_slots[slot_id] = id
-		"offHand":
-			if is_slot_blocked("off_hand"):
-				return {"ok": false, "message": "Off-hand is blocked by a two-handed weapon."}
-			equipped_slots[slot_id] = id
+		"weapon":
+			_clear_weapon_slots_if_two_slot_equipped()
+			if _equipment_slot_cost(equip_data) > 1:
+				equipped_slots["weapon_1"] = id
+				equipped_slots["weapon_2"] = id
+			else:
+				equipped_slots[slot_id] = id
 		_:
 			equipped_slots[slot_id] = id
 
@@ -255,6 +260,11 @@ func unequip_slot(slot_id: String) -> bool:
 		return false
 	if str(equipped_slots.get(slot_id, "")).is_empty():
 		return false
+	var equipment_id = str(equipped_slots.get(slot_id, ""))
+	if _is_two_slot_weapon_id(equipment_id):
+		equipped_slots["weapon_1"] = ""
+		equipped_slots["weapon_2"] = ""
+		return true
 	equipped_slots[slot_id] = ""
 	return true
 
@@ -431,12 +441,13 @@ func _empty_equipped_slots() -> Dictionary:
 
 func _sanitize_equipped_slots(raw_slots: Dictionary) -> Dictionary:
 	var sanitized = _empty_equipped_slots()
+	var migrated_slots = _migrate_legacy_slots(raw_slots)
 	var remaining_counts := {}
 	for equipment_id in equipment:
 		remaining_counts[equipment_id] = int(remaining_counts.get(equipment_id, 0)) + 1
 
 	for slot_id in SLOT_ORDER:
-		var equipment_id = str(raw_slots.get(slot_id, ""))
+		var equipment_id = str(migrated_slots.get(slot_id, ""))
 		if equipment_id.is_empty():
 			continue
 		var equip_data = GameData.get_equipment(equipment_id)
@@ -446,7 +457,12 @@ func _sanitize_equipped_slots(raw_slots: Dictionary) -> Dictionary:
 			continue
 		if not _valid_slots_for_equipment_data(equip_data).has(slot_id):
 			continue
-		if slot_id == "off_hand" and _slot_blocked_in_slots(slot_id, sanitized):
+		if str(equip_data.get("type", "")) == "weapon" and _equipment_slot_cost(equip_data) > 1:
+			sanitized["weapon_1"] = equipment_id
+			sanitized["weapon_2"] = equipment_id
+			remaining_counts[equipment_id] = int(remaining_counts.get(equipment_id, 0)) - 1
+			continue
+		if slot_id == "weapon_2" and _slot_blocked_in_slots(slot_id, sanitized):
 			continue
 		sanitized[slot_id] = equipment_id
 		remaining_counts[equipment_id] = int(remaining_counts.get(equipment_id, 0)) - 1
@@ -475,20 +491,14 @@ func _trim_equipped_item(id: String) -> void:
 
 func _valid_slots_for_equipment_data(equip_data: Dictionary) -> Array:
 	match str(equip_data.get("type", "")):
-		"onehandedWeapon", "twohandedWeapon":
-			return ["weapon_main"]
-		"offHand":
-			return ["off_hand"]
-		"head":
-			return ["head"]
+		"weapon":
+			if _equipment_slot_cost(equip_data) > 1:
+				return ["weapon_1"]
+			return WEAPON_SLOTS.duplicate()
 		"armor":
 			return ["armor"]
-		"legs":
-			return ["legs"]
-		"amulet":
-			return ["amulet"]
-		"ring":
-			return ["ring_left", "ring_right"]
+		"accessory":
+			return ACCESSORY_SLOTS.duplicate()
 	return []
 
 func _pick_default_slot(valid_slots: Array) -> String:
@@ -498,13 +508,42 @@ func _pick_default_slot(valid_slots: Array) -> String:
 	return str(valid_slots[0])
 
 func _slot_blocked_in_slots(slot_id: String, slot_state: Dictionary) -> bool:
-	if slot_id != "off_hand":
+	if slot_id != "weapon_2":
 		return false
-	var main_item_id = str(slot_state.get("weapon_main", ""))
-	if main_item_id.is_empty():
+	var weapon_1_item = str(slot_state.get("weapon_1", ""))
+	var weapon_2_item = str(slot_state.get("weapon_2", ""))
+	return not weapon_1_item.is_empty() and weapon_1_item == weapon_2_item
+
+func _migrate_legacy_slots(raw_slots: Dictionary) -> Dictionary:
+	var migrated := {}
+	for slot_id in SLOT_ORDER:
+		migrated[slot_id] = str(raw_slots.get(slot_id, ""))
+	if migrated["weapon_1"].is_empty():
+		migrated["weapon_1"] = str(raw_slots.get("weapon_main", ""))
+	if migrated["weapon_2"].is_empty():
+		migrated["weapon_2"] = str(raw_slots.get("off_hand", ""))
+	if migrated["accessory_1"].is_empty():
+		migrated["accessory_1"] = str(raw_slots.get("ring_left", raw_slots.get("amulet", "")))
+	if migrated["accessory_2"].is_empty():
+		migrated["accessory_2"] = str(raw_slots.get("ring_right", ""))
+	return migrated
+
+func _equipment_slot_cost(equip_data: Dictionary) -> int:
+	if str(equip_data.get("type", "")) != "weapon":
+		return 1
+	return clampi(int(equip_data.get("slotCost", 1)), 1, 2)
+
+func _is_two_slot_weapon_id(equipment_id: String) -> bool:
+	if equipment_id.is_empty():
 		return false
-	var main_item = GameData.get_equipment(main_item_id)
-	return str(main_item.get("type", "")) == "twohandedWeapon"
+	return _equipment_slot_cost(GameData.get_equipment(equipment_id)) > 1
+
+func _clear_weapon_slots_if_two_slot_equipped() -> void:
+	var weapon_1_item = get_slot_item("weapon_1")
+	var weapon_2_item = get_slot_item("weapon_2")
+	if not weapon_1_item.is_empty() and weapon_1_item == weapon_2_item and _is_two_slot_weapon_id(weapon_1_item):
+		equipped_slots["weapon_1"] = ""
+		equipped_slots["weapon_2"] = ""
 
 func _meets_equipment_conditions(equip_data: Dictionary) -> bool:
 	for condition in equip_data.get("conditions", []):

@@ -127,16 +127,11 @@ export function renderPlayerEditor(container) {
         <div class="form-group">
           <label>Starting Equipped Slots</label>
           <div class="form-row">
-            ${renderEquippedSlotInput('weapon_main', 'Weapon', player.startingEquipped)}
-            ${renderEquippedSlotInput('off_hand', 'Off-Hand', player.startingEquipped)}
-            ${renderEquippedSlotInput('head', 'Head', player.startingEquipped)}
+            ${renderEquippedSlotInput('weapon_1', 'Weapon 1', player.startingEquipped)}
+            ${renderEquippedSlotInput('weapon_2', 'Weapon 2', player.startingEquipped)}
             ${renderEquippedSlotInput('armor', 'Armor', player.startingEquipped)}
-          </div>
-          <div class="form-row">
-            ${renderEquippedSlotInput('legs', 'Legs', player.startingEquipped)}
-            ${renderEquippedSlotInput('amulet', 'Amulet', player.startingEquipped)}
-            ${renderEquippedSlotInput('ring_left', 'Ring Left', player.startingEquipped)}
-            ${renderEquippedSlotInput('ring_right', 'Ring Right', player.startingEquipped)}
+            ${renderEquippedSlotInput('accessory_1', 'Accessory 1', player.startingEquipped)}
+            ${renderEquippedSlotInput('accessory_2', 'Accessory 2', player.startingEquipped)}
           </div>
         </div>
 
@@ -186,14 +181,11 @@ export function renderPlayerEditor(container) {
         keyItems: parseCsv(container.querySelector('#player-key-items').value)
       };
       player.startingEquipped = {
-        weapon_main: container.querySelector('#player-equip-weapon_main').value.trim(),
-        off_hand: container.querySelector('#player-equip-off_hand').value.trim(),
-        head: container.querySelector('#player-equip-head').value.trim(),
+        weapon_1: container.querySelector('#player-equip-weapon_1').value.trim(),
+        weapon_2: container.querySelector('#player-equip-weapon_2').value.trim(),
         armor: container.querySelector('#player-equip-armor').value.trim(),
-        legs: container.querySelector('#player-equip-legs').value.trim(),
-        amulet: container.querySelector('#player-equip-amulet').value.trim(),
-        ring_left: container.querySelector('#player-equip-ring_left').value.trim(),
-        ring_right: container.querySelector('#player-equip-ring_right').value.trim()
+        accessory_1: container.querySelector('#player-equip-accessory_1').value.trim(),
+        accessory_2: container.querySelector('#player-equip-accessory_2').value.trim()
       };
       store.save('players', player);
     };
