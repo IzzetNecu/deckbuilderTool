@@ -30,6 +30,10 @@ var inventory_drop_zone_script = preload("res://scenes/ui/InventoryDropZone.gd")
 var current_tab: String = "deck"
 var status_message: String = ""
 var focused_equipment_id: String = ""
+var saved_deck_snapshot: Array = []
+var saved_equipped_snapshot: Dictionary = {}
+var saved_active_loadout_id: String = ""
+var unsaved_dialog: ConfirmationDialog = null
 
 func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
@@ -38,6 +42,8 @@ func _ready() -> void:
 	equipment_tab.pressed.connect(func(): _switch_tab("equipment"))
 	items_tab.pressed.connect(func(): _switch_tab("items"))
 	compendium_tab.pressed.connect(func(): _switch_tab("compendium"))
+	_create_unsaved_changes_dialog()
+	_capture_build_snapshot()
 	_switch_tab("deck")
 	_update_stats()
 
@@ -49,7 +55,16 @@ func _update_stats() -> void:
 	stats.get_node("Ins").text = "INS: %d" % GameState.insight
 	stats.get_node("Gold").text = "Gold: %d" % GameState.gold
 
+func request_close() -> void:
+	_on_close_pressed()
+
 func _on_close_pressed() -> void:
+	if _has_unsaved_build_changes():
+		_show_unsaved_changes_dialog()
+		return
+	_close_now()
+
+func _close_now() -> void:
 	if get_parent() is CanvasLayer:
 		get_parent().queue_free()
 	else:
@@ -81,12 +96,81 @@ func _refresh_content() -> void:
 		"compendium":
 			_show_compendium()
 
+func _create_unsaved_changes_dialog() -> void:
+	unsaved_dialog = ConfirmationDialog.new()
+	unsaved_dialog.title = "Unsaved Deck Changes"
+	unsaved_dialog.dialog_text = "This loadout has unsaved deck or equipment changes."
+	unsaved_dialog.ok_button_text = "Save Now"
+	unsaved_dialog.add_button("Discard Changes", false, "discard")
+	unsaved_dialog.confirmed.connect(_on_unsaved_dialog_save_now)
+	unsaved_dialog.custom_action.connect(_on_unsaved_dialog_custom_action)
+	add_child(unsaved_dialog)
+
+func _show_unsaved_changes_dialog() -> void:
+	if unsaved_dialog == null:
+		return
+	unsaved_dialog.popup_centered()
+
+func _on_unsaved_dialog_save_now() -> void:
+	var result = GameState.save_current_state_into_loadout()
+	status_message = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		GameState.save()
+		_capture_build_snapshot()
+		_close_now()
+		return
+	current_tab = "deck"
+	_switch_tab("deck")
+
+func _on_unsaved_dialog_custom_action(action: StringName) -> void:
+	if str(action) != "discard":
+		return
+	GameState.replace_current_build(saved_deck_snapshot, saved_equipped_snapshot)
+	GameState.active_loadout_id = saved_active_loadout_id
+	_close_now()
+
+func _capture_build_snapshot() -> void:
+	saved_deck_snapshot = GameState.deck.duplicate()
+	saved_equipped_snapshot = GameState.get_equipped_slots()
+	saved_active_loadout_id = GameState.active_loadout_id
+
+func _has_unsaved_build_changes() -> bool:
+	if saved_active_loadout_id != GameState.active_loadout_id:
+		return true
+	if not _arrays_equal(saved_deck_snapshot, GameState.deck):
+		return true
+	return not _dictionaries_equal(saved_equipped_snapshot, GameState.get_equipped_slots())
+
+func _arrays_equal(left: Array, right: Array) -> bool:
+	if left.size() != right.size():
+		return false
+	for i in range(left.size()):
+		if left[i] != right[i]:
+			return false
+	return true
+
+func _dictionaries_equal(left: Dictionary, right: Dictionary) -> bool:
+	if left.size() != right.size():
+		return false
+	for key in left.keys():
+		if not right.has(key):
+			return false
+		if left[key] != right[key]:
+			return false
+	return true
+
 func _show_deck() -> void:
 	content_grid.columns = 1
 
 	var reserve_entries = _build_reserve_entries()
 	var selected_entries = _build_selected_entries()
 	var granted_entries = _build_granted_entries()
+
+	var page = VBoxContainer.new()
+	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	page.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page.add_theme_constant_override("separation", 10)
+	page.add_child(_make_loadout_panel())
 
 	var workspace = HBoxContainer.new()
 	workspace.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -129,7 +213,8 @@ func _show_deck() -> void:
 		"No equipped gear is granting cards right now."
 	))
 
-	content_grid.add_child(workspace)
+	page.add_child(workspace)
+	content_grid.add_child(page)
 
 func _show_equipment() -> void:
 	content_grid.columns = 1
@@ -285,6 +370,104 @@ func _make_note_panel(title: String, body_text: String) -> PanelContainer:
 		vbox.add_child(status_label)
 
 	return panel
+
+func _make_loadout_panel() -> PanelContainer:
+	var panel = _make_section_panel("Loadouts", "Save and switch complete deck plus equipment setups.")
+	var body: VBoxContainer = panel.get_meta("body")
+	var loadouts = GameState.get_loadouts()
+	if loadouts.is_empty():
+		body.add_child(_make_empty_label("No saved loadouts."))
+
+	for loadout in loadouts:
+		body.add_child(_make_loadout_row(loadout))
+
+	for i in range(loadouts.size(), GameState.MAX_LOADOUTS):
+		var empty_row = HBoxContainer.new()
+		empty_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		empty_row.add_theme_constant_override("separation", 8)
+		var label = Label.new()
+		label.text = "Empty slot"
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		empty_row.add_child(label)
+		var create_button = Button.new()
+		create_button.text = "Create from Current"
+		create_button.pressed.connect(_create_loadout_from_current)
+		empty_row.add_child(create_button)
+		body.add_child(empty_row)
+
+	var active_validation = GameState.validate_loadout({
+		"deck": GameState.deck,
+		"equipped_slots": GameState.get_equipped_slots()
+	})
+	if not bool(active_validation.get("ok", false)):
+		var validation_label = _make_empty_label("Current build is invalid: %s" % _validation_summary(active_validation))
+		validation_label.modulate = Color(0.96, 0.58, 0.45)
+		body.add_child(validation_label)
+	return panel
+
+func _make_loadout_row(loadout: Dictionary) -> HBoxContainer:
+	var row = HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 8)
+
+	var loadout_id = str(loadout.get("id", ""))
+	var is_active = loadout_id == GameState.active_loadout_id
+	var validation = GameState.validate_loadout(loadout)
+	var is_valid = bool(validation.get("ok", false))
+
+	var active_label = Label.new()
+	active_label.custom_minimum_size = Vector2(56, 0)
+	active_label.text = "Active" if is_active else ""
+	active_label.modulate = Color(0.93, 0.82, 0.48) if is_active else Color(0.7, 0.7, 0.7)
+	row.add_child(active_label)
+
+	var name_edit = LineEdit.new()
+	var current_label = str(loadout.get("label", "Loadout"))
+	name_edit.text = current_label
+	name_edit.custom_minimum_size = Vector2(160, 0)
+	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_edit.text_submitted.connect(func(_new_text): _commit_loadout_rename(loadout_id, name_edit))
+	name_edit.focus_exited.connect(func(): _persist_loadout_rename_if_changed(loadout_id, name_edit, current_label))
+	row.add_child(name_edit)
+
+	var state_label = Label.new()
+	state_label.custom_minimum_size = Vector2(250, 0)
+	state_label.text = "Valid" if is_valid else _validation_summary(validation)
+	state_label.tooltip_text = _validation_summary(validation)
+	state_label.modulate = Color(0.68, 0.88, 0.62) if is_valid else Color(0.96, 0.58, 0.45)
+	state_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.add_child(state_label)
+
+	var switch_button = Button.new()
+	switch_button.text = "Switch"
+	switch_button.disabled = is_active or not is_valid
+	switch_button.pressed.connect(func(): _activate_loadout(loadout_id))
+	row.add_child(switch_button)
+
+	var save_button = Button.new()
+	save_button.text = "Save"
+	save_button.disabled = not is_active
+	save_button.pressed.connect(func(): _save_active_loadout(loadout_id))
+	row.add_child(save_button)
+
+	var rename_button = Button.new()
+	rename_button.text = "Rename"
+	rename_button.pressed.connect(func(): _commit_loadout_rename(loadout_id, name_edit))
+	row.add_child(rename_button)
+
+	var duplicate_button = Button.new()
+	duplicate_button.text = "Duplicate"
+	duplicate_button.disabled = GameState.get_loadouts().size() >= GameState.MAX_LOADOUTS or not is_valid
+	duplicate_button.pressed.connect(func(): _duplicate_loadout(loadout_id))
+	row.add_child(duplicate_button)
+
+	var delete_button = Button.new()
+	delete_button.text = "Delete"
+	delete_button.disabled = loadout_id == GameState.DEFAULT_LOADOUT_ID or GameState.get_loadouts().size() <= 1
+	delete_button.pressed.connect(func(): _delete_loadout(loadout_id))
+	row.add_child(delete_button)
+
+	return row
 
 func _make_section_panel(title: String, subtitle: String) -> PanelContainer:
 	var panel = PanelContainer.new()
@@ -668,7 +851,7 @@ func _build_selected_entries() -> Array:
 				reserve_count,
 				selected_count + int(granted_counts.get(card_id, 0))
 			],
-			"Selected deck stack. Drag it to reserve to remove one copy if the deck stays above minimum size.",
+			"Selected deck stack. Drag it to reserve to remove one copy; invalid deck sizes are blocked when saving.",
 			GameState.can_remove_card_from_deck(str(card_id)),
 			false
 		))
@@ -834,6 +1017,92 @@ func _on_drop_zone_card_dropped(target_section: String, drag_data: Dictionary) -
 		["selected", "reserve"]:
 			_remove_selected_card(card_id)
 
+func _save_active_loadout(loadout_id: String) -> void:
+	var result = GameState.save_current_state_into_loadout(loadout_id)
+	status_message = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		GameState.save()
+		_capture_build_snapshot()
+	_refresh_content()
+
+func _activate_loadout(loadout_id: String) -> void:
+	if _has_unsaved_build_changes():
+		status_message = "Save or discard the current loadout changes before switching."
+		_refresh_content()
+		return
+	var result = GameState.activate_loadout(loadout_id)
+	status_message = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		focused_equipment_id = ""
+		GameState.save()
+		_capture_build_snapshot()
+	_update_stats()
+	_refresh_content()
+
+func _create_loadout_from_current() -> void:
+	if _has_unsaved_build_changes():
+		status_message = "Save or discard the current loadout changes before creating another loadout."
+		_refresh_content()
+		return
+	var result = GameState.create_loadout_from_current()
+	status_message = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		GameState.save()
+		_capture_build_snapshot()
+	_refresh_content()
+
+func _duplicate_loadout(loadout_id: String) -> void:
+	if _has_unsaved_build_changes():
+		status_message = "Save or discard the current loadout changes before duplicating."
+		_refresh_content()
+		return
+	var result = GameState.duplicate_loadout(loadout_id)
+	status_message = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		GameState.save()
+	_refresh_content()
+
+func _rename_loadout(loadout_id: String, label: String) -> void:
+	var result = GameState.rename_loadout(loadout_id, label)
+	status_message = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		GameState.save()
+	_refresh_content()
+
+func _commit_loadout_rename(loadout_id: String, name_edit: LineEdit) -> void:
+	_rename_loadout(loadout_id, name_edit.text)
+
+func _persist_loadout_rename_if_changed(loadout_id: String, name_edit: LineEdit, previous_label: String) -> void:
+	if name_edit.text.strip_edges() == previous_label.strip_edges():
+		return
+	var result = GameState.rename_loadout(loadout_id, name_edit.text)
+	status_message = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		GameState.save()
+	else:
+		name_edit.text = previous_label
+
+func _delete_loadout(loadout_id: String) -> void:
+	if _has_unsaved_build_changes():
+		status_message = "Save or discard the current loadout changes before deleting."
+		_refresh_content()
+		return
+	var result = GameState.delete_loadout(loadout_id)
+	status_message = str(result.get("message", ""))
+	if bool(result.get("ok", false)):
+		GameState.save()
+		_capture_build_snapshot()
+	_refresh_content()
+
+func _validation_summary(validation: Dictionary) -> String:
+	var errors: Array = validation.get("errors", [])
+	if errors.is_empty():
+		return "Valid"
+	var parts: Array[String] = []
+	for error in errors:
+		parts.append(str(error))
+	return " ".join(parts)
+
 func _unique_ids(items: Array) -> Array:
 	var unique: Array = []
 	for item_id in items:
@@ -852,8 +1121,7 @@ func _unique_strings(items: Array) -> Array:
 func _add_reserved_card(card_id: String) -> void:
 	var card_name = str(GameData.get_card(card_id).get("name", card_id))
 	if GameState.add_card_to_deck(card_id):
-		status_message = "Added %s to the selected deck." % card_name
-		GameState.save()
+		status_message = "Added %s to the selected deck. Save the loadout before leaving." % card_name
 	else:
 		status_message = "No extra owned copy of %s is available to add." % card_name
 	_refresh_content()
@@ -861,13 +1129,9 @@ func _add_reserved_card(card_id: String) -> void:
 func _remove_selected_card(card_id: String) -> void:
 	var card_name = str(GameData.get_card(card_id).get("name", card_id))
 	if GameState.remove_card_from_deck(card_id):
-		status_message = "Removed %s from the selected deck." % card_name
-		GameState.save()
+		status_message = "Removed %s from the selected deck. Save the loadout before leaving." % card_name
 	else:
-		status_message = "Cannot remove %s below the minimum deck size of %d." % [
-			card_name,
-			GameState.get_minimum_deck_size()
-		]
+		status_message = "No selected copy of %s is available to remove." % card_name
 	_refresh_content()
 
 func _equip_item(equipment_id: String, slot_id: String) -> void:
@@ -875,7 +1139,6 @@ func _equip_item(equipment_id: String, slot_id: String) -> void:
 	status_message = str(result.get("message", ""))
 	if bool(result.get("ok", false)):
 		focused_equipment_id = equipment_id
-		GameState.save()
 	_refresh_content()
 
 func _unequip_slot(slot_id: String) -> void:
@@ -883,7 +1146,6 @@ func _unequip_slot(slot_id: String) -> void:
 	if GameState.unequip_slot(slot_id):
 		focused_equipment_id = equipment_id
 		status_message = "Unequipped %s." % _slot_label(slot_id)
-		GameState.save()
 	else:
 		status_message = "Nothing was equipped in that slot."
 	_refresh_content()

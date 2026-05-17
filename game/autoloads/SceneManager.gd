@@ -34,6 +34,10 @@ func toggle_inventory() -> void:
 	# Check if inventory is already open
 	var existing = get_tree().current_scene.get_node_or_null("InventoryOverlay")
 	if existing:
+		var panel = existing.get_child(0) if existing.get_child_count() > 0 else null
+		if panel != null and panel.has_method("request_close"):
+			panel.request_close()
+			return
 		existing.queue_free()
 		return
 

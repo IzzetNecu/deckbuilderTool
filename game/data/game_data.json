@@ -21,12 +21,20 @@
         "card_guard",
         "card_guard",
         "card_focus",
-        "card_quick_think"
+        "card_quick_think",
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard"
       ],
       "startingOwnedCards": [
         "card_strike",
         "card_strike",
         "card_strike",
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard",
         "card_guard",
         "card_guard",
         "card_guard",
