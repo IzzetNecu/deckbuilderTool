@@ -58,7 +58,8 @@
           "equip_cinder_coat",
           "equip_river_mail",
           "equip_fire_sigils",
-          "equip_water_sigils"
+          "equip_water_sigils",
+          "5e25d212-b6ec-470e-8efd-285c1ee53522"
         ],
         "keyItems": []
       },
@@ -791,6 +792,21 @@
       "effects": [],
       "cardIds": [
         "card_tidal_guard"
+      ],
+      "conditions": []
+    },
+    {
+      "id": "5e25d212-b6ec-470e-8efd-285c1ee53522",
+      "name": "bong",
+      "description": "bing bong",
+      "equipmentImage": "",
+      "type": "accessory",
+      "slotCost": 1,
+      "rarity": "legendary",
+      "value": 10,
+      "effects": [],
+      "cardIds": [
+        "enemy_gust_snare"
       ],
       "conditions": []
     }

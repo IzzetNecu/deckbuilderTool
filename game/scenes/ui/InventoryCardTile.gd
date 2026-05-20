@@ -23,7 +23,6 @@ var footer_text: String = ""
 var action_text: String = ""
 var action_enabled: bool = true
 var rules_text: String = ""
-var stack_count: int = 1
 
 @onready var name_label: Label = $Margin/VBox/Header/TitleBox/NameLabel
 @onready var meta_label: Label = $Margin/VBox/Header/TitleBox/MetaLabel
@@ -37,10 +36,6 @@ var stack_count: int = 1
 @onready var effects_label: Label = $Margin/VBox/EffectsLabel
 @onready var footer_label: Label = $Margin/VBox/FooterLabel
 @onready var action_button: Button = $Margin/VBox/ActionButton
-@onready var back_stack_a: PanelContainer = $BackStackA
-@onready var back_stack_b: PanelContainer = $BackStackB
-@onready var back_stack_a_label: Label = $BackStackA/BackTitle
-@onready var back_stack_b_label: Label = $BackStackB/BackTitle
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -65,7 +60,6 @@ func setup(data: Dictionary, options: Dictionary = {}) -> void:
 	action_text = str(options.get("action_text", ""))
 	action_enabled = bool(options.get("action_enabled", true))
 	rules_text = str(options.get("rules_text", GameState.get_preview_card_text(card_data)))
-	stack_count = max(int(options.get("stack_count", 1)), 1)
 	tooltip_text = str(options.get("tooltip_text", ""))
 	_apply_content()
 
@@ -88,8 +82,6 @@ func _apply_content() -> void:
 		str(card_data.get("type", "card")).to_upper(),
 		str(card_data.get("targeting", "self")).replace("_", " ").to_upper()
 	]
-	back_stack_a_label.text = name_label.text
-	back_stack_b_label.text = name_label.text
 	count_badge.visible = not count_text.is_empty()
 	count_label.text = count_text
 	var cost_value = str(int(card_data.get("cost", 0)))
@@ -101,8 +93,6 @@ func _apply_content() -> void:
 	action_button.text = action_text
 	action_button.disabled = not action_enabled
 	action_button.focus_mode = Control.FOCUS_NONE
-	back_stack_a.visible = compact_mode and stack_count > 1
-	back_stack_b.visible = compact_mode and stack_count > 2
 	meta_label.visible = false
 	footer_label.visible = not footer_text.is_empty() and not compact_mode
 	type_label.get_parent().visible = true
@@ -160,8 +150,7 @@ func _build_drag_preview() -> Control:
 		"locked": locked,
 		"count_text": count_text,
 		"footer_text": footer_text,
-		"rules_text": rules_text,
-		"stack_count": stack_count
+		"rules_text": rules_text
 	})
 	preview_tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	preview_tile.position = Vector2.ZERO
@@ -220,10 +209,6 @@ func _set_compact_hit_regions() -> void:
 	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	effects_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	footer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	back_stack_a.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	back_stack_b.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	back_stack_a_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	back_stack_b_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _fit_name_to_single_line() -> void:
 	var font: Font = name_label.get_theme_font("font")

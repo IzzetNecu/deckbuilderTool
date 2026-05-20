@@ -192,7 +192,7 @@ func _show_deck() -> void:
 	left_column.add_child(_make_note_panel("Deck Builder", _get_deck_summary_text()))
 	left_column.add_child(_make_card_stack_section(
 		"Card Catalog",
-		"Drag reserve stacks into the current deck.",
+		"Drag reserve cards into the current deck.",
 		"reserve",
 		reserve_entries,
 		"No reserve cards. Your selected deck already uses every owned copy."
@@ -200,14 +200,14 @@ func _show_deck() -> void:
 
 	center_column.add_child(_make_card_stack_section(
 		"Current Deck",
-		"Drag selected stacks back to reserve to remove one copy.",
+		"Drag selected cards back to reserve to remove one copy.",
 		"selected",
 		selected_entries,
 		"No selected cards."
 	))
 	center_column.add_child(_make_card_stack_section(
 		"Granted by Equipment",
-		"Locked stacks from equipped items.",
+		"Locked cards from equipped items.",
 		"granted",
 		granted_entries,
 		"No equipped gear is granting cards right now."
@@ -562,16 +562,15 @@ func _make_card_tile(entry: Dictionary) -> Control:
 		"locked": bool(entry.get("locked", false)),
 		"draggable": str(entry.get("section", "")) != "granted",
 		"drag_section": str(entry.get("section", "")),
-		"count_text": "" if section == "reserve" or section == "selected" else str(entry.get("count_text", "")),
+		"count_text": "",
 		"rules_text": str(entry.get("rules_text", "")),
 		"tooltip_text": str(entry.get("tooltip_text", "")),
 		"action_text": action_text,
-		"action_enabled": bool(entry.get("action_enabled", false)),
-		"stack_count": int(entry.get("copies", 1))
+		"action_enabled": bool(entry.get("action_enabled", false))
 	})
 	tile.action_pressed.connect(_on_deck_tile_action.bind(entry))
 
-	if section != "reserve" and section != "selected":
+	if str(entry.get("count_text", "")).is_empty():
 		return tile
 
 	var wrapper = VBoxContainer.new()
@@ -851,7 +850,7 @@ func _build_selected_entries() -> Array:
 				reserve_count,
 				selected_count + int(granted_counts.get(card_id, 0))
 			],
-			"Selected deck stack. Drag it to reserve to remove one copy; invalid deck sizes are blocked when saving.",
+			"Selected deck card. Drag it to reserve to remove one copy; invalid deck sizes are blocked when saving.",
 			GameState.can_remove_card_from_deck(str(card_id)),
 			false
 		))
@@ -873,7 +872,7 @@ func _build_reserve_entries() -> Array:
 			reserve_count,
 			"Reserve x%d" % reserve_count,
 			"Owned copies not currently selected.",
-			"Reserve stack. Drag it into the current deck to add one copy.",
+			"Reserve card. Drag it into the current deck to add one copy.",
 			GameState.can_add_card_to_deck(str(card_id)),
 			false
 		))
