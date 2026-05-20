@@ -1,6 +1,7 @@
-import { store } from '../../data/store.js?v=1778179374';
-import { createEquipment, createEquipmentCondition } from '../../data/models.js?v=1778179374';
-import { showConfirmModal } from '../components/modal.js?v=1778179374';
+import { store } from '../../data/store.js?v=1779266068';
+import { createEquipment, createEquipmentCondition } from '../../data/models.js?v=1779266068';
+import { showConfirmModal } from '../components/modal.js?v=1779266068';
+import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
 
 export function renderEquipmentEditor(container) {
   let equipment = store.getAll('equipment');
@@ -12,7 +13,7 @@ export function renderEquipmentEditor(container) {
   function render() {
     const selectedItem = equipment.find(i => i.id === selectedId) || null;
 
-    const _pane = container.querySelector(".pane-form"); const _st = _pane ? _pane.scrollTop : 0;
+    const restoreScroll = captureEditorScroll(container);
     container.innerHTML = `
       <div class="editor-header">
         <h2>Equipment Editor</h2>
@@ -44,7 +45,7 @@ export function renderEquipmentEditor(container) {
     `;
 
     attachEvents();
-    requestAnimationFrame(() => { const _p = container.querySelector(".pane-form"); if (_p) _p.scrollTop = _st; });
+    restoreScroll();
   }
 
   function renderForm(item) {

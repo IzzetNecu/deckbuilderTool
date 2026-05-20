@@ -1,6 +1,7 @@
-import { store } from '../../data/store.js?v=1778179374';
-import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1778179374';
-import { showConfirmModal } from '../components/modal.js?v=1778179374';
+import { store } from '../../data/store.js?v=1779266068';
+import { createEvent, createEventOption, createEventCondition, createEventOutcome } from '../../data/models.js?v=1779266068';
+import { showConfirmModal } from '../components/modal.js?v=1779266068';
+import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
 
 export function renderEventEditor(container) {
   let events = store.getAll('events');
@@ -23,13 +24,7 @@ export function renderEventEditor(container) {
   function render() {
     const selectedEvent = events.find(e => e.id === selectedId) || null;
 
-    let scrollPos = 0;
-    const existingPane = container.querySelector('.pane-form');
-    if (existingPane) {
-       scrollPos = existingPane.scrollTop;
-    }
-
-    const _pane = container.querySelector(".pane-form"); const _st = _pane ? _pane.scrollTop : 0;
+    const restoreScroll = captureEditorScroll(container);
     container.innerHTML = `
       <div class="editor-header">
         <h2>Event Editor</h2>
@@ -61,12 +56,7 @@ export function renderEventEditor(container) {
     `;
 
     attachEvents();
-    requestAnimationFrame(() => { const _p = container.querySelector(".pane-form"); if (_p) _p.scrollTop = _st; });
-
-    const newPane = container.querySelector('.pane-form');
-    if (newPane) {
-       newPane.scrollTop = scrollPos;
-    }
+    restoreScroll();
   }
 
   function renderForm(event) {

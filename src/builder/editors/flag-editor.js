@@ -1,6 +1,7 @@
-import { store } from '../../data/store.js?v=1778179374';
-import { createFlag } from '../../data/models.js?v=1778179374';
-import { showConfirmModal } from '../components/modal.js?v=1778179374';
+import { store } from '../../data/store.js?v=1779266068';
+import { createFlag } from '../../data/models.js?v=1779266068';
+import { showConfirmModal } from '../components/modal.js?v=1779266068';
+import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
 
 export function renderFlagEditor(container) {
   let flags = store.getAll('flags');
@@ -9,7 +10,7 @@ export function renderFlagEditor(container) {
   function render() {
     const selectedFlag = flags.find(f => f.id === selectedId) || null;
 
-    const _pane = container.querySelector(".pane-form"); const _st = _pane ? _pane.scrollTop : 0;
+    const restoreScroll = captureEditorScroll(container);
     container.innerHTML = `
       <div class="editor-header">
         <h2>Flag Editor</h2>
@@ -38,7 +39,7 @@ export function renderFlagEditor(container) {
     `;
 
     attachEvents();
-    requestAnimationFrame(() => { const _p = container.querySelector(".pane-form"); if (_p) _p.scrollTop = _st; });
+    restoreScroll();
   }
 
   function renderForm(flag) {

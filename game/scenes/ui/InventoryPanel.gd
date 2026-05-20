@@ -47,6 +47,20 @@ func _ready() -> void:
 	_switch_tab("deck")
 	_update_stats()
 
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	if event.button_index != MOUSE_BUTTON_LEFT or not event.pressed:
+		return
+	var focus_owner = get_viewport().gui_get_focus_owner()
+	if not _is_loadout_name_input(focus_owner):
+		return
+	var focused_control := focus_owner as Control
+	var focused_rect := Rect2(focused_control.global_position, focused_control.size)
+	if focused_rect.has_point(event.position):
+		return
+	focused_control.release_focus()
+
 func _update_stats() -> void:
 	var stats = $Window/VBox/Header/Stats
 	stats.get_node("HP").text = "HP: %d/%d" % [GameState.health, GameState.max_health]
@@ -195,7 +209,7 @@ func _show_deck() -> void:
 		"Drag reserve cards into the current deck.",
 		"reserve",
 		reserve_entries,
-		"No reserve cards. Your selected deck already uses every owned copy."
+		""
 	))
 
 	center_column.add_child(_make_card_stack_section(
@@ -203,14 +217,14 @@ func _show_deck() -> void:
 		"Drag selected cards back to reserve to remove one copy.",
 		"selected",
 		selected_entries,
-		"No selected cards."
+		""
 	))
 	center_column.add_child(_make_card_stack_section(
 		"Granted by Equipment",
 		"Locked cards from equipped items.",
 		"granted",
 		granted_entries,
-		"No equipped gear is granting cards right now."
+		""
 	))
 
 	page.add_child(workspace)
@@ -426,6 +440,7 @@ func _make_loadout_row(loadout: Dictionary) -> HBoxContainer:
 	name_edit.text = current_label
 	name_edit.custom_minimum_size = Vector2(160, 0)
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_edit.set_meta("is_loadout_name_input", true)
 	name_edit.text_submitted.connect(func(_new_text): _commit_loadout_rename(loadout_id, name_edit))
 	name_edit.focus_exited.connect(func(): _persist_loadout_rename_if_changed(loadout_id, name_edit, current_label))
 	row.add_child(name_edit)
@@ -468,6 +483,9 @@ func _make_loadout_row(loadout: Dictionary) -> HBoxContainer:
 	row.add_child(delete_button)
 
 	return row
+
+func _is_loadout_name_input(node: Node) -> bool:
+	return node is LineEdit and bool(node.get_meta("is_loadout_name_input", false))
 
 func _make_section_panel(title: String, subtitle: String) -> PanelContainer:
 	var panel = PanelContainer.new()
@@ -541,7 +559,8 @@ func _make_card_stack_section(title: String, subtitle: String, section_id: Strin
 	vbox.add_child(flow)
 
 	if entries.is_empty():
-		flow.add_child(_make_empty_label(empty_text))
+		if not empty_text.is_empty():
+			flow.add_child(_make_empty_label(empty_text))
 		return panel
 
 	for entry in entries:

@@ -62,6 +62,7 @@ export const store = {
       // Deep clone to ensure nested arrays (e.g. map nodes/connections) are fully included
       data[col] = JSON.parse(JSON.stringify(this.getAll(col)));
     });
+    data.players = data.players.map(player => normalizePlayerForExport(player, data.equipment));
     return JSON.stringify(data, null, 2);
   },
 
@@ -90,3 +91,48 @@ export const store = {
 };
 
 store.init();
+
+function normalizePlayerForExport(player, equipmentItems = []) {
+  const normalized = JSON.parse(JSON.stringify(player));
+  normalized.startingDeck = normalized.startingDeck || [];
+  normalized.startingOwnedCards = normalized.startingDeck.slice();
+  normalized.startingEquipped = {
+    weapon_1: normalized.startingEquipped?.weapon_1 || '',
+    weapon_2: normalized.startingEquipped?.weapon_2 || '',
+    armor: normalized.startingEquipped?.armor || '',
+    accessory_1: normalized.startingEquipped?.accessory_1 || '',
+    accessory_2: normalized.startingEquipped?.accessory_2 || ''
+  };
+  if (isTwoSlotWeapon(normalized.startingEquipped.weapon_1, equipmentItems)) {
+    normalized.startingEquipped.weapon_2 = normalized.startingEquipped.weapon_1;
+  } else if (isTwoSlotWeapon(normalized.startingEquipped.weapon_2, equipmentItems)) {
+    normalized.startingEquipped.weapon_1 = normalized.startingEquipped.weapon_2;
+  }
+  normalized.startingInventory = {
+    consumables: normalized.startingInventory?.consumables || [],
+    equipment: collectStartingEquipmentFromSlots(normalized.startingEquipped, equipmentItems),
+    keyItems: normalized.startingInventory?.keyItems || []
+  };
+  return normalized;
+}
+
+function isTwoSlotWeapon(itemId, equipmentItems) {
+  const item = equipmentItems.find(entry => entry.id === itemId);
+  return item?.type === 'weapon' && parseInt(item.slotCost || 1, 10) > 1;
+}
+
+function collectStartingEquipmentFromSlots(slots, equipmentItems) {
+  const result = [];
+  const countedTwoSlotWeapons = new Set();
+  Object.values(slots).forEach(itemId => {
+    if (!itemId) return;
+    const item = equipmentItems.find(entry => entry.id === itemId);
+    const isTwoSlotWeapon = item?.type === 'weapon' && parseInt(item.slotCost || 1, 10) > 1;
+    if (isTwoSlotWeapon) {
+      if (countedTwoSlotWeapons.has(itemId)) return;
+      countedTwoSlotWeapons.add(itemId);
+    }
+    result.push(itemId);
+  });
+  return result;
+}

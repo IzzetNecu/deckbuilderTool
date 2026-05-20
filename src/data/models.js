@@ -193,6 +193,14 @@ export function createEnemy(data = {}) {
 }
 
 export function createPlayer(data = {}) {
+  const startingDeck = data.startingDeck || [];
+  const startingEquipped = {
+    weapon_1: data.startingEquipped?.weapon_1 || data.startingEquipped?.weapon_main || '',
+    weapon_2: data.startingEquipped?.weapon_2 || data.startingEquipped?.off_hand || '',
+    armor: data.startingEquipped?.armor || '',
+    accessory_1: data.startingEquipped?.accessory_1 || data.startingEquipped?.ring_left || data.startingEquipped?.amulet || '',
+    accessory_2: data.startingEquipped?.accessory_2 || data.startingEquipped?.ring_right || ''
+  };
   return {
     id: data.id || uuid(),
     name: data.name || 'Hero',
@@ -205,21 +213,31 @@ export function createPlayer(data = {}) {
       maxEnergy: data.baseStats?.maxEnergy ?? 3,
       handSize: data.baseStats?.handSize ?? 5
     },
-    startingDeck: data.startingDeck || [],
-    startingOwnedCards: data.startingOwnedCards || data.startingDeck || [],
+    startingDeck,
+    startingOwnedCards: startingDeck.slice(),
     startingInventory: {
       consumables: data.startingInventory?.consumables || [],
-      equipment: data.startingInventory?.equipment || [],
+      equipment: collectStartingEquipmentFromSlots(startingEquipped, data.equipment || []),
       keyItems: data.startingInventory?.keyItems || []
     },
-    startingEquipped: {
-      weapon_1: data.startingEquipped?.weapon_1 || data.startingEquipped?.weapon_main || '',
-      weapon_2: data.startingEquipped?.weapon_2 || data.startingEquipped?.off_hand || '',
-      armor: data.startingEquipped?.armor || '',
-      accessory_1: data.startingEquipped?.accessory_1 || data.startingEquipped?.ring_left || data.startingEquipped?.amulet || '',
-      accessory_2: data.startingEquipped?.accessory_2 || data.startingEquipped?.ring_right || ''
-    }
+    startingEquipped
   };
+}
+
+function collectStartingEquipmentFromSlots(slots, equipmentItems) {
+  const result = [];
+  const countedTwoSlotWeapons = new Set();
+  Object.values(slots).forEach(itemId => {
+    if (!itemId) return;
+    const item = equipmentItems.find(entry => entry.id === itemId);
+    const isTwoSlotWeapon = item?.type === 'weapon' && parseInt(item.slotCost || 1, 10) > 1;
+    if (isTwoSlotWeapon) {
+      if (countedTwoSlotWeapons.has(itemId)) return;
+      countedTwoSlotWeapons.add(itemId);
+    }
+    result.push(itemId);
+  });
+  return result;
 }
 
 export function createEventOption(data = {}) {

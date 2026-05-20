@@ -1,6 +1,7 @@
-import { store } from '../../data/store.js?v=1778179374';
-import { createPlayer } from '../../data/models.js?v=1778179374';
-import { showConfirmModal } from '../components/modal.js?v=1778179374';
+import { store } from '../../data/store.js?v=1779266068';
+import { createPlayer } from '../../data/models.js?v=1779266068';
+import { showConfirmModal } from '../components/modal.js?v=1779266068';
+import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
 
 export function renderPlayerEditor(container) {
   let players = store.getAll('players');
@@ -12,6 +13,7 @@ export function renderPlayerEditor(container) {
 
   function render() {
     const selectedPlayer = players.find(player => player.id === selectedId) || null;
+    const restoreScroll = captureEditorScroll(container);
     container.innerHTML = `
       <div class="editor-header">
         <h2>Player Editor</h2>
@@ -38,9 +40,15 @@ export function renderPlayerEditor(container) {
     `;
 
     attachEvents();
+    restoreScroll();
   }
 
   function renderForm(player) {
+    if (!player.startingInventory) player.startingInventory = { consumables: [], equipment: [], keyItems: [] };
+    if (!player.startingInventory.consumables) player.startingInventory.consumables = [];
+    if (!player.startingInventory.keyItems) player.startingInventory.keyItems = [];
+    if (!player.startingEquipped) player.startingEquipped = {};
+
     return `
       <div style="max-width: 900px;">
         <div class="form-row">
@@ -104,20 +112,7 @@ export function renderPlayerEditor(container) {
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Starting Owned Cards</label>
-          <input type="text" id="player-owned-cards" value="${(player.startingOwnedCards || player.startingDeck || []).join(', ')}" placeholder="${cards.map(card => card.id).join(', ')}" />
-        </div>
-
         <div class="form-row">
-          <div class="form-group">
-            <label>Starting Consumables</label>
-            <input type="text" id="player-consumables" value="${(player.startingInventory.consumables || []).join(', ')}" placeholder="${consumables.map(item => item.id).join(', ')}" />
-          </div>
-          <div class="form-group">
-            <label>Starting Equipment</label>
-            <input type="text" id="player-equipment" value="${(player.startingInventory.equipment || []).join(', ')}" placeholder="${equipment.map(item => item.id).join(', ')}" />
-          </div>
           <div class="form-group">
             <label>Starting Key Items</label>
             <input type="text" id="player-key-items" value="${(player.startingInventory.keyItems || []).join(', ')}" placeholder="${keyItems.map(item => item.id).join(', ')}" />
@@ -125,7 +120,25 @@ export function renderPlayerEditor(container) {
         </div>
 
         <div class="form-group">
-          <label>Starting Equipped Slots</label>
+          <label>Starting Consumables</label>
+          <div class="dynamic-list">
+            ${(player.startingInventory.consumables || []).map((itemId, index) => `
+              <div class="dynamic-item">
+                <select class="player-consumable" data-index="${index}" style="flex:1;">
+                  <option value="">-- Select Item --</option>
+                  ${consumables.map(item => `<option value="${item.id}" ${item.id === itemId ? 'selected' : ''}>${item.name || 'Unnamed Consumable'}</option>`).join('')}
+                </select>
+                <button class="danger btn-remove-player-consumable" data-index="${index}">X</button>
+              </div>
+            `).join('')}
+            <div style="margin-top:8px;">
+              <button id="btn-add-player-consumable" ${consumables.length === 0 ? 'disabled' : ''}>+ Add Item</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Starting Equipment</label>
           <div class="form-row">
             ${renderEquippedSlotInput('weapon_1', 'Weapon 1', player.startingEquipped)}
             ${renderEquippedSlotInput('weapon_2', 'Weapon 2', player.startingEquipped)}
@@ -174,23 +187,19 @@ export function renderPlayerEditor(container) {
         handSize: parseInt(container.querySelector('#player-hand-size').value, 10) || 5
       };
       player.startingDeck = Array.from(container.querySelectorAll('.player-deck-card')).map(select => select.value).filter(Boolean);
-      player.startingOwnedCards = parseCsv(container.querySelector('#player-owned-cards').value);
+      player.startingOwnedCards = player.startingDeck.slice();
+      const startingEquipped = readStartingEquippedFromForm();
       player.startingInventory = {
-        consumables: parseCsv(container.querySelector('#player-consumables').value),
-        equipment: parseCsv(container.querySelector('#player-equipment').value),
+        consumables: Array.from(container.querySelectorAll('.player-consumable')).map(select => select.value).filter(Boolean),
+        equipment: collectEquipmentFromSlots(startingEquipped),
         keyItems: parseCsv(container.querySelector('#player-key-items').value)
       };
-      player.startingEquipped = {
-        weapon_1: container.querySelector('#player-equip-weapon_1').value.trim(),
-        weapon_2: container.querySelector('#player-equip-weapon_2').value.trim(),
-        armor: container.querySelector('#player-equip-armor').value.trim(),
-        accessory_1: container.querySelector('#player-equip-accessory_1').value.trim(),
-        accessory_2: container.querySelector('#player-equip-accessory_2').value.trim()
-      };
+      player.startingEquipped = startingEquipped;
       store.save('players', player);
     };
 
     container.querySelectorAll('input, select').forEach(field => {
+      if (field.classList.contains('player-equipment-slot')) return;
       field.addEventListener('change', onChange);
       field.addEventListener('blur', onChange);
     });
@@ -232,6 +241,31 @@ export function renderPlayerEditor(container) {
       });
     });
 
+    container.querySelector('#btn-add-player-consumable')?.addEventListener('click', () => {
+      const player = players.find(entry => entry.id === selectedId);
+      if (!player.startingInventory) player.startingInventory = {};
+      if (!player.startingInventory.consumables) player.startingInventory.consumables = [];
+      player.startingInventory.consumables.push('');
+      store.save('players', player);
+      render();
+    });
+
+    container.querySelectorAll('.btn-remove-player-consumable').forEach(button => {
+      button.addEventListener('click', event => {
+        const player = players.find(entry => entry.id === selectedId);
+        player.startingInventory.consumables.splice(parseInt(event.currentTarget.dataset.index, 10), 1);
+        store.save('players', player);
+        render();
+      });
+    });
+
+    container.querySelectorAll('.player-equipment-slot').forEach(select => {
+      select.addEventListener('change', () => {
+        onChange();
+        render();
+      });
+    });
+
     container.querySelector('#btn-delete-player')?.addEventListener('click', () => {
       showConfirmModal('Are you sure you want to delete this player?', () => {
         store.remove('players', selectedId);
@@ -247,12 +281,86 @@ export function renderPlayerEditor(container) {
   }
 
   function renderEquippedSlotInput(slotId, label, startingEquipped = {}) {
+    const selectedValue = visibleSlotValue(slotId, startingEquipped);
+    const disabled = isSlotDisabled(slotId, startingEquipped);
+    const options = equipment.filter(item => isEquipmentValidForSlot(item, slotId));
     return `
       <div class="form-group">
         <label>${label}</label>
-        <input type="text" id="player-equip-${slotId}" value="${startingEquipped?.[slotId] || ''}" placeholder="${equipment.map(item => item.id).join(', ')}" />
+        <select class="player-equipment-slot" id="player-equip-${slotId}" data-slot="${slotId}" ${disabled ? 'disabled' : ''}>
+          <option value="">-- Empty --</option>
+          ${options.map(item => `<option value="${item.id}" ${item.id === selectedValue ? 'selected' : ''}>${equipmentLabel(item)}</option>`).join('')}
+        </select>
       </div>
     `;
+  }
+
+  function readStartingEquippedFromForm() {
+    const slots = {
+      weapon_1: readSlotValue('weapon_1'),
+      weapon_2: readSlotValue('weapon_2'),
+      armor: readSlotValue('armor'),
+      accessory_1: readSlotValue('accessory_1'),
+      accessory_2: readSlotValue('accessory_2')
+    };
+
+    if (isTwoSlotWeapon(slots.weapon_1)) {
+      slots.weapon_2 = slots.weapon_1;
+    } else if (isTwoSlotWeapon(slots.weapon_2)) {
+      slots.weapon_1 = slots.weapon_2;
+    }
+
+    return slots;
+  }
+
+  function readSlotValue(slotId) {
+    const field = container.querySelector(`#player-equip-${slotId}`);
+    return field && !field.disabled ? field.value.trim() : '';
+  }
+
+  function collectEquipmentFromSlots(slots) {
+    const result = [];
+    const countedTwoSlotWeapons = new Set();
+    Object.values(slots).forEach(itemId => {
+      if (!itemId) return;
+      if (isTwoSlotWeapon(itemId)) {
+        if (countedTwoSlotWeapons.has(itemId)) return;
+        countedTwoSlotWeapons.add(itemId);
+      }
+      result.push(itemId);
+    });
+    return result;
+  }
+
+  function visibleSlotValue(slotId, startingEquipped = {}) {
+    const value = startingEquipped?.[slotId] || '';
+    if (slotId === 'weapon_2' && isTwoSlotWeapon(startingEquipped?.weapon_1)) return '';
+    if (slotId === 'weapon_1' && isTwoSlotWeapon(startingEquipped?.weapon_2) && startingEquipped.weapon_1 !== startingEquipped.weapon_2) return '';
+    return value;
+  }
+
+  function isSlotDisabled(slotId, startingEquipped = {}) {
+    if (slotId === 'weapon_2' && isTwoSlotWeapon(startingEquipped?.weapon_1)) return true;
+    if (slotId === 'weapon_1' && isTwoSlotWeapon(startingEquipped?.weapon_2) && startingEquipped.weapon_1 !== startingEquipped.weapon_2) return true;
+    return false;
+  }
+
+  function isEquipmentValidForSlot(item, slotId) {
+    if (!item) return false;
+    if (slotId.startsWith('weapon_')) return item.type === 'weapon';
+    if (slotId === 'armor') return item.type === 'armor';
+    if (slotId.startsWith('accessory_')) return item.type === 'accessory';
+    return false;
+  }
+
+  function isTwoSlotWeapon(itemId) {
+    const item = equipment.find(entry => entry.id === itemId);
+    return item?.type === 'weapon' && parseInt(item.slotCost || 1, 10) > 1;
+  }
+
+  function equipmentLabel(item) {
+    const slotCost = item.type === 'weapon' ? `, ${parseInt(item.slotCost || 1, 10)} slot` : '';
+    return `${item.name || 'Unnamed Equipment'} (${item.type}${slotCost})`;
   }
 
   render();

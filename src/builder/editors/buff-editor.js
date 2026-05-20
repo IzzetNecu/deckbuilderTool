@@ -1,4 +1,5 @@
-import { store } from '../../data/store.js?v=1778179374';
+import { store } from '../../data/store.js?v=1779266068';
+import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
 
 export const PREDEFINED_BUFFS = [
   {
@@ -128,6 +129,7 @@ export function renderBuffEditor(container) {
 
   function render() {
     const selectedBuff = buffs.find(buff => buff.id === selectedId) || null;
+    const restoreScroll = captureEditorScroll(container);
     container.innerHTML = `
       <div class="editor-header">
         <h2>Buffs & Debuffs</h2>
@@ -153,6 +155,7 @@ export function renderBuffEditor(container) {
     `;
 
     attachEvents();
+    restoreScroll();
   }
 
   function renderForm(buff) {

@@ -1,6 +1,7 @@
-import { store } from '../../data/store.js?v=1778179374';
-import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1778179374';
-import { showConfirmModal } from '../components/modal.js?v=1778179374';
+import { store } from '../../data/store.js?v=1779266068';
+import { createGameMap, createMapNode, createMapConnection, createEventCondition, createEventOption, createEventOutcome } from '../../data/models.js?v=1779266068';
+import { showConfirmModal } from '../components/modal.js?v=1779266068';
+import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
 
 export function renderMapEditor(container) {
   let maps = store.getAll('maps');
@@ -43,9 +44,7 @@ export function renderMapEditor(container) {
     const selectedMap = maps.find(m => m.id === selectedMapId) || null;
     const overworld = maps.find(m => m.isOverworld);
 
-    // Preserve inspector scroll position across re-renders
-    const _inspector = container.querySelector('#node-inspector');
-    const _st = _inspector ? _inspector.scrollTop : 0;
+    const restoreScroll = captureEditorScroll(container);
 
     container.innerHTML = `
       <div class="editor-header">
@@ -108,10 +107,7 @@ export function renderMapEditor(container) {
     if (selectedMap) {
       initCanvas();
     }
-    requestAnimationFrame(() => {
-      const _insp = container.querySelector('#node-inspector');
-      if (_insp) _insp.scrollTop = _st;
-    });
+    restoreScroll();
   }
 
   function renderMapTree(mapNode, depth = 0) {

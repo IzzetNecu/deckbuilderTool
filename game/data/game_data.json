@@ -31,43 +31,26 @@
         "card_strike",
         "card_strike",
         "card_strike",
-        "card_strike",
-        "card_strike",
-        "card_guard",
-        "card_guard",
         "card_guard",
         "card_guard",
         "card_guard",
         "card_focus",
         "card_quick_think",
-        "card_heavy_blow",
-        "card_ember_link",
-        "card_tidal_guard",
-        "card_root_exchange",
-        "card_gale_shuffle",
-        "card_frost_shell",
-        "card_storm_mark"
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard"
       ],
       "startingInventory": {
-        "consumables": [
-          "consumable_potion"
-        ],
-        "equipment": [
-          "equip_scout_blade",
-          "equip_oath_maul",
-          "equip_cinder_coat",
-          "equip_river_mail",
-          "equip_fire_sigils",
-          "equip_water_sigils",
-          "5e25d212-b6ec-470e-8efd-285c1ee53522"
-        ],
+        "consumables": [],
+        "equipment": [],
         "keyItems": []
       },
       "startingEquipped": {
-        "weapon_1": "equip_scout_blade",
+        "weapon_1": "",
         "weapon_2": "",
-        "armor": "equip_cinder_coat",
-        "accessory_1": "equip_fire_sigils",
+        "armor": "",
+        "accessory_1": "",
         "accessory_2": ""
       }
     }
@@ -206,7 +189,7 @@
       "name": "Jolted",
       "kind": "debuff",
       "shortLabel": "JOLT",
-      "reminderText": "Player: after your next played card resolves, lose 1 energy and 1 stack. Enemy: delay the first X pending cards to next turn, then lose all stacks at end of turn.",
+      "reminderText": "After your next played card resolves, lose 1 energy and lose 1 stack.",
       "iconImage": ""
     }
   ],

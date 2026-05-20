@@ -1,6 +1,7 @@
-import { store } from '../../data/store.js?v=1778179374';
-import { createDeckTemplate } from '../../data/models.js?v=1778179374';
-import { showConfirmModal } from '../components/modal.js?v=1778179374';
+import { store } from '../../data/store.js?v=1779266068';
+import { createDeckTemplate } from '../../data/models.js?v=1779266068';
+import { showConfirmModal } from '../components/modal.js?v=1779266068';
+import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
 
 export function renderDeckEditor(container) {
   let decks = store.getAll('deckTemplates');
@@ -11,7 +12,7 @@ export function renderDeckEditor(container) {
   function render() {
     const selectedDeck = decks.find(d => d.id === selectedId) || null;
 
-    const _pane = container.querySelector(".pane-form"); const _st = _pane ? _pane.scrollTop : 0;
+    const restoreScroll = captureEditorScroll(container);
     container.innerHTML = `
       <div class="editor-header">
         <h2>Deck Template Editor</h2>
@@ -43,7 +44,7 @@ export function renderDeckEditor(container) {
     `;
 
     attachEvents();
-    requestAnimationFrame(() => { const _p = container.querySelector(".pane-form"); if (_p) _p.scrollTop = _st; });
+    restoreScroll();
   }
 
   function renderForm(deck) {
