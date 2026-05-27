@@ -1,7 +1,7 @@
-import { store } from '../../data/store.js?v=1779266068';
-import { createPlayer } from '../../data/models.js?v=1779266068';
-import { showConfirmModal } from '../components/modal.js?v=1779266068';
-import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
+import { store } from '../../data/store.js?v=1779267161';
+import { createPlayer } from '../../data/models.js?v=1779267161';
+import { showConfirmModal } from '../components/modal.js?v=1779267161';
+import { captureEditorScroll } from '../components/scroll.js?v=1779267161';
 
 export function renderPlayerEditor(container) {
   let players = store.getAll('players');
@@ -97,12 +97,13 @@ export function renderPlayerEditor(container) {
         <div class="form-group">
           <label>Starting Deck</label>
           <div class="dynamic-list">
-            ${(player.startingDeck || []).map((cardId, index) => `
-              <div class="dynamic-item">
+            ${buildCountRows(player.startingDeck || []).map((row, index) => `
+              <div class="dynamic-item player-deck-row">
                 <select class="player-deck-card" data-index="${index}" style="flex:1;">
                   <option value="">-- Select Card --</option>
-                  ${cards.map(card => `<option value="${card.id}" ${card.id === cardId ? 'selected' : ''}>${card.name || 'Unnamed Card'} (${card.type})</option>`).join('')}
+                  ${cards.map(card => `<option value="${card.id}" ${card.id === row.id ? 'selected' : ''}>${card.name || 'Unnamed Card'} (${card.type})</option>`).join('')}
                 </select>
+                <input type="number" class="player-deck-count" data-index="${index}" value="${row.count}" min="1" style="width:80px;" />
                 <button class="danger btn-remove-player-deck-card" data-index="${index}">X</button>
               </div>
             `).join('')}
@@ -122,12 +123,13 @@ export function renderPlayerEditor(container) {
         <div class="form-group">
           <label>Starting Consumables</label>
           <div class="dynamic-list">
-            ${(player.startingInventory.consumables || []).map((itemId, index) => `
-              <div class="dynamic-item">
+            ${buildCountRows(player.startingInventory.consumables || []).map((row, index) => `
+              <div class="dynamic-item player-consumable-row">
                 <select class="player-consumable" data-index="${index}" style="flex:1;">
                   <option value="">-- Select Item --</option>
-                  ${consumables.map(item => `<option value="${item.id}" ${item.id === itemId ? 'selected' : ''}>${item.name || 'Unnamed Consumable'}</option>`).join('')}
+                  ${consumables.map(item => `<option value="${item.id}" ${item.id === row.id ? 'selected' : ''}>${item.name || 'Unnamed Consumable'}</option>`).join('')}
                 </select>
+                <input type="number" class="player-consumable-count" data-index="${index}" value="${row.count}" min="1" style="width:80px;" />
                 <button class="danger btn-remove-player-consumable" data-index="${index}">X</button>
               </div>
             `).join('')}
@@ -186,11 +188,11 @@ export function renderPlayerEditor(container) {
         maxEnergy: parseInt(container.querySelector('#player-max-energy').value, 10) || 3,
         handSize: parseInt(container.querySelector('#player-hand-size').value, 10) || 5
       };
-      player.startingDeck = Array.from(container.querySelectorAll('.player-deck-card')).map(select => select.value).filter(Boolean);
+      player.startingDeck = readCountRows('.player-deck-row', '.player-deck-card', '.player-deck-count');
       player.startingOwnedCards = player.startingDeck.slice();
       const startingEquipped = readStartingEquippedFromForm();
       player.startingInventory = {
-        consumables: Array.from(container.querySelectorAll('.player-consumable')).map(select => select.value).filter(Boolean),
+        consumables: readCountRows('.player-consumable-row', '.player-consumable', '.player-consumable-count'),
         equipment: collectEquipmentFromSlots(startingEquipped),
         keyItems: parseCsv(container.querySelector('#player-key-items').value)
       };
@@ -200,8 +202,17 @@ export function renderPlayerEditor(container) {
 
     container.querySelectorAll('input, select').forEach(field => {
       if (field.classList.contains('player-equipment-slot')) return;
+      if (field.classList.contains('player-deck-card')) return;
+      if (field.classList.contains('player-consumable')) return;
       field.addEventListener('change', onChange);
       field.addEventListener('blur', onChange);
+    });
+
+    container.querySelectorAll('.player-deck-card, .player-consumable').forEach(select => {
+      select.addEventListener('change', () => {
+        onChange();
+        render();
+      });
     });
 
     container.querySelector('#player-portrait-upload')?.addEventListener('change', async event => {
@@ -227,6 +238,7 @@ export function renderPlayerEditor(container) {
 
     container.querySelector('#btn-add-player-deck-card')?.addEventListener('click', () => {
       const player = players.find(entry => entry.id === selectedId);
+      onChange();
       player.startingDeck.push('');
       store.save('players', player);
       render();
@@ -235,7 +247,10 @@ export function renderPlayerEditor(container) {
     container.querySelectorAll('.btn-remove-player-deck-card').forEach(button => {
       button.addEventListener('click', event => {
         const player = players.find(entry => entry.id === selectedId);
-        player.startingDeck.splice(parseInt(event.currentTarget.dataset.index, 10), 1);
+        const rows = readCountRowObjects('.player-deck-row', '.player-deck-card', '.player-deck-count');
+        rows.splice(parseInt(event.currentTarget.dataset.index, 10), 1);
+        player.startingDeck = expandCountRows(rows);
+        player.startingOwnedCards = player.startingDeck.slice();
         store.save('players', player);
         render();
       });
@@ -243,6 +258,7 @@ export function renderPlayerEditor(container) {
 
     container.querySelector('#btn-add-player-consumable')?.addEventListener('click', () => {
       const player = players.find(entry => entry.id === selectedId);
+      onChange();
       if (!player.startingInventory) player.startingInventory = {};
       if (!player.startingInventory.consumables) player.startingInventory.consumables = [];
       player.startingInventory.consumables.push('');
@@ -253,7 +269,9 @@ export function renderPlayerEditor(container) {
     container.querySelectorAll('.btn-remove-player-consumable').forEach(button => {
       button.addEventListener('click', event => {
         const player = players.find(entry => entry.id === selectedId);
-        player.startingInventory.consumables.splice(parseInt(event.currentTarget.dataset.index, 10), 1);
+        const rows = readCountRowObjects('.player-consumable-row', '.player-consumable', '.player-consumable-count');
+        rows.splice(parseInt(event.currentTarget.dataset.index, 10), 1);
+        player.startingInventory.consumables = expandCountRows(rows);
         store.save('players', player);
         render();
       });
@@ -278,6 +296,56 @@ export function renderPlayerEditor(container) {
 
   function parseCsv(value) {
     return value.split(',').map(entry => entry.trim()).filter(Boolean);
+  }
+
+  function buildCountRows(values = []) {
+    const rows = [];
+    const rowById = new Map();
+    values.forEach(value => {
+      const id = String(value || '');
+      if (!id) {
+        rows.push({ id: '', count: 1 });
+        return;
+      }
+      const existing = rowById.get(id);
+      if (existing) {
+        existing.count += 1;
+        return;
+      }
+      const row = { id, count: 1 };
+      rowById.set(id, row);
+      rows.push(row);
+    });
+    return rows;
+  }
+
+  function readCountRows(rowSelector, selectSelector, countSelector) {
+    const counts = new Map();
+    readCountRowObjects(rowSelector, selectSelector, countSelector).forEach(row => {
+      const id = row.id;
+      if (!id) return;
+      counts.set(id, (counts.get(id) || 0) + row.count);
+    });
+    return expandCountRows(Array.from(counts, ([id, count]) => ({ id, count })));
+  }
+
+  function readCountRowObjects(rowSelector, selectSelector, countSelector) {
+    return Array.from(container.querySelectorAll(rowSelector)).map(row => ({
+      id: row.querySelector(selectSelector)?.value || '',
+      count: Math.max(1, parseInt(row.querySelector(countSelector)?.value || '1', 10) || 1)
+    }));
+  }
+
+  function expandCountRows(rows = []) {
+    const values = [];
+    rows.forEach(row => {
+      if (!row.id) return;
+      const count = Math.max(1, parseInt(row.count || 1, 10) || 1);
+      for (let i = 0; i < count; i += 1) {
+        values.push(row.id);
+      }
+    });
+    return values;
   }
 
   function renderEquippedSlotInput(slotId, label, startingEquipped = {}) {

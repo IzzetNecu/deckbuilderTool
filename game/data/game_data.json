@@ -17,32 +17,41 @@
         "card_strike",
         "card_strike",
         "card_strike",
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard",
         "card_guard",
         "card_guard",
         "card_guard",
         "card_focus",
+        "card_focus",
         "card_quick_think",
-        "card_strike",
-        "card_strike",
-        "card_guard",
-        "card_guard"
+        "card_scout_slash",
+        "card_scout_slash"
       ],
       "startingOwnedCards": [
         "card_strike",
         "card_strike",
         "card_strike",
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard",
         "card_guard",
         "card_guard",
         "card_guard",
         "card_focus",
+        "card_focus",
         "card_quick_think",
-        "card_strike",
-        "card_strike",
-        "card_guard",
-        "card_guard"
+        "card_scout_slash",
+        "card_scout_slash"
       ],
       "startingInventory": {
-        "consumables": [],
+        "consumables": [
+          "consumable_potion",
+          "consumable_potion"
+        ],
         "equipment": [],
         "keyItems": []
       },

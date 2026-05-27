@@ -1,7 +1,7 @@
-import { store } from '../../data/store.js?v=1779266068';
-import { createEnemy } from '../../data/models.js?v=1779266068';
-import { showConfirmModal } from '../components/modal.js?v=1779266068';
-import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
+import { store } from '../../data/store.js?v=1779267161';
+import { createEnemy } from '../../data/models.js?v=1779267161';
+import { showConfirmModal } from '../components/modal.js?v=1779267161';
+import { captureEditorScroll } from '../components/scroll.js?v=1779267161';
 
 export function renderEnemyEditor(container) {
   let enemies = store.getAll('enemies');

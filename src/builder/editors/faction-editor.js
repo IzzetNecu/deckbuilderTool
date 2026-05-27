@@ -1,7 +1,7 @@
-import { store } from '../../data/store.js?v=1779266068';
-import { createFaction } from '../../data/models.js?v=1779266068';
-import { showConfirmModal } from '../components/modal.js?v=1779266068';
-import { captureEditorScroll } from '../components/scroll.js?v=1779266068';
+import { store } from '../../data/store.js?v=1779267161';
+import { createFaction } from '../../data/models.js?v=1779267161';
+import { showConfirmModal } from '../components/modal.js?v=1779267161';
+import { captureEditorScroll } from '../components/scroll.js?v=1779267161';
 
 export function renderFactionEditor(container) {
   let factions = store.getAll('factions');
