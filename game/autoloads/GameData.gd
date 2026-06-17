@@ -3,6 +3,15 @@ extends Node
 var schema_version: int = 1
 var default_player_id: String = ""
 
+const DEFAULT_ELEMENTAL_AFFINITIES := [
+	{"id": 1, "key": "fire", "name": "Fire", "color": "#e4572e", "description": "Direct pressure and attack setup."},
+	{"id": 2, "key": "earth", "name": "Earth", "color": "#8a6f3d", "description": "Endurance, attrition, and recovery."},
+	{"id": 3, "key": "water", "name": "Water", "color": "#2f80ed", "description": "Defense flow and adaptive protection."},
+	{"id": 4, "key": "wind", "name": "Wind", "color": "#4fb286", "description": "Card flow, speed, and disruption."},
+	{"id": 5, "key": "lightning", "name": "Lightning", "color": "#f2c94c", "description": "Energy spikes and duplicated action windows."},
+	{"id": 6, "key": "ice", "name": "Ice", "color": "#8fd3ff", "description": "Block pressure and end-of-turn control."}
+]
+
 var players: Dictionary = {}
 var buffs: Dictionary = {}
 var factions: Dictionary = {}
@@ -15,6 +24,7 @@ var events: Dictionary = {}
 var deck_templates: Dictionary = {}
 var maps: Dictionary = {}
 var flags: Dictionary = {}
+var elemental_affinities: Dictionary = {}
 
 func _ready() -> void:
 	load_data("res://data/game_data.json")
@@ -38,6 +48,7 @@ func load_data(path: String) -> void:
 
 	schema_version = int(data.get("schemaVersion", 1))
 	default_player_id = str(data.get("defaultPlayerId", ""))
+	_load_elemental_affinities(data.get("elemental_affinities", []))
 
 	_index_collection(data.get("players", []), players, Callable(self, "_normalize_player"))
 	_index_collection(data.get("buffs", []), buffs, Callable(self, "_normalize_buff"))
@@ -70,6 +81,7 @@ func _normalize_card(item: Dictionary) -> Dictionary:
 	card["targeting"] = card.get("targeting", "single_enemy" if card.get("requiresTarget", false) else "self")
 	card["requiresTarget"] = card["targeting"] == "single_enemy"
 	card["cardImage"] = str(card.get("cardImage", ""))
+	card["card_affinities"] = normalize_affinity_ids(card.get("card_affinities", card.get("cardAffinities", [])), 3)
 	var effects: Array = []
 	for effect in card.get("effects", []):
 		effects.append(_normalize_effect(effect))
@@ -162,6 +174,7 @@ func _normalize_enemy(item: Dictionary) -> Dictionary:
 func _normalize_player(item: Dictionary) -> Dictionary:
 	var player = item.duplicate(true)
 	player["portraitImage"] = str(player.get("portraitImage", ""))
+	player["player_elemental_capacity"] = clampi(int(player.get("player_elemental_capacity", player.get("playerElementalCapacity", 1))), 0, 6)
 	var base_stats = player.get("baseStats", {})
 	player["baseStats"] = {
 		"maxHealth": int(base_stats.get("maxHealth", 20)),
@@ -243,6 +256,61 @@ func _normalize_consumable(item: Dictionary) -> Dictionary:
 		effects.append(_normalize_effect(effect))
 	consumable["effects"] = effects
 	return consumable
+
+func _load_elemental_affinities(entries: Array) -> void:
+	elemental_affinities.clear()
+	for base in DEFAULT_ELEMENTAL_AFFINITIES:
+		var authored := {}
+		for entry in entries:
+			if typeof(entry) != TYPE_DICTIONARY:
+				continue
+			if int(entry.get("id", 0)) == int(base.get("id", 0)) or str(entry.get("key", "")) == str(base.get("key", "")):
+				authored = entry
+				break
+		var normalized = base.duplicate(true)
+		normalized["name"] = str(authored.get("name", base.get("name", "")))
+		normalized["color"] = _normalize_hex_color(str(authored.get("color", base.get("color", "#ffffff"))), str(base.get("color", "#ffffff")))
+		normalized["description"] = str(authored.get("description", base.get("description", "")))
+		elemental_affinities[int(base.get("id", 0))] = normalized
+
+func normalize_affinity_ids(values: Variant, max_count: int = 6) -> Array:
+	var result: Array = []
+	if max_count <= 0:
+		return result
+	var raw_values: Array = values if values is Array else []
+	for base in DEFAULT_ELEMENTAL_AFFINITIES:
+		var id = int(base.get("id", 0))
+		for value in raw_values:
+			if int(value) == id and not result.has(id):
+				result.append(id)
+				break
+		if result.size() >= max_count:
+			break
+	return result
+
+func get_elemental_affinity(id: int) -> Dictionary:
+	return elemental_affinities.get(id, {})
+
+func get_elemental_affinity_list() -> Array:
+	var result: Array = []
+	for base in DEFAULT_ELEMENTAL_AFFINITIES:
+		var id = int(base.get("id", 0))
+		if elemental_affinities.has(id):
+			result.append(elemental_affinities[id])
+	return result
+
+func get_affinity_color(id: int) -> Color:
+	var affinity = get_elemental_affinity(id)
+	return Color.html(str(affinity.get("color", "#ffffff")))
+
+func _normalize_hex_color(value: String, fallback: String) -> String:
+	var color = value.strip_edges().to_lower()
+	if color.length() != 7 or not color.begins_with("#"):
+		return fallback
+	for i in range(1, color.length()):
+		if not "0123456789abcdef".contains(color.substr(i, 1)):
+			return fallback
+	return color
 
 func get_default_player() -> Dictionary:
 	if players.has(default_player_id):

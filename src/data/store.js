@@ -1,8 +1,13 @@
+import { clampElementalCapacity, normalizeCardAffinities, normalizeElementalAffinityCatalog } from './models.js?v=1779267161';
+
 /**
  * LocalStorage wrapper for the Game Builder data.
  */
 
 const STORE_PREFIX = 'gamebuilder_';
+const CATALOG_KEYS = [
+  'elemental_affinities'
+];
 const COLLECTIONS = [
   'players',
   'buffs',
@@ -26,6 +31,9 @@ export const store = {
         localStorage.setItem(STORE_PREFIX + col, JSON.stringify([]));
       }
     });
+    if (!localStorage.getItem(STORE_PREFIX + 'elemental_affinities')) {
+      localStorage.setItem(STORE_PREFIX + 'elemental_affinities', JSON.stringify(normalizeElementalAffinityCatalog([])));
+    }
   },
 
   getAll(collectionName) {
@@ -49,6 +57,10 @@ export const store = {
     localStorage.setItem(STORE_PREFIX + collectionName, JSON.stringify(list));
   },
 
+  saveAll(collectionName, items) {
+    localStorage.setItem(STORE_PREFIX + collectionName, JSON.stringify(items));
+  },
+
   remove(collectionName, id) {
     const list = this.getAll(collectionName);
     const filtered = list.filter(item => item.id !== id);
@@ -57,11 +69,16 @@ export const store = {
 
   /** Returns all data formatted for Godot */
   exportAll() {
-    const data = { schemaVersion: 3 };
+    const data = { schemaVersion: 4 };
     COLLECTIONS.forEach(col => {
       // Deep clone to ensure nested arrays (e.g. map nodes/connections) are fully included
       data[col] = JSON.parse(JSON.stringify(this.getAll(col)));
     });
+    CATALOG_KEYS.forEach(key => {
+      data[key] = JSON.parse(JSON.stringify(this.getAll(key)));
+    });
+    data.elemental_affinities = normalizeElementalAffinityCatalog(data.elemental_affinities);
+    data.cards = data.cards.map(card => normalizeCardForExport(card));
     data.players = data.players.map(player => normalizePlayerForExport(player, data.equipment));
     return JSON.stringify(data, null, 2);
   },
@@ -72,9 +89,10 @@ export const store = {
       const data = JSON.parse(jsonString);
       COLLECTIONS.forEach(col => {
         if (data[col] && Array.isArray(data[col])) {
-          localStorage.setItem(STORE_PREFIX + col, JSON.stringify(data[col]));
+          localStorage.setItem(STORE_PREFIX + col, JSON.stringify(normalizeImportedCollection(col, data[col])));
         }
       });
+      localStorage.setItem(STORE_PREFIX + 'elemental_affinities', JSON.stringify(normalizeElementalAffinityCatalog(data.elemental_affinities || [])));
       return true;
     } catch (err) {
       console.error("Import failed:", err);
@@ -92,8 +110,29 @@ export const store = {
 
 store.init();
 
+function normalizeImportedCollection(collectionName, items) {
+  if (collectionName === 'cards') {
+    return items.map(card => normalizeCardForExport(card));
+  }
+  if (collectionName === 'players') {
+    return items.map(player => ({
+      ...player,
+      player_elemental_capacity: clampElementalCapacity(player.player_elemental_capacity ?? player.playerElementalCapacity ?? 1)
+    }));
+  }
+  return items;
+}
+
+function normalizeCardForExport(card) {
+  return {
+    ...card,
+    card_affinities: normalizeCardAffinities(card.card_affinities || card.cardAffinities || [])
+  };
+}
+
 function normalizePlayerForExport(player, equipmentItems = []) {
   const normalized = JSON.parse(JSON.stringify(player));
+  normalized.player_elemental_capacity = clampElementalCapacity(normalized.player_elemental_capacity ?? normalized.playerElementalCapacity ?? 1);
   normalized.startingDeck = normalized.startingDeck || [];
   normalized.startingOwnedCards = normalized.startingDeck.slice();
   normalized.startingEquipped = {

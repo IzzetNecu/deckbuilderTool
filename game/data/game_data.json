@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "players": [
     {
       "id": "player_demo_hero",
@@ -28,7 +28,9 @@
         "card_focus",
         "card_quick_think",
         "card_scout_slash",
-        "card_scout_slash"
+        "card_scout_slash",
+        "892785c9-f4e9-43aa-9a3d-2b414a3cfe0e",
+        "card_ember_link"
       ],
       "startingOwnedCards": [
         "card_strike",
@@ -45,7 +47,9 @@
         "card_focus",
         "card_quick_think",
         "card_scout_slash",
-        "card_scout_slash"
+        "card_scout_slash",
+        "892785c9-f4e9-43aa-9a3d-2b414a3cfe0e",
+        "card_ember_link"
       ],
       "startingInventory": {
         "consumables": [
@@ -55,6 +59,7 @@
         "equipment": [],
         "keyItems": []
       },
+      "player_elemental_capacity": 2,
       "startingEquipped": {
         "weapon_1": "",
         "weapon_2": "",
@@ -219,7 +224,8 @@
           "target": "enemy",
           "scaling": "strength"
         }
-      ]
+      ],
+      "card_affinities": []
     },
     {
       "id": "card_guard",
@@ -234,9 +240,14 @@
           "type": "block",
           "amount": 5,
           "target": "self",
-          "scaling": "dexterity"
+          "scaling": "dexterity",
+          "statusId": ""
         }
-      ]
+      ],
+      "card_affinities": [],
+      "factionId": "",
+      "cardImage": "",
+      "requiresTarget": false
     },
     {
       "id": "card_focus",
@@ -257,7 +268,8 @@
       ],
       "factionId": "",
       "cardImage": "",
-      "requiresTarget": false
+      "requiresTarget": false,
+      "card_affinities": []
     },
     {
       "id": "card_quick_think",
@@ -280,7 +292,8 @@
           "target": "self",
           "scaling": "dexterity"
         }
-      ]
+      ],
+      "card_affinities": []
     },
     {
       "id": "card_heavy_blow",
@@ -297,7 +310,8 @@
           "target": "enemy",
           "scaling": "strength"
         }
-      ]
+      ],
+      "card_affinities": []
     },
     {
       "id": "card_scout_slash",
@@ -314,7 +328,8 @@
           "target": "enemy",
           "scaling": "strength"
         }
-      ]
+      ],
+      "card_affinities": []
     },
     {
       "id": "card_ward_plate",
@@ -331,7 +346,8 @@
           "target": "self",
           "scaling": "dexterity"
         }
-      ]
+      ],
+      "card_affinities": []
     },
     {
       "id": "card_ember_link",
@@ -359,6 +375,9 @@
       ],
       "factionId": "",
       "cardImage": "assets/cards/fire.png",
+      "card_affinities": [
+        1
+      ],
       "requiresTarget": true
     },
     {
@@ -369,6 +388,9 @@
       "cost": 1,
       "rarity": "uncommon",
       "targeting": "single_enemy",
+      "card_affinities": [
+        3
+      ],
       "effects": [
         {
           "type": "apply_status",
@@ -394,6 +416,9 @@
       "cost": 1,
       "rarity": "uncommon",
       "targeting": "single_enemy",
+      "card_affinities": [
+        2
+      ],
       "effects": [
         {
           "type": "apply_status",
@@ -419,6 +444,9 @@
       "cost": 1,
       "rarity": "uncommon",
       "targeting": "single_enemy",
+      "card_affinities": [
+        4
+      ],
       "effects": [
         {
           "type": "apply_status",
@@ -444,6 +472,9 @@
       "cost": 1,
       "rarity": "uncommon",
       "targeting": "single_enemy",
+      "card_affinities": [
+        6
+      ],
       "effects": [
         {
           "type": "apply_status",
@@ -469,6 +500,9 @@
       "cost": 1,
       "rarity": "rare",
       "targeting": "single_enemy",
+      "card_affinities": [
+        5
+      ],
       "effects": [
         {
           "type": "apply_status",
@@ -501,7 +535,8 @@
           "target": "enemy",
           "scaling": "strength"
         }
-      ]
+      ],
+      "card_affinities": []
     },
     {
       "id": "enemy_brace",
@@ -518,7 +553,8 @@
           "target": "self",
           "scaling": "dexterity"
         }
-      ]
+      ],
+      "card_affinities": []
     },
     {
       "id": "enemy_glimpse",
@@ -535,7 +571,8 @@
           "target": "self",
           "scaling": "none"
         }
-      ]
+      ],
+      "card_affinities": []
     },
     {
       "id": "enemy_cinder_hex",
@@ -548,19 +585,25 @@
       "effects": [
         {
           "type": "apply_status",
-          "statusId": "buff_heat",
           "amount": 2,
           "target": "self",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "buff_heat"
         },
         {
           "type": "apply_status",
-          "statusId": "debuff_burning",
           "amount": 2,
           "target": "enemy",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "debuff_burning"
         }
-      ]
+      ],
+      "card_affinities": [
+        1
+      ],
+      "factionId": "",
+      "cardImage": "",
+      "requiresTarget": true
     },
     {
       "id": "enemy_riptide_trick",
@@ -573,19 +616,25 @@
       "effects": [
         {
           "type": "apply_status",
-          "statusId": "buff_flow",
           "amount": 2,
           "target": "self",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "buff_flow"
         },
         {
           "type": "apply_status",
-          "statusId": "debuff_slippery",
           "amount": 2,
           "target": "enemy",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "debuff_slippery"
         }
-      ]
+      ],
+      "card_affinities": [
+        3
+      ],
+      "factionId": "",
+      "cardImage": "",
+      "requiresTarget": true
     },
     {
       "id": "enemy_thorn_dose",
@@ -598,19 +647,25 @@
       "effects": [
         {
           "type": "apply_status",
-          "statusId": "buff_regen",
           "amount": 2,
           "target": "self",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "buff_regen"
         },
         {
           "type": "apply_status",
-          "statusId": "debuff_poison",
           "amount": 2,
           "target": "enemy",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "debuff_poison"
         }
-      ]
+      ],
+      "card_affinities": [
+        2
+      ],
+      "factionId": "",
+      "cardImage": "",
+      "requiresTarget": true
     },
     {
       "id": "enemy_gust_snare",
@@ -623,19 +678,25 @@
       "effects": [
         {
           "type": "apply_status",
-          "statusId": "buff_haste",
           "amount": 1,
           "target": "self",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "buff_haste"
         },
         {
           "type": "apply_status",
-          "statusId": "debuff_slowed",
           "amount": 1,
           "target": "enemy",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "debuff_slowed"
         }
-      ]
+      ],
+      "card_affinities": [
+        4
+      ],
+      "factionId": "",
+      "cardImage": "",
+      "requiresTarget": true
     },
     {
       "id": "enemy_rime_cover",
@@ -648,19 +709,25 @@
       "effects": [
         {
           "type": "apply_status",
-          "statusId": "buff_scaled",
           "amount": 3,
           "target": "self",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "buff_scaled"
         },
         {
           "type": "apply_status",
-          "statusId": "debuff_chill",
           "amount": 3,
           "target": "enemy",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "debuff_chill"
         }
-      ]
+      ],
+      "card_affinities": [
+        6
+      ],
+      "factionId": "",
+      "cardImage": "",
+      "requiresTarget": true
     },
     {
       "id": "enemy_static_brand",
@@ -673,17 +740,48 @@
       "effects": [
         {
           "type": "apply_status",
-          "statusId": "buff_energized",
           "amount": 1,
           "target": "self",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "buff_energized"
         },
         {
           "type": "apply_status",
-          "statusId": "debuff_jolted",
           "amount": 1,
           "target": "enemy",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": "debuff_jolted"
+        }
+      ],
+      "card_affinities": [
+        5
+      ],
+      "factionId": "",
+      "cardImage": "",
+      "requiresTarget": true
+    },
+    {
+      "id": "892785c9-f4e9-43aa-9a3d-2b414a3cfe0e",
+      "name": "Fire frost attack",
+      "description": "Deal {damage} to target enemy.",
+      "cardImage": "",
+      "type": "attack",
+      "factionId": "",
+      "cost": 1,
+      "rarity": "rare",
+      "targeting": "single_enemy",
+      "requiresTarget": true,
+      "card_affinities": [
+        1,
+        6
+      ],
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 10,
+          "target": "enemy",
+          "scaling": "strength",
+          "statusId": ""
         }
       ]
     }
@@ -1526,5 +1624,49 @@
       ]
     }
   ],
-  "flags": []
+  "flags": [],
+  "elemental_affinities": [
+    {
+      "id": 1,
+      "key": "fire",
+      "name": "Fire",
+      "color": "#e4572e",
+      "description": "Direct pressure and attack setup."
+    },
+    {
+      "id": 2,
+      "key": "earth",
+      "name": "Earth",
+      "color": "#8a6f3d",
+      "description": "Endurance, attrition, and recovery."
+    },
+    {
+      "id": 3,
+      "key": "water",
+      "name": "Water",
+      "color": "#2f80ed",
+      "description": "Defense flow and adaptive protection."
+    },
+    {
+      "id": 4,
+      "key": "wind",
+      "name": "Wind",
+      "color": "#4fb286",
+      "description": "Card flow, speed, and disruption."
+    },
+    {
+      "id": 5,
+      "key": "lightning",
+      "name": "Lightning",
+      "color": "#f2c94c",
+      "description": "Energy spikes and duplicated action windows."
+    },
+    {
+      "id": 6,
+      "key": "ice",
+      "name": "Ice",
+      "color": "#8fd3ff",
+      "description": "Block pressure and end-of-turn control."
+    }
+  ]
 }

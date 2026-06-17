@@ -23,21 +23,28 @@ const DRAG_THRESHOLD := 14.0
 const NAME_FONT_SIZE_MAX := 15
 const NAME_FONT_SIZE_MIN := 9
 
-@onready var name_label: Label = $Margin/VBox/Header/NameLabel
-@onready var cost_label: Label = $Margin/VBox/Header/CostBadge/CostLabel
+@onready var header_panel: PanelContainer = $Margin/VBox/Header
+@onready var name_label: Label = $Margin/VBox/Header/HeaderContent/NameLabel
+@onready var cost_badge: PanelContainer = $Margin/VBox/Header/HeaderContent/CostBadge
+@onready var cost_label: Label = $Margin/VBox/Header/HeaderContent/CostBadge/CostLabel
 @onready var art_texture: TextureRect = $Margin/VBox/ArtFrame/ArtTexture
 @onready var art_fallback: Label = $Margin/VBox/ArtFrame/ArtFallback
+@onready var art_frame: PanelContainer = $Margin/VBox/ArtFrame
+@onready var type_badge: PanelContainer = $Margin/VBox/TypeBadge
 @onready var type_label: Label = $Margin/VBox/TypeBadge/TypeLabel
-@onready var effects_label: Label = $Margin/VBox/EffectsLabel
+@onready var effects_box: PanelContainer = $Margin/VBox/EffectsBox
+@onready var effects_label: Label = $Margin/VBox/EffectsBox/EffectsLabel
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	$Margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	$Margin/VBox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	$Margin/VBox/Header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	$Margin/VBox/Header/CostBadge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin/VBox/Header/HeaderContent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin/VBox/Header/HeaderContent/CostBadge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	$Margin/VBox/ArtFrame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	$Margin/VBox/TypeBadge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Margin/VBox/EffectsBox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	effects_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -75,7 +82,9 @@ func _apply_card_content() -> void:
 	]
 	call_deferred("_fit_name_to_single_line")
 	_apply_art()
+	_apply_style()
 	refresh_display()
+	queue_redraw()
 
 func set_preview_mode(enabled: bool) -> void:
 	preview_only = enabled
@@ -127,6 +136,118 @@ func _apply_art() -> void:
 	art_texture.visible = texture != null
 	art_fallback.visible = texture == null
 	art_fallback.text = "missing image" if image_path.is_empty() or texture == null else ""
+
+func _apply_style() -> void:
+	var colors = _get_affinity_colors()
+	var primary = colors[0] if not colors.is_empty() else Color(0.46, 0.42, 0.34, 0.85)
+	var panel_style = get_theme_stylebox("panel")
+	if panel_style is StyleBoxFlat:
+		var style := (panel_style as StyleBoxFlat).duplicate()
+		style.border_color = primary
+		add_theme_stylebox_override("panel", style)
+	_apply_box_style(header_panel, primary, 10, 10, 0, 0)
+	_apply_box_style(effects_box, primary, 0, 0, 10, 10)
+	_apply_box_style(art_frame, primary.darkened(0.18), 0, 0, 0, 0)
+	_apply_box_style(type_badge, primary.darkened(0.1), 0, 0, 0, 0)
+	_apply_box_style(cost_badge, primary.darkened(0.1), 999, 999, 999, 999)
+
+func _draw() -> void:
+	var colors = _get_affinity_colors()
+	if colors.is_empty():
+		return
+	_draw_affinity_pie_background(colors)
+
+func _draw_affinity_pie_background(colors: Array) -> void:
+	var interior_rect = Rect2(Vector2(2.0, 2.0), Vector2(max(size.x - 4.0, 0.0), max(size.y - 4.0, 0.0)))
+	var corner_radius := 10.0
+	if colors.size() == 1:
+		draw_colored_polygon(_build_rounded_rect_polygon(interior_rect, corner_radius), colors[0].darkened(0.28))
+		return
+	var center = size * 0.5
+	var step = TAU / float(colors.size())
+	var start_angle = -PI * 0.5
+	for i in range(colors.size()):
+		var segment_color: Color = colors[i].darkened(0.28)
+		var points := PackedVector2Array()
+		points.append(center)
+		var angle_from = start_angle + step * i
+		var angle_to = angle_from + step
+		var arc_steps = 12
+		for arc_index in range(arc_steps + 1):
+			var t = float(arc_index) / float(arc_steps)
+			var angle = lerp(angle_from, angle_to, t)
+			points.append(_point_on_rounded_rect_edge(center, Vector2(cos(angle), sin(angle)), interior_rect, corner_radius))
+		draw_colored_polygon(points, segment_color)
+
+func _point_on_rounded_rect_edge(origin: Vector2, direction: Vector2, rect: Rect2, radius: float) -> Vector2:
+	var low := 0.0
+	var high = max(rect.size.x, rect.size.y)
+	for _i in range(18):
+		var mid = (low + high) * 0.5
+		var point = origin + direction * mid
+		if _point_in_rounded_rect(point, rect, radius):
+			low = mid
+		else:
+			high = mid
+	return origin + direction * low
+
+func _point_in_rounded_rect(point: Vector2, rect: Rect2, radius: float) -> bool:
+	if not rect.has_point(point):
+		return false
+	var left = rect.position.x
+	var right = rect.position.x + rect.size.x
+	var top = rect.position.y
+	var bottom = rect.position.y + rect.size.y
+	var corner_center := Vector2.ZERO
+	if point.x < left + radius and point.y < top + radius:
+		corner_center = Vector2(left + radius, top + radius)
+	elif point.x > right - radius and point.y < top + radius:
+		corner_center = Vector2(right - radius, top + radius)
+	elif point.x > right - radius and point.y > bottom - radius:
+		corner_center = Vector2(right - radius, bottom - radius)
+	elif point.x < left + radius and point.y > bottom - radius:
+		corner_center = Vector2(left + radius, bottom - radius)
+	else:
+		return true
+	return point.distance_to(corner_center) <= radius
+
+func _build_rounded_rect_polygon(rect: Rect2, radius: float) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	var centers = [
+		Vector2(rect.position.x + rect.size.x - radius, rect.position.y + radius),
+		Vector2(rect.position.x + rect.size.x - radius, rect.position.y + rect.size.y - radius),
+		Vector2(rect.position.x + radius, rect.position.y + rect.size.y - radius),
+		Vector2(rect.position.x + radius, rect.position.y + radius)
+	]
+	var starts = [-PI * 0.5, 0.0, PI * 0.5, PI]
+	for corner_index in range(4):
+		for step_index in range(7):
+			var angle = starts[corner_index] + (PI * 0.5) * float(step_index) / 6.0
+			points.append(centers[corner_index] + Vector2(cos(angle), sin(angle)) * radius)
+	return points
+
+func _get_affinity_colors() -> Array:
+	var colors: Array = []
+	for affinity_id in GameData.normalize_affinity_ids(card_data.get("card_affinities", []), 3):
+		colors.append(GameData.get_affinity_color(int(affinity_id)))
+	return colors
+
+func _apply_box_style(control: Control, border_color: Color, top_left: int, top_right: int, bottom_right: int, bottom_left: int) -> void:
+	var base_style = control.get_theme_stylebox("panel")
+	var style := StyleBoxFlat.new()
+	if base_style is StyleBoxFlat:
+		style = (base_style as StyleBoxFlat).duplicate()
+	style.bg_color = Color(0.045, 0.042, 0.058, 0.94)
+	style.border_color = border_color
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = top_left
+	style.corner_radius_top_right = top_right
+	style.corner_radius_bottom_right = bottom_right
+	style.corner_radius_bottom_left = bottom_left
+	control.add_theme_stylebox_override("panel", style)
 
 func _is_targeted() -> bool:
 	return str(card_data.get("targeting", "self")) == "single_enemy"

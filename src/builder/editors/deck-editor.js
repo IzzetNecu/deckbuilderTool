@@ -1,5 +1,5 @@
 import { store } from '../../data/store.js?v=1779267161';
-import { createDeckTemplate } from '../../data/models.js?v=1779267161';
+import { createDeckTemplate, normalizeCardAffinities, normalizeElementalAffinityCatalog } from '../../data/models.js?v=1779267161';
 import { showConfirmModal } from '../components/modal.js?v=1779267161';
 import { captureEditorScroll } from '../components/scroll.js?v=1779267161';
 
@@ -7,6 +7,7 @@ export function renderDeckEditor(container) {
   let decks = store.getAll('deckTemplates');
   let factions = store.getAll('factions');
   let allCards = store.getAll('cards');
+  let elementalAffinities = normalizeElementalAffinityCatalog(store.getAll('elemental_affinities'));
   let selectedId = null;
 
   function render() {
@@ -88,7 +89,7 @@ export function renderDeckEditor(container) {
                 const count = cardCounts[cId];
                 return `
                   <div style="display:flex; justify-content:space-between; padding: 8px 16px; border-bottom: 1px solid var(--border);">
-                     <div><strong>${count}x</strong> ${name}</div>
+                     <div><strong>${count}x</strong> ${name} ${renderAffinityDots(c)}</div>
                      <button class="danger btn-remove-card" data-cid="${cId}" style="padding: 2px 8px;">-1</button>
                   </div>
                 `;
@@ -101,7 +102,7 @@ export function renderDeckEditor(container) {
              ${allCards.map(c => `
                 <div style="display:flex; justify-content:space-between; padding: 8px; border-bottom: 1px solid var(--border); align-items:center;">
                    <div>
-                     <strong>${c.name || 'Unnamed'}</strong> <span style="font-size:0.8em; color:var(--text-secondary);">${c.type} - Cost: ${c.cost}</span>
+                     <strong>${c.name || 'Unnamed'}</strong> ${renderAffinityDots(c)} <span style="font-size:0.8em; color:var(--text-secondary);">${c.type} - Cost: ${c.cost}</span>
                    </div>
                    <button class="primary btn-add-card" data-cid="${c.id}" style="padding: 2px 8px;">+ Add</button>
                 </div>
@@ -111,6 +112,19 @@ export function renderDeckEditor(container) {
         </div>
       </div>
     `;
+  }
+
+  function renderAffinityDots(card) {
+    if (!card) return '';
+    const affinities = normalizeCardAffinities(card.card_affinities || [])
+      .map(id => elementalAffinities.find(affinity => affinity.id === id))
+      .filter(Boolean);
+    if (affinities.length === 0) {
+      return `<span style="font-size:0.78em; color:var(--text-secondary);">Colorless</span>`;
+    }
+    return affinities.map(affinity => `
+      <span title="${affinity.name}" style="width:10px; height:10px; border-radius:50%; background:${affinity.color}; display:inline-block; margin-left:4px; border:1px solid rgba(255,255,255,0.45);"></span>
+    `).join('');
   }
 
   function attachEvents() {

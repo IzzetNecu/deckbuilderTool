@@ -26,11 +26,13 @@ var strength: int = 1
 var dexterity: int = 1
 var insight: int = 0
 var max_energy: int = 3
+var player_elemental_capacity: int = 1
 var gold: int = 0
 var hand_size: int = 5
 
 var owned_cards: Array = []
 var deck: Array = []
+var deck_affinities: Array = []
 var consumables: Array = []
 var equipment: Array = []
 var key_items: Array = []
@@ -59,8 +61,10 @@ func initialize_from_player(selected_player_id: String = "") -> void:
 	insight = int(base_stats.get("insight", 0))
 	max_energy = int(base_stats.get("maxEnergy", 3))
 	hand_size = int(base_stats.get("handSize", 5))
+	player_elemental_capacity = clampi(int(player.get("player_elemental_capacity", 1)), 0, 6)
 
 	deck = player.get("startingDeck", []).duplicate()
+	deck_affinities = []
 	owned_cards = player.get("startingOwnedCards", deck).duplicate()
 	var inventory = player.get("startingInventory", {})
 	consumables = inventory.get("consumables", []).duplicate()
@@ -116,6 +120,23 @@ func get_selected_card_count(card_id: String) -> int:
 			count += 1
 	return count
 
+func set_deck_affinity_slot(slot_index: int, affinity_id: int) -> void:
+	var slots := _build_deck_affinity_slots()
+	if slot_index < 0 or slot_index >= slots.size():
+		return
+	slots[slot_index] = affinity_id
+	deck_affinities = _normalize_deck_affinities(slots)
+
+func clear_deck_affinity_slot(slot_index: int) -> void:
+	var slots := _build_deck_affinity_slots()
+	if slot_index < 0 or slot_index >= slots.size():
+		return
+	slots[slot_index] = 0
+	deck_affinities = _normalize_deck_affinities(slots)
+
+func get_deck_affinity_slots() -> Array:
+	return _build_deck_affinity_slots()
+
 func get_equipped_item_count(id: String) -> int:
 	var count := 0
 	var counted_two_slot_weapon := false
@@ -164,9 +185,10 @@ func remove_card_from_deck(card_id: String) -> bool:
 	deck.remove_at(idx)
 	return true
 
-func replace_current_build(selected_deck: Array, slots: Dictionary) -> void:
+func replace_current_build(selected_deck: Array, slots: Dictionary, selected_affinities: Array = []) -> void:
 	deck = selected_deck.duplicate()
 	equipped_slots = _sanitize_equipped_slots_for_loadout(slots)
+	deck_affinities = _normalize_deck_affinities(selected_affinities)
 
 func add_owned_card(card_id: String, add_to_deck: bool = true) -> void:
 	owned_cards.append(card_id)
@@ -323,9 +345,15 @@ func save_current_state_into_loadout(loadout_id: String = "") -> Dictionary:
 	var validation = validate_loadout({
 		"id": target_id,
 		"deck": deck,
-		"equipped_slots": equipped_slots
+		"equipped_slots": equipped_slots,
+		"deck_affinities": deck_affinities
 	})
 	if not bool(validation.get("ok", false)):
+		if _array_from_variant(validation.get("errors", [])).has("there are cards in the deck that do not match the chosen affinities"):
+			return {
+				"ok": false,
+				"message": "there are cards in the deck that do not match the chosen affinities"
+			}
 		return {
 			"ok": false,
 			"message": "Cannot save invalid loadout: %s" % _join_validation_messages(validation)
@@ -335,6 +363,7 @@ func save_current_state_into_loadout(loadout_id: String = "") -> Dictionary:
 		return {"ok": false, "message": "Loadout not found."}
 	var loadout = _dict_from_variant(loadouts[index])
 	loadout["deck"] = deck.duplicate()
+	loadout["deck_affinities"] = _normalize_deck_affinities(deck_affinities)
 	loadout["equipped_slots"] = equipped_slots.duplicate(true)
 	loadouts[index] = loadout
 	return {"ok": true, "message": "Saved %s." % str(loadout.get("label", "Loadout"))}
@@ -353,13 +382,14 @@ func activate_loadout(loadout_id: String) -> Dictionary:
 		}
 	active_loadout_id = loadout_id
 	deck = _array_from_variant(target_loadout.get("deck", []))
+	deck_affinities = _normalize_deck_affinities(target_loadout.get("deck_affinities", []))
 	equipped_slots = _sanitize_equipped_slots_for_loadout(_dict_from_variant(target_loadout.get("equipped_slots", {})))
 	return {"ok": true, "message": "Switched to %s." % str(target_loadout.get("label", "Loadout"))}
 
 func create_loadout_from_current(label: String = "") -> Dictionary:
 	if loadouts.size() >= MAX_LOADOUTS:
 		return {"ok": false, "message": "All %d loadout slots are already in use." % MAX_LOADOUTS}
-	var validation = validate_loadout({"deck": deck, "equipped_slots": equipped_slots})
+	var validation = validate_loadout({"deck": deck, "equipped_slots": equipped_slots, "deck_affinities": deck_affinities})
 	if not bool(validation.get("ok", false)):
 		return {
 			"ok": false,
@@ -367,7 +397,7 @@ func create_loadout_from_current(label: String = "") -> Dictionary:
 		}
 	var loadout_id = _next_loadout_id()
 	var display_label = label.strip_edges() if not label.strip_edges().is_empty() else "Loadout %d" % _next_loadout_number(loadout_id)
-	var loadout = _make_loadout(loadout_id, display_label, deck, equipped_slots)
+	var loadout = _make_loadout(loadout_id, display_label, deck, equipped_slots, deck_affinities)
 	loadouts.append(loadout)
 	active_loadout_id = loadout_id
 	return {"ok": true, "message": "Created %s." % display_label, "loadout": loadout.duplicate(true)}
@@ -387,7 +417,7 @@ func duplicate_loadout(loadout_id: String = "") -> Dictionary:
 		}
 	var new_id = _next_loadout_id()
 	var new_label = "%s Copy" % str(source.get("label", "Loadout"))
-	var duplicate = _make_loadout(new_id, new_label, _array_from_variant(source.get("deck", [])), _dict_from_variant(source.get("equipped_slots", {})))
+	var duplicate = _make_loadout(new_id, new_label, _array_from_variant(source.get("deck", [])), _dict_from_variant(source.get("equipped_slots", {})), _array_from_variant(source.get("deck_affinities", [])))
 	loadouts.append(duplicate)
 	return {"ok": true, "message": "Duplicated %s." % str(source.get("label", "Loadout")), "loadout": duplicate.duplicate(true)}
 
@@ -429,12 +459,14 @@ func delete_loadout(loadout_id: String) -> Dictionary:
 		if not bool(activation.get("ok", false)):
 			active_loadout_id = str(fallback.get("id", DEFAULT_LOADOUT_ID))
 			deck = _array_from_variant(fallback.get("deck", []))
+			deck_affinities = _normalize_deck_affinities(fallback.get("deck_affinities", []))
 			equipped_slots = _sanitize_equipped_slots_for_loadout(_dict_from_variant(fallback.get("equipped_slots", {})))
 	return {"ok": true, "message": "Deleted %s." % deleted_label}
 
 func validate_loadout(loadout: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
 	var candidate_deck = _array_from_variant(loadout.get("deck", []))
+	var candidate_affinities = _normalize_deck_affinities(loadout.get("deck_affinities", []))
 	var candidate_slots = _migrate_legacy_slots(_dict_from_variant(loadout.get("equipped_slots", {})))
 	if candidate_deck.size() < get_minimum_deck_size():
 		errors.append("Selected deck has %d cards; minimum is %d." % [
@@ -453,6 +485,12 @@ func validate_loadout(loadout: Dictionary) -> Dictionary:
 				int(selected_card_counts[card_id]),
 				int(owned_card_counts.get(card_id, 0))
 			])
+		var card_affinities = GameData.normalize_affinity_ids(GameData.get_card(str(card_id)).get("card_affinities", []), 3)
+		for affinity_id in card_affinities:
+			if not candidate_affinities.has(int(affinity_id)):
+				if not errors.has("there are cards in the deck that do not match the chosen affinities"):
+					errors.append("there are cards in the deck that do not match the chosen affinities")
+				break
 
 	var equipped_counts := {}
 	var two_slot_seen := {}
@@ -517,10 +555,12 @@ func save() -> void:
 		"dexterity": dexterity,
 		"insight": insight,
 		"max_energy": max_energy,
+		"player_elemental_capacity": player_elemental_capacity,
 		"gold": gold,
 		"hand_size": hand_size,
 		"owned_cards": owned_cards,
 		"deck": deck,
+		"deck_affinities": deck_affinities,
 		"consumables": consumables,
 		"equipment": equipment,
 		"key_items": key_items,
@@ -561,10 +601,12 @@ func load_game() -> bool:
 	dexterity = int(data.get("dexterity", dexterity))
 	insight = int(data.get("insight", insight))
 	max_energy = int(data.get("max_energy", max_energy))
+	player_elemental_capacity = clampi(int(data.get("player_elemental_capacity", player_elemental_capacity)), 0, 6)
 	gold = int(data.get("gold", gold))
 	hand_size = int(data.get("hand_size", hand_size))
 	owned_cards = data.get("owned_cards", data.get("deck", owned_cards)).duplicate()
 	deck = data.get("deck", deck).duplicate()
+	deck_affinities = _normalize_deck_affinities(data.get("deck_affinities", deck_affinities))
 	consumables = data.get("consumables", consumables).duplicate()
 	equipment = data.get("equipment", equipment).duplicate()
 	key_items = data.get("key_items", key_items).duplicate()
@@ -577,7 +619,8 @@ func load_game() -> bool:
 	_prune_deck_to_owned_cards()
 	loadouts = _sanitize_loadouts(data.get("loadouts", []), {
 		"deck": deck,
-		"equipped_slots": equipped_slots
+		"equipped_slots": equipped_slots,
+		"deck_affinities": deck_affinities
 	})
 	active_loadout_id = str(data.get("active_loadout_id", active_loadout_id))
 	if _find_loadout_index(active_loadout_id) == -1:
@@ -588,6 +631,7 @@ func load_game() -> bool:
 		_initialize_default_loadout()
 	else:
 		deck = _array_from_variant(active_loadout.get("deck", deck))
+		deck_affinities = _normalize_deck_affinities(active_loadout.get("deck_affinities", deck_affinities))
 		equipped_slots = _sanitize_equipped_slots_for_loadout(_dict_from_variant(active_loadout.get("equipped_slots", equipped_slots)))
 
 	print("GameState: Loaded successfully from ", SAVE_PATH)
@@ -828,14 +872,15 @@ func _append_keyword_entry(target: Array, seen_ids: Dictionary, buff_id: String)
 	seen_ids[buff_id] = true
 
 func _initialize_default_loadout() -> void:
-	loadouts = [_make_loadout(DEFAULT_LOADOUT_ID, "Default", deck, equipped_slots)]
+	loadouts = [_make_loadout(DEFAULT_LOADOUT_ID, "Default", deck, equipped_slots, deck_affinities)]
 	active_loadout_id = DEFAULT_LOADOUT_ID
 
-func _make_loadout(id: String, label: String, selected_deck: Array, slots: Dictionary) -> Dictionary:
+func _make_loadout(id: String, label: String, selected_deck: Array, slots: Dictionary, selected_affinities: Array = []) -> Dictionary:
 	return {
 		"id": id,
 		"label": label,
 		"deck": selected_deck.duplicate(),
+		"deck_affinities": _normalize_deck_affinities(selected_affinities),
 		"equipped_slots": _normalize_loadout_slots(slots)
 	}
 
@@ -856,7 +901,8 @@ func _sanitize_loadouts(raw_loadouts: Variant, legacy_data: Dictionary) -> Array
 				raw_id,
 				raw_label,
 				_array_from_variant(raw_dict.get("deck", [])),
-				_dict_from_variant(raw_dict.get("equipped_slots", {}))
+				_dict_from_variant(raw_dict.get("equipped_slots", {})),
+				_array_from_variant(raw_dict.get("deck_affinities", []))
 			))
 			if sanitized.size() >= MAX_LOADOUTS:
 				break
@@ -864,7 +910,8 @@ func _sanitize_loadouts(raw_loadouts: Variant, legacy_data: Dictionary) -> Array
 	if sanitized.is_empty():
 		var legacy_deck = legacy_data.get("deck", deck)
 		var legacy_slots = legacy_data.get("equipped_slots", equipped_slots)
-		sanitized.append(_make_loadout(DEFAULT_LOADOUT_ID, "Default", _array_from_variant(legacy_deck), _dict_from_variant(legacy_slots)))
+		var legacy_affinities = legacy_data.get("deck_affinities", deck_affinities)
+		sanitized.append(_make_loadout(DEFAULT_LOADOUT_ID, "Default", _array_from_variant(legacy_deck), _dict_from_variant(legacy_slots), _array_from_variant(legacy_affinities)))
 
 	return sanitized
 
@@ -886,6 +933,7 @@ func _sync_active_loadout_from_current() -> void:
 		return
 	var loadout = _dict_from_variant(loadouts[index])
 	loadout["deck"] = deck.duplicate()
+	loadout["deck_affinities"] = _normalize_deck_affinities(deck_affinities)
 	loadout["equipped_slots"] = equipped_slots.duplicate(true)
 	loadouts[index] = loadout
 
@@ -932,6 +980,19 @@ func _count_array_ids(items: Array) -> Dictionary:
 
 func _array_from_variant(value: Variant) -> Array:
 	return value.duplicate() if value is Array else []
+
+func _normalize_deck_affinities(values: Variant) -> Array:
+	var normalized = GameData.normalize_affinity_ids(values, player_elemental_capacity)
+	if normalized.size() > player_elemental_capacity:
+		return normalized.slice(0, player_elemental_capacity)
+	return normalized
+
+func _build_deck_affinity_slots() -> Array:
+	var selected = _normalize_deck_affinities(deck_affinities)
+	var slots: Array = []
+	for i in range(player_elemental_capacity):
+		slots.append(int(selected[i]) if i < selected.size() else 0)
+	return slots
 
 func _dict_from_variant(value: Variant) -> Dictionary:
 	return value.duplicate(true) if value is Dictionary else {}

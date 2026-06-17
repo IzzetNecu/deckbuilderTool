@@ -1,6 +1,7 @@
 import { renderFactionEditor } from './editors/faction-editor.js?v=1779267161';
 import { renderPlayerEditor } from './editors/player-editor.js?v=1779267161';
 import { renderBuffEditor } from './editors/buff-editor.js?v=1779267161';
+import { renderElementalAffinityEditor } from './editors/elemental-affinity-editor.js?v=1779267161';
 import { renderCardEditor } from './editors/card-editor.js?v=1779267161';
 import { renderConsumableEditor } from './editors/consumable-editor.js?v=1779267161';
 import { renderEquipmentEditor } from './editors/equipment-editor.js?v=1779267161';
@@ -24,6 +25,7 @@ export function initBuilder(container) {
         <div class="sidebar-nav">
           <div class="nav-item" data-tab="players">Players</div>
           <div class="nav-item" data-tab="buffs">Buffs</div>
+          <div class="nav-item" data-tab="elementalAffinities">Elemental Affinities</div>
           <div class="nav-item active" data-tab="factions">Factions</div>
           <div class="nav-item" data-tab="cards">Cards</div>
           <div class="nav-item" data-tab="consumables">Consumables</div>
@@ -63,6 +65,8 @@ export function initBuilder(container) {
       renderPlayerEditor(editorContainer);
     } else if (tabId === 'buffs') {
       renderBuffEditor(editorContainer);
+    } else if (tabId === 'elementalAffinities') {
+      renderElementalAffinityEditor(editorContainer);
     } else if (tabId === 'factions') {
       renderFactionEditor(editorContainer);
     } else if (tabId === 'cards') {

@@ -31,9 +31,11 @@ var current_tab: String = "deck"
 var status_message: String = ""
 var focused_equipment_id: String = ""
 var saved_deck_snapshot: Array = []
+var saved_deck_affinities_snapshot: Array = []
 var saved_equipped_snapshot: Dictionary = {}
 var saved_active_loadout_id: String = ""
 var unsaved_dialog: ConfirmationDialog = null
+var selected_affinity_filters: Array = []
 
 func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
@@ -139,12 +141,13 @@ func _on_unsaved_dialog_save_now() -> void:
 func _on_unsaved_dialog_custom_action(action: StringName) -> void:
 	if str(action) != "discard":
 		return
-	GameState.replace_current_build(saved_deck_snapshot, saved_equipped_snapshot)
+	GameState.replace_current_build(saved_deck_snapshot, saved_equipped_snapshot, saved_deck_affinities_snapshot)
 	GameState.active_loadout_id = saved_active_loadout_id
 	_close_now()
 
 func _capture_build_snapshot() -> void:
 	saved_deck_snapshot = GameState.deck.duplicate()
+	saved_deck_affinities_snapshot = GameState.deck_affinities.duplicate()
 	saved_equipped_snapshot = GameState.get_equipped_slots()
 	saved_active_loadout_id = GameState.active_loadout_id
 
@@ -152,6 +155,8 @@ func _has_unsaved_build_changes() -> bool:
 	if saved_active_loadout_id != GameState.active_loadout_id:
 		return true
 	if not _arrays_equal(saved_deck_snapshot, GameState.deck):
+		return true
+	if not _arrays_equal(saved_deck_affinities_snapshot, GameState.deck_affinities):
 		return true
 	return not _dictionaries_equal(saved_equipped_snapshot, GameState.get_equipped_slots())
 
@@ -204,6 +209,8 @@ func _show_deck() -> void:
 	workspace.add_child(center_column)
 
 	left_column.add_child(_make_note_panel("Deck Builder", _get_deck_summary_text()))
+	left_column.add_child(_make_deck_affinity_panel())
+	left_column.add_child(_make_affinity_filter_panel())
 	left_column.add_child(_make_card_stack_section(
 		"Card Catalog",
 		"Drag reserve cards into the current deck.",
@@ -411,7 +418,8 @@ func _make_loadout_panel() -> PanelContainer:
 
 	var active_validation = GameState.validate_loadout({
 		"deck": GameState.deck,
-		"equipped_slots": GameState.get_equipped_slots()
+		"equipped_slots": GameState.get_equipped_slots(),
+		"deck_affinities": GameState.deck_affinities
 	})
 	if not bool(active_validation.get("ok", false)):
 		var validation_label = _make_empty_label("Current build is invalid: %s" % _validation_summary(active_validation))
@@ -683,6 +691,101 @@ func _make_inline_note(text: String) -> Label:
 	label.modulate = Color(0.72, 0.72, 0.72)
 	return label
 
+func _make_deck_affinity_panel() -> PanelContainer:
+	var panel = _make_section_panel("Deck Affinities", "Choose up to the player's elemental capacity. Save validates selected deck cards against these affinities.")
+	var body: VBoxContainer = panel.get_meta("body")
+	if GameState.player_elemental_capacity <= 0:
+		body.add_child(_make_empty_label("Elemental capacity is 0. Only colorless selected cards can save."))
+		return panel
+
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var slots = GameState.get_deck_affinity_slots()
+	for i in range(slots.size()):
+		row.add_child(_make_deck_affinity_slot_button(i, int(slots[i])))
+	body.add_child(row)
+	return panel
+
+func _make_deck_affinity_slot_button(slot_index: int, affinity_id: int) -> Button:
+	var button = Button.new()
+	button.custom_minimum_size = Vector2(44, 44)
+	button.text = "Empty"
+	if affinity_id > 0:
+		var affinity = GameData.get_elemental_affinity(affinity_id)
+		button.text = str(affinity.get("name", affinity_id))
+		button.tooltip_text = "%s\n%s" % [
+			str(affinity.get("name", affinity_id)),
+			str(affinity.get("description", ""))
+		]
+		var style = StyleBoxFlat.new()
+		style.bg_color = GameData.get_affinity_color(affinity_id).darkened(0.45)
+		style.border_color = GameData.get_affinity_color(affinity_id)
+		style.border_width_left = 2
+		style.border_width_top = 2
+		style.border_width_right = 2
+		style.border_width_bottom = 2
+		style.set_corner_radius_all(999)
+		button.add_theme_stylebox_override("normal", style)
+		button.add_theme_stylebox_override("hover", style)
+		button.add_theme_stylebox_override("pressed", style)
+	button.pressed.connect(func(): _show_deck_affinity_popup(button, slot_index))
+	return button
+
+func _show_deck_affinity_popup(anchor: Control, slot_index: int) -> void:
+	var popup = PopupMenu.new()
+	add_child(popup)
+	popup.add_item("Empty", 0)
+	for affinity in GameData.get_elemental_affinity_list():
+		popup.add_item(str(affinity.get("name", "")), int(affinity.get("id", 0)))
+	popup.id_pressed.connect(func(id: int):
+		if id <= 0:
+			GameState.clear_deck_affinity_slot(slot_index)
+		else:
+			GameState.set_deck_affinity_slot(slot_index, id)
+		status_message = "Deck affinities changed. Save the loadout before leaving."
+		popup.queue_free()
+		_refresh_content()
+	)
+	popup.popup(Rect2i(Vector2i(int(anchor.global_position.x), int(anchor.global_position.y)), Vector2i(160, 1)))
+
+func _make_affinity_filter_panel() -> PanelContainer:
+	var panel = _make_section_panel("Catalog Filters", "Filter reserve cards by affinity.")
+	var body: VBoxContainer = panel.get_meta("body")
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	for affinity in GameData.get_elemental_affinity_list():
+		var affinity_id = int(affinity.get("id", 0))
+		var button = Button.new()
+		button.text = str(affinity.get("name", ""))
+		button.toggle_mode = true
+		button.button_pressed = selected_affinity_filters.has(affinity_id)
+		button.tooltip_text = str(affinity.get("description", ""))
+		button.pressed.connect(func(): _toggle_affinity_filter(affinity_id))
+		row.add_child(button)
+	var colorless_button = Button.new()
+	colorless_button.text = "Colorless"
+	colorless_button.toggle_mode = true
+	colorless_button.button_pressed = selected_affinity_filters.has(0)
+	colorless_button.pressed.connect(func(): _toggle_affinity_filter(0))
+	row.add_child(colorless_button)
+	if not selected_affinity_filters.is_empty():
+		var clear_button = Button.new()
+		clear_button.text = "Clear"
+		clear_button.pressed.connect(func():
+			selected_affinity_filters.clear()
+			_refresh_content()
+		)
+		row.add_child(clear_button)
+	body.add_child(row)
+	return panel
+
+func _toggle_affinity_filter(affinity_id: int) -> void:
+	if selected_affinity_filters.has(affinity_id):
+		selected_affinity_filters.erase(affinity_id)
+	else:
+		selected_affinity_filters.append(affinity_id)
+	_refresh_content()
+
 func _make_slot_card(slot_id: String) -> PanelContainer:
 	var panel = PanelContainer.new()
 	panel.custom_minimum_size = Vector2(150, 150)
@@ -883,6 +986,8 @@ func _build_reserve_entries() -> Array:
 		var card_data = GameData.get_card(str(card_id))
 		if card_data.is_empty():
 			continue
+		if not _card_matches_affinity_filters(card_data):
+			continue
 		var reserve_count = int(reserve_counts[card_id])
 		entries.append(_build_card_entry(
 			"reserve",
@@ -890,7 +995,7 @@ func _build_reserve_entries() -> Array:
 			card_data,
 			reserve_count,
 			"Reserve x%d" % reserve_count,
-			"Owned copies not currently selected.",
+			"Owned copies not currently selected. %s" % _format_card_affinities(card_data),
 			"Reserve card. Drag it into the current deck to add one copy.",
 			GameState.can_add_card_to_deck(str(card_id)),
 			false
@@ -949,10 +1054,36 @@ func _build_card_entry(section: String, card_id: String, card_data: Dictionary, 
 		"rules_text": GameState.get_preview_card_text(card_data),
 		"keyword_entries": GameState.get_card_keyword_entries(card_data),
 		"locked": locked,
-		"tooltip_text": tooltip_text,
+		"tooltip_text": _combine_tooltip_text(tooltip_text, _format_card_affinities(card_data)),
 		"action_enabled": action_enabled,
 		"copies": copies
 	}
+
+func _card_matches_affinity_filters(card_data: Dictionary) -> bool:
+	if selected_affinity_filters.is_empty():
+		return true
+	var card_affinities = GameData.normalize_affinity_ids(card_data.get("card_affinities", []), 3)
+	if selected_affinity_filters.has(0) and card_affinities.is_empty():
+		return true
+	for affinity_id in card_affinities:
+		if selected_affinity_filters.has(int(affinity_id)):
+			return true
+	return false
+
+func _format_card_affinities(card_data: Dictionary) -> String:
+	var card_affinities = GameData.normalize_affinity_ids(card_data.get("card_affinities", []), 3)
+	if card_affinities.is_empty():
+		return "Affinity: Colorless"
+	var names: Array[String] = []
+	for affinity_id in card_affinities:
+		var affinity = GameData.get_elemental_affinity(int(affinity_id))
+		names.append(str(affinity.get("name", affinity_id)))
+	return "Affinity: %s" % ", ".join(names)
+
+func _combine_tooltip_text(primary: String, secondary: String) -> String:
+	if primary.is_empty():
+		return secondary
+	return "%s\n%s" % [primary, secondary]
 
 func _get_deck_summary_text() -> String:
 	var selected_size = GameState.deck.size()

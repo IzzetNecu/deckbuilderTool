@@ -118,6 +118,25 @@ func start_combat(enemy_id: String) -> void:
 
 	_begin_phase()
 
+func get_enemy_deck_affinities() -> Array:
+	var ids: Array = []
+	for card_id in _get_enemy_deck_card_ids():
+		var card_data = GameData.get_card(str(card_id))
+		for affinity_id in GameData.normalize_affinity_ids(card_data.get("card_affinities", []), 3):
+			if not ids.has(int(affinity_id)):
+				ids.append(int(affinity_id))
+	return GameData.normalize_affinity_ids(ids, 6)
+
+func _get_enemy_deck_card_ids() -> Array:
+	var enemy_deck: Array = []
+	for template_id in enemy_data.get("deckTemplateIds", []):
+		var template = GameData.deck_templates.get(template_id, {})
+		for card_id in template.get("cardIds", []):
+			enemy_deck.append(card_id)
+	for card_id in enemy_data.get("deckIds", []):
+		enemy_deck.append(card_id)
+	return enemy_deck
+
 func _begin_phase() -> void:
 	current_phase = Phase.BEGINNING
 	phase_changed.emit(current_phase)

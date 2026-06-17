@@ -264,6 +264,8 @@ func _on_stats_updated() -> void:
 			"INS: %d" % combat_manager.get_enemy_insight(),
 			combat_manager.get_display_buffs("enemy")
 		)
+		if enemy_panel_instance.has_method("set_affinities"):
+			enemy_panel_instance.set_affinities(combat_manager.get_enemy_deck_affinities())
 	_update_pile_buttons()
 	if overlay_state == "deck":
 		_open_card_overlay("Deck", combat_manager.get_draw_pile_cards(), "deck")

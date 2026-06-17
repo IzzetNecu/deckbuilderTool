@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://inventory_card_tile"]
+[gd_scene load_steps=7 format=3 uid="uid://inventory_card_tile"]
 
 [ext_resource type="Script" path="res://scenes/ui/InventoryCardTile.gd" id="1_tile"]
 
@@ -28,6 +28,30 @@ corner_radius_top_right = 999
 corner_radius_bottom_right = 999
 corner_radius_bottom_left = 999
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile_header_box"]
+bg_color = Color(0.055, 0.05, 0.07, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.73, 0.67, 0.54, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile_effects_box"]
+bg_color = Color(0.055, 0.05, 0.07, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.73, 0.67, 0.54, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [node name="InventoryCardTile" type="PanelContainer"]
 theme_override_styles/panel = SubResource("StyleBoxFlat_tile_panel")
 script = ExtResource("1_tile")
@@ -44,49 +68,53 @@ offset_bottom = -8.0
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 3
 
-[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+[node name="Header" type="PanelContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tile_header_box")
+
+[node name="HeaderContent" type="HBoxContainer" parent="Margin/VBox/Header"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TitleBox" type="VBoxContainer" parent="Margin/VBox/Header"]
+[node name="TitleBox" type="VBoxContainer" parent="Margin/VBox/Header/HeaderContent"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
 
-[node name="NameLabel" type="Label" parent="Margin/VBox/Header/TitleBox"]
+[node name="NameLabel" type="Label" parent="Margin/VBox/Header/HeaderContent/TitleBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 autowrap_mode = 0
 text = "Card Name"
 
-[node name="MetaLabel" type="Label" parent="Margin/VBox/Header/TitleBox"]
+[node name="MetaLabel" type="Label" parent="Margin/VBox/Header/HeaderContent/TitleBox"]
 layout_mode = 2
 modulate = Color(0.772549, 0.772549, 0.819608, 1)
 theme_override_font_sizes/font_size = 9
 text = "Skill • Common"
 
-[node name="Badges" type="VBoxContainer" parent="Margin/VBox/Header"]
+[node name="Badges" type="VBoxContainer" parent="Margin/VBox/Header/HeaderContent"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CountBadge" type="PanelContainer" parent="Margin/VBox/Header/Badges"]
+[node name="CountBadge" type="PanelContainer" parent="Margin/VBox/Header/HeaderContent/Badges"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_tile_badge")
 
-[node name="CountLabel" type="Label" parent="Margin/VBox/Header/Badges/CountBadge"]
+[node name="CountLabel" type="Label" parent="Margin/VBox/Header/HeaderContent/Badges/CountBadge"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 horizontal_alignment = 1
 text = "x1"
 
-[node name="CostBadge" type="PanelContainer" parent="Margin/VBox/Header/Badges"]
+[node name="CostBadge" type="PanelContainer" parent="Margin/VBox/Header/HeaderContent/Badges"]
 layout_mode = 2
 custom_minimum_size = Vector2(28, 28)
 theme_override_styles/panel = SubResource("StyleBoxFlat_tile_badge")
 
-[node name="CostLabel" type="Label" parent="Margin/VBox/Header/Badges/CostBadge"]
+[node name="CostLabel" type="Label" parent="Margin/VBox/Header/HeaderContent/Badges/CostBadge"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 11
@@ -98,7 +126,7 @@ text = "1"
 [node name="ArtFrame" type="PanelContainer" parent="Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 112)
+custom_minimum_size = Vector2(0, 118)
 theme_override_styles/panel = SubResource("StyleBoxFlat_tile_frame")
 
 [node name="ArtTexture" type="TextureRect" parent="Margin/VBox/ArtFrame"]
@@ -129,7 +157,12 @@ theme_override_font_sizes/font_size = 10
 horizontal_alignment = 1
 text = "ATTACK • SELF"
 
-[node name="EffectsLabel" type="Label" parent="Margin/VBox"]
+[node name="EffectsBox" type="PanelContainer" parent="Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_tile_effects_box")
+
+[node name="EffectsLabel" type="Label" parent="Margin/VBox/EffectsBox"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 11

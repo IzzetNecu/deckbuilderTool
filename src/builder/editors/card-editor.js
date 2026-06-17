@@ -1,5 +1,5 @@
 import { store } from '../../data/store.js?v=1779267161';
-import { createCard } from '../../data/models.js?v=1779267161';
+import { createCard, normalizeCardAffinities, normalizeElementalAffinityCatalog } from '../../data/models.js?v=1779267161';
 import { showConfirmModal } from '../components/modal.js?v=1779267161';
 import { captureEditorScroll } from '../components/scroll.js?v=1779267161';
 import { PREDEFINED_BUFFS } from './buff-editor.js?v=1779267161';
@@ -36,6 +36,7 @@ const APPLY_STATUS_OPTIONS = PREDEFINED_BUFFS.filter(buff => !NON_ELEMENTAL_STAT
 export function renderCardEditor(container) {
   let cards = store.getAll('cards');
   let factions = store.getAll('factions');
+  let elementalAffinities = normalizeElementalAffinityCatalog(store.getAll('elemental_affinities'));
   let selectedId = null;
 
   function render() {
@@ -143,6 +144,20 @@ export function renderCardEditor(container) {
         </div>
 
         <div class="form-group">
+          <label>Elemental Affinities</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            ${elementalAffinities.map(affinity => `
+              <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1px solid var(--border); border-radius:6px; background:var(--bg-surface);">
+                <input type="checkbox" class="card-affinity" value="${affinity.id}" ${getCardAffinities(card).includes(affinity.id) ? 'checked' : ''} ${getCardAffinities(card).length >= 3 && !getCardAffinities(card).includes(affinity.id) ? 'disabled' : ''} />
+                <span style="width:12px; height:12px; border-radius:50%; background:${affinity.color}; display:inline-block;"></span>
+                <span>${affinity.name}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div style="font-size:0.78em; color:var(--text-secondary); margin-top:5px;">Choose up to three. None means colorless.</div>
+        </div>
+
+        <div class="form-group">
           <label>Combat Effects</label>
           <div class="dynamic-list" id="effects-list">
             ${normalizedEffects.map((effect, index) => `
@@ -180,17 +195,20 @@ export function renderCardEditor(container) {
     const factionColor = card.factionId ? (factions.find(faction => faction.id === card.factionId)?.color || '#555') : '#555';
     const rareColor = card.rarity === 'rare' ? '#ffd700' : (card.rarity === 'uncommon' ? '#87ceeb' : '#fff');
     const hasCardImage = Boolean(String(card.cardImage || '').trim());
+    const frame = getAffinityFrameStyle(card);
+    const panelBorder = frame.primary || '#4d473d';
+    const resolvedDescription = resolveDescription(card.description, normalizeEffects(card.effects)) || '<span style="color:#777">No description</span>';
     return `
-      <div style="width:250px; background-color:var(--bg-surface); padding:16px; border-radius:8px; border-top:4px solid ${factionColor}; border-bottom:2px solid ${rareColor};">
+      <div style="width:250px; background-color:var(--bg-surface); padding:16px; border-radius:8px; border-top:4px solid ${panelBorder}; border-bottom:2px solid ${rareColor};">
         <h4 style="color:var(--text-secondary); margin-bottom:16px;">Live Preview</h4>
-        <div style="width:200px; height:300px; background-color:#222; border-radius:8px; border:2px solid #444; position:relative; display:flex; flex-direction:column;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background-color:${factionColor}33; border-bottom:1px solid #444; border-radius:8px 8px 0 0;">
-            <strong style="font-size:14px; text-shadow:1px 1px 2px #000;">${card.name || 'Unnamed'}</strong>
-            <div style="width:24px; height:24px; border-radius:50%; background:#111; color:${rareColor}; display:flex; align-items:center; justify-content:center; font-weight:bold; border:1px solid ${factionColor};">
+        <div style="width:200px; height:300px; background:${frame.background}; border-radius:10px; border:3px solid ${panelBorder}; position:relative; display:flex; flex-direction:column; overflow:hidden; padding:8px; gap:3px; box-sizing:border-box;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:7px 8px; background:rgba(10,9,14,0.94); border:1px solid ${panelBorder}; border-radius:9px 9px 0 0;">
+            <strong style="font-size:14px; line-height:1.05; text-shadow:1px 1px 2px #000; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${card.name || 'Unnamed'}</strong>
+            <div style="width:24px; height:24px; flex:0 0 24px; border-radius:50%; background:#111; color:${rareColor}; display:flex; align-items:center; justify-content:center; font-weight:bold; border:1px solid ${panelBorder};">
               ${card.cost}
             </div>
           </div>
-          <div style="flex:1; position:relative; display:flex; align-items:center; justify-content:center; border-bottom:1px solid #444; overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.22));">
+          <div style="height:124px; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; background:rgba(12,12,16,0.82); border:1px solid ${panelBorder}; border-radius:0;">
             ${hasCardImage ? `
               <img
                 src="/game/${card.cardImage}"
@@ -214,11 +232,11 @@ export function renderCardEditor(container) {
               <span>${hasCardImage ? (card.cardImage || '') : 'No image path set'}</span>
             </div>
           </div>
-          <div style="text-align:center; padding:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px; background:#1a1a1a;">
+          <div style="text-align:center; padding:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px; background:rgba(10,9,14,0.92); border:1px solid ${panelBorder}; border-radius:0;">
             ${card.type} • ${getTargeting(card)}
           </div>
-          <div style="height:100px; padding:8px; text-align:center; font-size:12px; display:flex; align-items:center; justify-content:center;">
-            ${resolveDescription(card.description, normalizeEffects(card.effects)) || '<span style="color:#555">No description</span>'}
+          <div style="flex:1; min-height:78px; padding:8px; text-align:center; font-size:12px; display:flex; align-items:center; justify-content:center; background:rgba(10,9,14,0.94); border:1px solid ${panelBorder}; border-radius:0 0 9px 9px;">
+            ${resolvedDescription}
           </div>
         </div>
       </div>
@@ -257,6 +275,7 @@ export function renderCardEditor(container) {
       card.cardImage = container.querySelector('#card-image').value.trim();
       card.targeting = container.querySelector('#card-targeting').value;
       card.requiresTarget = card.targeting === 'single_enemy';
+      card.card_affinities = normalizeCardAffinities(Array.from(container.querySelectorAll('.card-affinity:checked')).map(field => field.value));
       card.effects = Array.from(container.querySelectorAll('.effect-type')).map((field, index) => ({
         type: field.value,
         amount: parseInt(container.querySelector(`.effect-amount[data-index="${index}"]`).value, 10) || 0,
@@ -400,6 +419,40 @@ export function renderCardEditor(container) {
 
   function getTargeting(card) {
     return card.targeting || (card.requiresTarget ? 'single_enemy' : 'self');
+  }
+
+  function getCardAffinities(card) {
+    return normalizeCardAffinities(card.card_affinities || card.cardAffinities || []);
+  }
+
+  function getAffinityFrameStyle(card) {
+    const colors = getCardAffinities(card)
+      .map(id => elementalAffinities.find(affinity => affinity.id === id)?.color)
+      .filter(Boolean);
+    if (colors.length === 0) {
+      return {
+        primary: '',
+        background: 'linear-gradient(180deg, #22202a, #16141d)'
+      };
+    }
+    const primary = colors[0];
+    const step = 360 / colors.length;
+    const stops = colors.flatMap((color, index) => [
+      `${darkenHex(color, 0.28)} ${index * step}deg`,
+      `${darkenHex(color, 0.28)} ${(index + 1) * step}deg`
+    ]).join(', ');
+    return {
+      primary,
+      background: `conic-gradient(from 0deg at 50% 50%, ${stops})`
+    };
+  }
+
+  function darkenHex(hex, amount) {
+    const value = String(hex || '').replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(value)) return '#22202a';
+    const channels = [0, 2, 4].map(index => parseInt(value.slice(index, index + 2), 16));
+    const darkened = channels.map(channel => Math.max(0, Math.min(255, Math.round(channel * (1 - amount)))));
+    return `#${darkened.map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
   }
 
   function resolveDescription(description, effects) {

@@ -28,6 +28,51 @@ export function createBuff(data = {}) {
   };
 }
 
+export const DEFAULT_ELEMENTAL_AFFINITIES = [
+  { id: 1, key: 'fire', name: 'Fire', color: '#e4572e', description: 'Direct pressure and attack setup.' },
+  { id: 2, key: 'earth', name: 'Earth', color: '#8a6f3d', description: 'Endurance, attrition, and recovery.' },
+  { id: 3, key: 'water', name: 'Water', color: '#2f80ed', description: 'Defense flow and adaptive protection.' },
+  { id: 4, key: 'wind', name: 'Wind', color: '#4fb286', description: 'Card flow, speed, and disruption.' },
+  { id: 5, key: 'lightning', name: 'Lightning', color: '#f2c94c', description: 'Energy spikes and duplicated action windows.' },
+  { id: 6, key: 'ice', name: 'Ice', color: '#8fd3ff', description: 'Block pressure and end-of-turn control.' }
+];
+
+export function createElementalAffinity(data = {}) {
+  const base = DEFAULT_ELEMENTAL_AFFINITIES.find(entry => entry.id === Number(data.id)) || DEFAULT_ELEMENTAL_AFFINITIES[0];
+  return {
+    id: base.id,
+    key: base.key,
+    name: data.name || base.name,
+    color: normalizeHexColor(data.color || base.color, base.color),
+    description: data.description || base.description
+  };
+}
+
+export function normalizeElementalAffinityCatalog(entries = []) {
+  return DEFAULT_ELEMENTAL_AFFINITIES.map(base => {
+    const authored = Array.isArray(entries) ? entries.find(entry => Number(entry?.id) === base.id || entry?.key === base.key) : null;
+    return createElementalAffinity({ ...base, ...(authored || {}) });
+  });
+}
+
+export function normalizeCardAffinities(values = []) {
+  const allowedIds = DEFAULT_ELEMENTAL_AFFINITIES.map(entry => entry.id);
+  const seen = new Set();
+  const result = [];
+  (Array.isArray(values) ? values : []).forEach(value => {
+    const id = parseInt(value, 10);
+    if (!allowedIds.includes(id) || seen.has(id) || result.length >= 3) return;
+    seen.add(id);
+    result.push(id);
+  });
+  return allowedIds.filter(id => result.includes(id));
+}
+
+function normalizeHexColor(value, fallback = '#ffffff') {
+  const color = String(value || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color.toLowerCase() : fallback;
+}
+
 export function createCard(data = {}) {
   return {
     id: data.id || uuid(),
@@ -40,6 +85,7 @@ export function createCard(data = {}) {
     rarity: data.rarity || 'common', // common, uncommon, rare
     targeting: data.targeting || (data.requiresTarget ? 'single_enemy' : 'self'),
     requiresTarget: data.requiresTarget ?? data.targeting === 'single_enemy', // legacy compatibility
+    card_affinities: normalizeCardAffinities(data.card_affinities || data.cardAffinities || []),
     effects: (data.effects || []).map(effect => normalizeCardEffect(effect))
   };
 }
@@ -220,8 +266,15 @@ export function createPlayer(data = {}) {
       equipment: collectStartingEquipmentFromSlots(startingEquipped, data.equipment || []),
       keyItems: data.startingInventory?.keyItems || []
     },
-    startingEquipped
+    startingEquipped,
+    player_elemental_capacity: clampElementalCapacity(data.player_elemental_capacity ?? data.playerElementalCapacity ?? 1)
   };
+}
+
+export function clampElementalCapacity(value) {
+  const parsed = parseInt(value ?? 1, 10);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.max(0, Math.min(6, parsed));
 }
 
 function collectStartingEquipmentFromSlots(slots, equipmentItems) {

@@ -8,6 +8,7 @@ var card_scene = preload("res://scenes/combat/Card.tscn")
 
 @onready var name_label: Label = $VBox/NameLabel
 @onready var portrait_texture: TextureRect = $VBox/PortraitArea/PortraitTexture
+@onready var portrait_area: Control = $VBox/PortraitArea
 @onready var placeholder_label: Label = $VBox/PortraitArea/PlaceholderLabel
 @onready var energy_badge: Label = $VBox/PortraitArea/EnergyBadge
 @onready var highlight_rect: ColorRect = $VBox/PortraitArea/HighlightRect
@@ -21,10 +22,13 @@ var card_scene = preload("res://scenes/combat/Card.tscn")
 @onready var intent_cards_container: HBoxContainer = $VBox/IntentSection/RevealedCardsContainer
 @onready var action_slot: HBoxContainer = $VBox/IntentSection/ActionSlot
 
+var affinity_row: HBoxContainer = null
+
 func _ready() -> void:
 	hp_bar.show_percentage = false
 	highlight_rect.visible = false
 	highlight_rect.color = Color(1, 0.8, 0, 0.24)
+	_create_affinity_row()
 
 func configure(side: String, show_intents: bool) -> void:
 	panel_side = side
@@ -51,6 +55,17 @@ func update_actor(actor_name: String, portrait_path: String, hp: int, max_hp: in
 	_apply_portrait(portrait_path, actor_name)
 	_update_block_outline(block, max_hp)
 	_render_buffs(buff_values)
+
+func set_affinities(affinity_ids: Array) -> void:
+	if affinity_row == null:
+		return
+	for child in affinity_row.get_children():
+		child.queue_free()
+	affinity_row.visible = panel_side == "enemy" and not affinity_ids.is_empty()
+	if not affinity_row.visible:
+		return
+	for affinity_id in affinity_ids:
+		affinity_row.add_child(_make_affinity_dot(int(affinity_id)))
 
 func update_intent_slots(intent_slots: Array) -> void:
 	for child in intent_cards_container.get_children():
@@ -81,6 +96,40 @@ func _apply_portrait(portrait_path: String, actor_name: String) -> void:
 	portrait_texture.visible = false
 	placeholder_label.text = actor_name.substr(0, mini(actor_name.length(), 8))
 	placeholder_label.visible = true
+
+func _create_affinity_row() -> void:
+	affinity_row = HBoxContainer.new()
+	affinity_row.anchor_left = 0.5
+	affinity_row.anchor_right = 0.5
+	affinity_row.anchor_top = 1.0
+	affinity_row.anchor_bottom = 1.0
+	affinity_row.offset_left = -72.0
+	affinity_row.offset_right = 72.0
+	affinity_row.offset_top = -26.0
+	affinity_row.offset_bottom = -8.0
+	affinity_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	affinity_row.add_theme_constant_override("separation", 5)
+	affinity_row.visible = false
+	portrait_area.add_child(affinity_row)
+
+func _make_affinity_dot(affinity_id: int) -> Control:
+	var affinity = GameData.get_elemental_affinity(affinity_id)
+	var dot = PanelContainer.new()
+	dot.custom_minimum_size = Vector2(16, 16)
+	dot.tooltip_text = "%s\n%s" % [
+		str(affinity.get("name", affinity_id)),
+		str(affinity.get("description", ""))
+	]
+	var style = StyleBoxFlat.new()
+	style.bg_color = GameData.get_affinity_color(affinity_id)
+	style.border_color = Color(1, 1, 1, 0.82)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.set_corner_radius_all(999)
+	dot.add_theme_stylebox_override("panel", style)
+	return dot
 
 func _update_block_outline(block: int, max_hp: int) -> void:
 	var clamped_ratio = clamp(float(block) / float(max(max_hp, 1)), 0.0, 1.0)

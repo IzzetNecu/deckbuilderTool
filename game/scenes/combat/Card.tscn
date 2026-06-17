@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://card_scene"]
+[gd_scene load_steps=7 format=3 uid="uid://card_scene"]
 
 [ext_resource type="Script" path="res://scenes/combat/Card.gd" id="1_card"]
 
@@ -28,6 +28,30 @@ corner_radius_top_right = 999
 corner_radius_bottom_right = 999
 corner_radius_bottom_left = 999
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header_box"]
+bg_color = Color(0.055, 0.05, 0.07, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.73, 0.67, 0.54, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_effects_box"]
+bg_color = Color(0.055, 0.05, 0.07, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.73, 0.67, 0.54, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [node name="Card" type="Panel"]
 custom_minimum_size = Vector2(150, 225)
 theme_override_styles/panel = SubResource("StyleBoxFlat_card_panel")
@@ -45,25 +69,29 @@ offset_bottom = -8.0
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 3
 
-[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+[node name="Header" type="PanelContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header_box")
+
+[node name="HeaderContent" type="HBoxContainer" parent="Margin/VBox/Header"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="NameLabel" type="Label" parent="Margin/VBox/Header"]
+[node name="NameLabel" type="Label" parent="Margin/VBox/Header/HeaderContent"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 15
 autowrap_mode = 0
 text = "Card Name"
 
-[node name="CostBadge" type="PanelContainer" parent="Margin/VBox/Header"]
+[node name="CostBadge" type="PanelContainer" parent="Margin/VBox/Header/HeaderContent"]
 layout_mode = 2
 custom_minimum_size = Vector2(28, 28)
 theme_override_styles/panel = SubResource("StyleBoxFlat_type_badge")
 
-[node name="CostLabel" type="Label" parent="Margin/VBox/Header/CostBadge"]
+[node name="CostLabel" type="Label" parent="Margin/VBox/Header/HeaderContent/CostBadge"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 11
@@ -75,7 +103,7 @@ text = "Cost: 0"
 [node name="ArtFrame" type="PanelContainer" parent="Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 112)
+custom_minimum_size = Vector2(0, 118)
 theme_override_styles/panel = SubResource("StyleBoxFlat_art_frame")
 
 [node name="ArtTexture" type="TextureRect" parent="Margin/VBox/ArtFrame"]
@@ -106,7 +134,12 @@ theme_override_font_sizes/font_size = 10
 horizontal_alignment = 1
 text = "ATTACK • SELF"
 
-[node name="EffectsLabel" type="Label" parent="Margin/VBox"]
+[node name="EffectsBox" type="PanelContainer" parent="Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_effects_box")
+
+[node name="EffectsLabel" type="Label" parent="Margin/VBox/EffectsBox"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 11

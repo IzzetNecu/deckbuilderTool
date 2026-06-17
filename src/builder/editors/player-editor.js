@@ -1,5 +1,5 @@
 import { store } from '../../data/store.js?v=1779267161';
-import { createPlayer } from '../../data/models.js?v=1779267161';
+import { clampElementalCapacity, createPlayer } from '../../data/models.js?v=1779267161';
 import { showConfirmModal } from '../components/modal.js?v=1779267161';
 import { captureEditorScroll } from '../components/scroll.js?v=1779267161';
 
@@ -91,6 +91,10 @@ export function renderPlayerEditor(container) {
           <div class="form-group">
             <label>Hand Size</label>
             <input type="number" id="player-hand-size" value="${player.baseStats.handSize}" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Elemental Capacity</label>
+            <input type="number" id="player-elemental-capacity" value="${clampElementalCapacity(player.player_elemental_capacity ?? 1)}" min="0" max="6" />
           </div>
         </div>
 
@@ -188,6 +192,7 @@ export function renderPlayerEditor(container) {
         maxEnergy: parseInt(container.querySelector('#player-max-energy').value, 10) || 3,
         handSize: parseInt(container.querySelector('#player-hand-size').value, 10) || 5
       };
+      player.player_elemental_capacity = clampElementalCapacity(container.querySelector('#player-elemental-capacity').value);
       player.startingDeck = readCountRows('.player-deck-row', '.player-deck-card', '.player-deck-count');
       player.startingOwnedCards = player.startingDeck.slice();
       const startingEquipped = readStartingEquippedFromForm();
