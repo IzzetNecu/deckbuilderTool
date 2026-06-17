@@ -3,7 +3,7 @@
   "players": [
     {
       "id": "player_demo_hero",
-      "name": "Scout Adept",
+      "name": "Scout",
       "portraitImage": "",
       "baseStats": {
         "maxHealth": 28,
@@ -28,9 +28,7 @@
         "card_focus",
         "card_quick_think",
         "card_scout_slash",
-        "card_scout_slash",
-        "892785c9-f4e9-43aa-9a3d-2b414a3cfe0e",
-        "card_ember_link"
+        "card_scout_slash"
       ],
       "startingOwnedCards": [
         "card_strike",
@@ -47,19 +45,14 @@
         "card_focus",
         "card_quick_think",
         "card_scout_slash",
-        "card_scout_slash",
-        "892785c9-f4e9-43aa-9a3d-2b414a3cfe0e",
-        "card_ember_link"
+        "card_scout_slash"
       ],
       "startingInventory": {
-        "consumables": [
-          "consumable_potion",
-          "consumable_potion"
-        ],
+        "consumables": [],
         "equipment": [],
         "keyItems": []
       },
-      "player_elemental_capacity": 2,
+      "player_elemental_capacity": 0,
       "startingEquipped": {
         "weapon_1": "",
         "weapon_2": "",
@@ -909,7 +902,7 @@
   "enemies": [
     {
       "id": "enemy_bandit",
-      "name": "Bandit Lookout",
+      "name": "Bandit",
       "description": "A cautious raider who telegraphs poorly unless you read them.",
       "factionId": "",
       "stats": {
@@ -938,7 +931,7 @@
     },
     {
       "id": "enemy_seer",
-      "name": "Ash Seer",
+      "name": "Seer",
       "description": "Harder to read. Fights with insight tricks.",
       "factionId": "",
       "stats": {
@@ -957,23 +950,26 @@
       "lootTable": [
         {
           "type": "gold",
-          "amount": 18,
-          "chance": 100
+          "chance": 100,
+          "amount": 18
         }
-      ]
+      ],
+      "portraitImage": "",
+      "hand_size": 2,
+      "hp": 24
     },
     {
       "id": "enemy_brute",
-      "name": "Tunnel Brute",
+      "name": "Brute",
       "description": "Simple, heavy hits, low insight.",
       "factionId": "",
       "stats": {
-        "maxHealth": 30,
-        "strength": 1,
+        "maxHealth": 40,
+        "strength": 3,
         "dexterity": 0,
         "insight": 0
       },
-      "handSize": 2,
+      "handSize": 3,
       "intentMode": "deck",
       "intentPreviewCount": 0,
       "deckTemplateIds": [
@@ -983,166 +979,13 @@
       "lootTable": [
         {
           "type": "gold",
-          "amount": 25,
-          "chance": 100
+          "chance": 100,
+          "amount": 25
         }
-      ]
-    },
-    {
-      "id": "enemy_pyre_apprentice",
-      "name": "Pyre Apprentice",
-      "description": "A fire adept that pressures the next attack window.",
-      "factionId": "",
-      "stats": {
-        "maxHealth": 26,
-        "strength": 0,
-        "dexterity": 0,
-        "insight": 1
-      },
-      "handSize": 2,
-      "intentMode": "deck",
-      "intentPreviewCount": 1,
-      "deckTemplateIds": [
-        "deck_pyre"
       ],
-      "deckIds": [],
-      "lootTable": [
-        {
-          "type": "gold",
-          "amount": 14,
-          "chance": 100
-        }
-      ]
-    },
-    {
-      "id": "enemy_tide_keeper",
-      "name": "Tide Keeper",
-      "description": "Uses Flow and Slippery to test block timing.",
-      "factionId": "",
-      "stats": {
-        "maxHealth": 28,
-        "strength": 0,
-        "dexterity": 0,
-        "insight": 1
-      },
-      "handSize": 2,
-      "intentMode": "deck",
-      "intentPreviewCount": 1,
-      "deckTemplateIds": [
-        "deck_tide"
-      ],
-      "deckIds": [],
-      "lootTable": [
-        {
-          "type": "gold",
-          "amount": 14,
-          "chance": 100
-        }
-      ]
-    },
-    {
-      "id": "enemy_moss_tender",
-      "name": "Moss Tender",
-      "description": "Layers Regen and Poison to stress turn hooks.",
-      "factionId": "",
-      "stats": {
-        "maxHealth": 30,
-        "strength": 0,
-        "dexterity": 0,
-        "insight": 0
-      },
-      "handSize": 2,
-      "intentMode": "deck",
-      "intentPreviewCount": 1,
-      "deckTemplateIds": [
-        "deck_moss"
-      ],
-      "deckIds": [],
-      "lootTable": [
-        {
-          "type": "gold",
-          "amount": 15,
-          "chance": 100
-        }
-      ]
-    },
-    {
-      "id": "enemy_gale_runner",
-      "name": "Gale Runner",
-      "description": "Uses Haste and Slowed to test start-of-turn sequencing.",
-      "factionId": "",
-      "stats": {
-        "maxHealth": 24,
-        "strength": 0,
-        "dexterity": 0,
-        "insight": 2
-      },
-      "handSize": 2,
-      "intentMode": "deck",
-      "intentPreviewCount": 1,
-      "deckTemplateIds": [
-        "deck_gale"
-      ],
-      "deckIds": [],
-      "lootTable": [
-        {
-          "type": "gold",
-          "amount": 16,
-          "chance": 100
-        }
-      ]
-    },
-    {
-      "id": "enemy_rime_guard",
-      "name": "Rime Guard",
-      "description": "Builds and strips block to test end-of-turn ice effects.",
-      "factionId": "",
-      "stats": {
-        "maxHealth": 32,
-        "strength": 0,
-        "dexterity": 1,
-        "insight": 0
-      },
-      "handSize": 2,
-      "intentMode": "deck",
-      "intentPreviewCount": 1,
-      "deckTemplateIds": [
-        "deck_rime"
-      ],
-      "deckIds": [],
-      "lootTable": [
-        {
-          "type": "gold",
-          "amount": 18,
-          "chance": 100
-        }
-      ]
-    },
-    {
-      "id": "enemy_static_magus",
-      "name": "Static Magus",
-      "description": "Tests doubled card resolution and Jolted cleanup.",
-      "factionId": "",
-      "stats": {
-        "maxHealth": 27,
-        "strength": 0,
-        "dexterity": 0,
-        "insight": 2
-      },
-      "handSize": 2,
-      "intentMode": "deck",
-      "intentPreviewCount": 1,
-      "deckTemplateIds": [
-        "deck_static"
-      ],
-      "deckIds": [],
-      "lootTable": [
-        {
-          "type": "gold",
-          "amount": 20,
-          "chance": 100
-        }
-      ]
+      "portraitImage": "",
+      "hand_size": 3,
+      "hp": 40
     }
   ],
   "events": [],
@@ -1159,7 +1002,11 @@
         "card_guard",
         "card_guard",
         "card_focus",
-        "card_quick_think"
+        "card_quick_think",
+        "card_strike",
+        "card_strike",
+        "card_guard",
+        "card_guard"
       ]
     },
     {
@@ -1193,72 +1040,6 @@
         "enemy_jab",
         "card_heavy_blow",
         "enemy_brace"
-      ]
-    },
-    {
-      "id": "deck_pyre",
-      "name": "Pyre Pattern",
-      "factionId": "",
-      "cardIds": [
-        "enemy_cinder_hex",
-        "enemy_jab",
-        "enemy_cinder_hex",
-        "enemy_jab"
-      ]
-    },
-    {
-      "id": "deck_tide",
-      "name": "Tide Pattern",
-      "factionId": "",
-      "cardIds": [
-        "enemy_riptide_trick",
-        "enemy_brace",
-        "enemy_jab",
-        "enemy_riptide_trick"
-      ]
-    },
-    {
-      "id": "deck_moss",
-      "name": "Moss Pattern",
-      "factionId": "",
-      "cardIds": [
-        "enemy_thorn_dose",
-        "enemy_jab",
-        "enemy_brace",
-        "enemy_thorn_dose"
-      ]
-    },
-    {
-      "id": "deck_gale",
-      "name": "Gale Pattern",
-      "factionId": "",
-      "cardIds": [
-        "enemy_gust_snare",
-        "enemy_jab",
-        "enemy_gust_snare",
-        "enemy_brace"
-      ]
-    },
-    {
-      "id": "deck_rime",
-      "name": "Rime Pattern",
-      "factionId": "",
-      "cardIds": [
-        "enemy_rime_cover",
-        "enemy_brace",
-        "enemy_jab",
-        "enemy_rime_cover"
-      ]
-    },
-    {
-      "id": "deck_static",
-      "name": "Static Pattern",
-      "factionId": "",
-      "cardIds": [
-        "enemy_static_brand",
-        "enemy_jab",
-        "enemy_static_brand",
-        "card_heavy_blow"
       ]
     }
   ],
@@ -1302,8 +1083,8 @@
         },
         {
           "id": "node_bandit",
-          "x": 255.62555922283013,
-          "y": 351.45814692572327,
+          "x": 581.9608701301338,
+          "y": 367.93972828467804,
           "label": "Bandit",
           "description": "A straightforward enemy. Your base insight should reveal both upcoming cards.",
           "isStartingNode": false,
@@ -1325,8 +1106,8 @@
         },
         {
           "id": "node_seer",
-          "x": 587.3094782628355,
-          "y": 368.39133833142205,
+          "x": 325.2523346554552,
+          "y": 285.9834315366483,
           "label": "Seer",
           "description": "An enemy with matching insight. You should lose most or all preview information until you play Focus Sight.",
           "isStartingNode": false,
@@ -1389,20 +1170,6 @@
           "id": "conn_3",
           "fromNodeId": "node_seer",
           "toNodeId": "node_brute",
-          "conditions": [],
-          "gateType": "none"
-        },
-        {
-          "id": "7a8b1042-878e-4411-8b00-6964811e9353",
-          "fromNodeId": "node_camp",
-          "toNodeId": "node_seer",
-          "conditions": [],
-          "gateType": "none"
-        },
-        {
-          "id": "7e7d43fb-a15c-49d0-ba4c-dd21722156b5",
-          "fromNodeId": "node_brute",
-          "toNodeId": "node_bandit",
           "conditions": [],
           "gateType": "none"
         }
