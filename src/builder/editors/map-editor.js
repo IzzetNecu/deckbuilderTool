@@ -321,7 +321,7 @@ export function renderMapEditor(container) {
      } else if (out.type === 'travelToMap') {
         return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
           <option value="">--</option>
-          ${gameMaps.map(m => `<option value="${m.id}" ${out.target===m.id?'selected':''}>${m.name}</option>`).join('')}
+          ${maps.map(m => `<option value="${m.id}" ${out.target===m.id?'selected':''}>${m.name}${m.isOverworld ? ' (Overworld)' : ''}</option>`).join('')}
         </select>`;
      } else if (out.type === 'startCombat') {
         return `<select class="noo-target" data-oi="${oi}" data-oui="${oui}" style="flex:1;">
