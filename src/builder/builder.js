@@ -9,7 +9,7 @@ import { renderKeyItemEditor } from './editors/keyitem-editor.js?v=1779267161';
 import { renderEnemyEditor } from './editors/enemy-editor.js?v=1779267161';
 import { renderEventEditor } from './editors/event-editor.js?v=1779267161';
 import { renderDeckEditor } from './editors/deck-editor.js?v=1779267161';
-import { renderMapEditor } from './editors/map-editor.js?v=1779267162';
+import { renderMapEditor } from './editors/map-editor.js?v=1779267165';
 import { renderFlagEditor } from './editors/flag-editor.js?v=1779267161';
 import { store } from '../data/store.js?v=1779267161';
 

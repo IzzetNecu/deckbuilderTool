@@ -42,7 +42,14 @@ export function renderMapEditor(container) {
 
   function render() {
     const selectedMap = maps.find(m => m.id === selectedMapId) || null;
-    const overworld = maps.find(m => m.isOverworld);
+    const rootMaps = maps
+      .filter(m => !m.parentMapId || !maps.some(parent => parent.id === m.parentMapId))
+      .sort((a, b) => {
+        if (a.isOverworld !== b.isOverworld) return a.isOverworld ? -1 : 1;
+        return (a.name || '').localeCompare(b.name || '');
+      });
+    const hasOverworld = maps.some(m => m.isOverworld);
+    const hasOtherOverworld = selectedMap ? maps.some(m => m.isOverworld && m.id !== selectedMap.id) : false;
 
     const restoreScroll = captureEditorScroll(container);
 
@@ -50,7 +57,7 @@ export function renderMapEditor(container) {
       <div class="editor-header">
         <h2>Map Editor (Node Graph)</h2>
         <div>
-           ${!overworld ? `<button id="btn-create-overworld" class="primary">+ Create Overworld</button>` : `<button id="btn-create-submap">+ Create Submap</button>`}
+           ${!hasOverworld ? `<button id="btn-create-overworld" class="primary">+ Create Overworld</button>` : `<button id="btn-create-submap">+ Create Submap</button>`}
         </div>
       </div>
       <div class="editor-body split-pane">
@@ -61,7 +68,9 @@ export function renderMapEditor(container) {
              <strong>Map Hierarchy</strong>
           </div>
           <div class="item-list">
-             ${renderMapTree(overworld)}
+             ${rootMaps.length > 0
+               ? rootMaps.map(map => renderMapTree(map)).join('')
+               : '<div style="padding:16px; color:var(--text-secondary);">No maps exist.</div>'}
           </div>
         </div>
 
@@ -71,10 +80,10 @@ export function renderMapEditor(container) {
             <div style="padding: 16px; border-bottom: 1px solid var(--border); display:flex; gap: 16px; background:var(--bg-surface); flex-wrap:wrap;">
               <input type="text" id="map-name" value="${selectedMap.name}" placeholder="Map Name" style="flex:1; min-width:150px;" />
               <div style="display:flex; align-items:center; gap:8px;">
-                <input type="text" id="map-bg" value="${selectedMap.backgroundImage || ''}" placeholder="e.g. assets/maps/overworld.png" style="flex:2; min-width:200px; font-size:0.85em;" />
+              <input type="text" id="map-bg" value="${selectedMap.backgroundImage || ''}" placeholder="e.g. assets/maps/overworld.png" style="flex:2; min-width:200px; font-size:0.85em;" />
                 <input type="file" id="map-bg-upload" accept="image/*" style="width: 200px; font-size:0.8em;" />
               </div>
-              ${selectedMap.isOverworld ? `<span style="align-self:center; color:var(--accent);">★ Overworld</span>` : `
+              ${selectedMap.isOverworld && !hasOtherOverworld ? `<span style="align-self:center; color:var(--accent);">★ Overworld</span>` : `
                  <button id="btn-delete-map" class="danger">Delete Map</button>
               `}
             </div>
@@ -124,21 +133,6 @@ export function renderMapEditor(container) {
      childMaps.forEach(child => {
         html += renderMapTree(child, depth + 1);
      });
-
-     // Floating unlinked maps
-     if (depth === 0) {
-        const unlinked = maps.filter(m => !m.isOverworld && !m.parentMapId);
-        if (unlinked.length > 0) {
-           html += `<div style="padding: 8px 16px; color:var(--text-secondary); font-size:0.8em; margin-top:16px; border-top:1px solid var(--border);">Unlinked Maps</div>`;
-           unlinked.forEach(u => {
-              html += `
-                 <div class="list-item ${u.id === selectedMapId ? 'selected' : ''}" data-id="${u.id}" style="padding-left: 16px;">
-                    <strong style="color: ${u.name ? 'inherit' : 'var(--text-secondary)'}">${u.name || 'Unnamed Map'}</strong>
-                 </div>
-              `;
-           });
-        }
-     }
 
      return html;
   }

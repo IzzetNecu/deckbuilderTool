@@ -215,10 +215,14 @@
           "type": "damage",
           "amount": 6,
           "target": "enemy",
-          "scaling": "strength"
+          "scaling": "strength",
+          "statusId": ""
         }
       ],
-      "card_affinities": []
+      "card_affinities": [],
+      "factionId": "",
+      "cardImage": "assets/cards/strike.png",
+      "requiresTarget": true
     },
     {
       "id": "card_guard",
@@ -239,7 +243,7 @@
       ],
       "card_affinities": [],
       "factionId": "",
-      "cardImage": "",
+      "cardImage": "assets/cards/guard.png",
       "requiresTarget": false
     },
     {
@@ -260,7 +264,7 @@
         }
       ],
       "factionId": "",
-      "cardImage": "",
+      "cardImage": "assets/cards/focus_sight.png",
       "requiresTarget": false,
       "card_affinities": []
     },
@@ -277,16 +281,21 @@
           "type": "draw",
           "amount": 1,
           "target": "self",
-          "scaling": "none"
+          "scaling": "none",
+          "statusId": ""
         },
         {
           "type": "block",
           "amount": 3,
           "target": "self",
-          "scaling": "dexterity"
+          "scaling": "dexterity",
+          "statusId": ""
         }
       ],
-      "card_affinities": []
+      "card_affinities": [],
+      "factionId": "",
+      "cardImage": "assets/cards/quick_think.png",
+      "requiresTarget": false
     },
     {
       "id": "card_heavy_blow",
@@ -301,10 +310,14 @@
           "type": "damage",
           "amount": 11,
           "target": "enemy",
-          "scaling": "strength"
+          "scaling": "strength",
+          "statusId": ""
         }
       ],
-      "card_affinities": []
+      "card_affinities": [],
+      "factionId": "",
+      "cardImage": "assets/cards/heavy_blow.png",
+      "requiresTarget": true
     },
     {
       "id": "card_scout_slash",
@@ -319,10 +332,14 @@
           "type": "damage",
           "amount": 7,
           "target": "enemy",
-          "scaling": "strength"
+          "scaling": "strength",
+          "statusId": ""
         }
       ],
-      "card_affinities": []
+      "card_affinities": [],
+      "factionId": "",
+      "cardImage": "assets/cards/scout_slash.png",
+      "requiresTarget": true
     },
     {
       "id": "card_ward_plate",
@@ -1054,8 +1071,8 @@
       "nodes": [
         {
           "id": "node_camp",
-          "x": 370.8560879543047,
-          "y": 508.87113942859014,
+          "x": 363.8560879543047,
+          "y": 494.87113942859014,
           "label": "Camp",
           "description": "The route starts here. Test the fights in any order along the path.",
           "isStartingNode": true,
@@ -1065,33 +1082,20 @@
               "text": "Review your route",
               "conditions": [],
               "outcomes": []
-            },
-            {
-              "id": "node_camp_elemental",
-              "text": "Travel to the Elemental Proving Grounds",
-              "conditions": [],
-              "outcomes": [
-                {
-                  "id": "outcome_camp_elemental",
-                  "type": "travelToMap",
-                  "target": "map_elemental_proving_grounds",
-                  "value": ""
-                }
-              ]
             }
           ]
         },
         {
           "id": "node_bandit",
-          "x": 581.9608701301338,
-          "y": 367.93972828467804,
+          "x": 572,
+          "y": 357,
           "label": "Bandit",
-          "description": "A straightforward enemy. Your base insight should reveal both upcoming cards.",
+          "description": "A straightforward enemy. ",
           "isStartingNode": false,
           "options": [
             {
               "id": "node_bandit_fight",
-              "text": "Fight the Bandit Lookout",
+              "text": "Fight the Bandit",
               "conditions": [],
               "outcomes": [
                 {
@@ -1100,21 +1104,22 @@
                   "target": "enemy_bandit",
                   "value": ""
                 }
-              ]
+              ],
+              "lockType": "soft"
             }
           ]
         },
         {
           "id": "node_seer",
-          "x": 325.2523346554552,
-          "y": 285.9834315366483,
+          "x": 286,
+          "y": 277,
           "label": "Seer",
           "description": "An enemy with matching insight. You should lose most or all preview information until you play Focus Sight.",
           "isStartingNode": false,
           "options": [
             {
               "id": "node_seer_fight",
-              "text": "Fight the Ash Seer",
+              "text": "Fight the Seer",
               "conditions": [],
               "outcomes": [
                 {
@@ -1123,21 +1128,22 @@
                   "target": "enemy_seer",
                   "value": ""
                 }
-              ]
+              ],
+              "lockType": "soft"
             }
           ]
         },
         {
           "id": "node_brute",
-          "x": 503.988640685648,
-          "y": 136.8579340342715,
+          "x": 504,
+          "y": 137,
           "label": "Brute",
           "description": "A heavier final target with a stronger deck.",
           "isStartingNode": false,
           "options": [
             {
               "id": "node_brute_fight",
-              "text": "Fight the Tunnel Brute",
+              "text": "Fight the Brute",
               "conditions": [],
               "outcomes": [
                 {
@@ -1146,7 +1152,8 @@
                   "target": "enemy_brute",
                   "value": ""
                 }
-              ]
+              ],
+              "lockType": "soft"
             }
           ]
         }
@@ -1170,221 +1177,6 @@
           "id": "conn_3",
           "fromNodeId": "node_seer",
           "toNodeId": "node_brute",
-          "conditions": [],
-          "gateType": "none"
-        }
-      ]
-    },
-    {
-      "id": "map_elemental_proving_grounds",
-      "name": "Elemental Proving Grounds",
-      "description": "A hub map with one encounter for each elemental pair.",
-      "backgroundImage": "assets/maps/DesertOasis_digital_grid.webp",
-      "isOverworld": true,
-      "parentMapId": null,
-      "nodes": [
-        {
-          "id": "node_elemental_hub",
-          "x": 391,
-          "y": 490,
-          "label": "Hub",
-          "description": "Use the extra elemental cards and equipment to test each status pair.",
-          "isStartingNode": true,
-          "options": [
-            {
-              "id": "node_elemental_return",
-              "text": "Return to the Combat Demo Route",
-              "conditions": [],
-              "outcomes": [
-                {
-                  "id": "outcome_elemental_return",
-                  "type": "travelToMap",
-                  "target": "map_demo_overworld",
-                  "value": ""
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "node_fire_trial",
-          "x": 175,
-          "y": 330,
-          "label": "Fire Trial",
-          "description": "Tests Heat and Burning on attack effects.",
-          "isStartingNode": false,
-          "options": [
-            {
-              "id": "node_fire_fight",
-              "text": "Fight the Pyre Apprentice",
-              "conditions": [],
-              "outcomes": [
-                {
-                  "id": "outcome_fire_fight",
-                  "type": "startCombat",
-                  "target": "enemy_pyre_apprentice",
-                  "value": ""
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "node_water_trial",
-          "x": 324,
-          "y": 220,
-          "label": "Water Trial",
-          "description": "Tests Flow and Slippery on block effects.",
-          "isStartingNode": false,
-          "options": [
-            {
-              "id": "node_water_fight",
-              "text": "Fight the Tide Keeper",
-              "conditions": [],
-              "outcomes": [
-                {
-                  "id": "outcome_water_fight",
-                  "type": "startCombat",
-                  "target": "enemy_tide_keeper",
-                  "value": ""
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "node_earth_trial",
-          "x": 517,
-          "y": 215,
-          "label": "Earth Trial",
-          "description": "Tests Regen and Poison on turn boundaries.",
-          "isStartingNode": false,
-          "options": [
-            {
-              "id": "node_earth_fight",
-              "text": "Fight the Moss Tender",
-              "conditions": [],
-              "outcomes": [
-                {
-                  "id": "outcome_earth_fight",
-                  "type": "startCombat",
-                  "target": "enemy_moss_tender",
-                  "value": ""
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "node_wind_trial",
-          "x": 645,
-          "y": 332,
-          "label": "Wind Trial",
-          "description": "Tests Haste and Slowed timing around the draw step.",
-          "isStartingNode": false,
-          "options": [
-            {
-              "id": "node_wind_fight",
-              "text": "Fight the Gale Runner",
-              "conditions": [],
-              "outcomes": [
-                {
-                  "id": "outcome_wind_fight",
-                  "type": "startCombat",
-                  "target": "enemy_gale_runner",
-                  "value": ""
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "node_ice_trial",
-          "x": 566,
-          "y": 540,
-          "label": "Ice Trial",
-          "description": "Tests Scaled and Chill at end of turn.",
-          "isStartingNode": false,
-          "options": [
-            {
-              "id": "node_ice_fight",
-              "text": "Fight the Rime Guard",
-              "conditions": [],
-              "outcomes": [
-                {
-                  "id": "outcome_ice_fight",
-                  "type": "startCombat",
-                  "target": "enemy_rime_guard",
-                  "value": ""
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "node_lightning_trial",
-          "x": 292,
-          "y": 559,
-          "label": "Lightning Trial",
-          "description": "Tests Energized and Jolted on the shared play-card wrapper.",
-          "isStartingNode": false,
-          "options": [
-            {
-              "id": "node_lightning_fight",
-              "text": "Fight the Static Magus",
-              "conditions": [],
-              "outcomes": [
-                {
-                  "id": "outcome_lightning_fight",
-                  "type": "startCombat",
-                  "target": "enemy_static_magus",
-                  "value": ""
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "connections": [
-        {
-          "id": "conn_elemental_fire",
-          "fromNodeId": "node_elemental_hub",
-          "toNodeId": "node_fire_trial",
-          "conditions": [],
-          "gateType": "none"
-        },
-        {
-          "id": "conn_elemental_water",
-          "fromNodeId": "node_elemental_hub",
-          "toNodeId": "node_water_trial",
-          "conditions": [],
-          "gateType": "none"
-        },
-        {
-          "id": "conn_elemental_earth",
-          "fromNodeId": "node_elemental_hub",
-          "toNodeId": "node_earth_trial",
-          "conditions": [],
-          "gateType": "none"
-        },
-        {
-          "id": "conn_elemental_wind",
-          "fromNodeId": "node_elemental_hub",
-          "toNodeId": "node_wind_trial",
-          "conditions": [],
-          "gateType": "none"
-        },
-        {
-          "id": "conn_elemental_ice",
-          "fromNodeId": "node_elemental_hub",
-          "toNodeId": "node_ice_trial",
-          "conditions": [],
-          "gateType": "none"
-        },
-        {
-          "id": "conn_elemental_lightning",
-          "fromNodeId": "node_elemental_hub",
-          "toNodeId": "node_lightning_trial",
           "conditions": [],
           "gateType": "none"
         }
